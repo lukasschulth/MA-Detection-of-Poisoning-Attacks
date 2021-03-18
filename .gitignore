@@ -1,0 +1,16 @@
+
+
+# vtu and pvd files
+*.vtu
+*.pvd
+*.aux
+*.log
+*.out
+*.thm
+*.synctex.gz
+*.pytxcode
+*.AppImage
+.AppImage
+2019_Book_LehrbuchDerTechnischenMechanik.pdf
+.idea
+Projektbeschreibung
