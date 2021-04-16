@@ -1,0 +1,226 @@
+\documentclass{article}
+% Damit die Verwendung der deutschen Sprache nicht ganz so umst\"andlich wird,
+% sollte man die folgenden Pakete einbinden: 
+%\usepackage[latin1]{inputenc}% erm\"oglich die direkte Eingabe der Umlaute 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} % das Trennen der Umlaute
+%\usepackage{ngerman}[babel] 
+\usepackage[english,ngerman]{babel} %Version in meinem Numerik Vortrag
+\usepackage{caption}[2011/11/10]
+
+\newcommand{\figsource}[1]{%
+	\addtocounter{figure}{-1}
+	\captionlistentry{source: #1}
+}
+\usepackage[multiple]{footmisc}
+%\usepackage{pythontex} % \inputpygments{python}{file_1.py}
+\usepackage{caption}
+\usepackage{verbatim}
+\usepackage{subcaption}
+\usepackage{amssymb}  
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\graphicspath{ {figures/} }
+%\pagenumbering{arabic}
+\usepackage{caption}
+\usepackage{ntheorem}
+\usepackage{tabto}  
+\usepackage{appendix}  
+\usepackage[multiple]{footmisc} %multiple footnotes
+\newcommand\mytab{\tab \hspace{1cm}}
+\theoremstyle{break}
+\newtheorem{theorem}{Theorem}
+\title{Masterarbeit}
+\author{
+	
+	Lukas Schulth\\
+	\texttt{lukas.schulth@uni.kn}
+}
+
+\date{\today}
+
+\begin{document}
+	\maketitle
+	
+	\newpage
+	\begin{abstract}
+		abstract
+	\end{abstract}
+	\newpage
+	
+	\listoffigures
+	
+	\listoftables
+	
+	\newpage
+	\tableofcontents
+	\newpage
+	
+
+	
+	
+	
+	\section{Einführung}
+	
+	A Complete List of All (arXiv) Adversarial Example Papers \footnote{\url{https://nicholas.carlini.com/writing/2019/all-adversarial-example-papers.html}}
+	
+	\subsection{Neuronale Netzwerke}
+	
+	\subsubsection{CNNS}
+	Idee, Abstraktion, high level, low level features, bekannte Netzwerke
+	
+	
+	\subsection{Poisoning-Angriffe}
+	
+	\section{Erklärbare KI}
+	
+	\subsection{Lokale Methoden}
+	
+	\subsection{Globale Methoden}
+	
+	\section{Layer-wise Relevance Propagation}
+	\subsection{Idee}
+	
+	In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vorgestellt. Zudem wird eine Taylor Zerlegung präsentiert, die eine Approximation der LRP darstellt.
+	\subsection{Deep Taylor Decomposition}
+	Laut \cite{DTD} ist die in \cite{LRP_first_paper} vorgestellte Layer-wise Relevance Propagation eher heuristisch. In diesem Paper wird nun eine solide theoretische Grundlage geliefert.\\
+	
+	\begin{comment}
+		The widely used Oaxaca decomposition applies to linear models. Extending it to commonly used nonlinear models such as binary choice and duration models is not straightforward. This paper shows that the original decomposition using a linear model can be obtained as a first order Taylor expansion. This basis provides a means of obtaining a coherent and unified approach which applies to nonlinear models, which we refer to as a Taylor decomposition. Explicit formulae are provided for the Taylor decomposition for the main nonlinear models used in applied econometrics including the Probit binary choice and Weibull duration models. The detailed decomposition of the explained component is expressed in terms of what are usually referred to as marginal effects and a remainder. Given Jensen's inequality, the latter will always be present in nonlinear models unless an ad hoc or tautological basis for decomposition is used.
+	\end{comment}
+	
+	\subsection{Verschiedene Verfahren}
+	
+	\begin{itemize}
+		\item LRP-0
+		\item LRP-$\varepsilon$
+		\item LRP-$\gamma$
+	\end{itemize}
+
+	\subsection{LRP als DTD}
+	siehe \cite{XAI:book}, Kapitel 10.
+	
+	\subsection{Eigenschaften}
+	In \cite{LRP_DNN} werden die folgenden Eigenschaften für die drei verschiedenen Verfahren genannt, aber nicht wirklich untersucht?!
+	\begin{itemize}
+		\item Numerische Stabilität
+		\item Konsistenz (mit Linearer Abbildung)
+		\item Erhaltung der Relevanz
+	\end{itemize}
+
+	\subsection{Implementierung}
+	
+	\subsubsection{Tensorflow}
+	\subsubsection{pytorch}
+	
+	\textbf{Allgemeines Tutorial}:\footnote{\url{https://git.tu-berlin.de/gmontavon/lrp-tutorial}}\\ pytorch-LRP für VGG16 wird vorgestellt.\\
+	
+	
+	\noindent \textbf{GiorgioML}\footnote{\url{https://giorgiomorales.github.io/Layer-wise-Relevance-Propagation-in-Pytorch/}}:\\
+	Alternative pytorch-Implementierung basierend auf Tensorflow paper.\\
+	
+	\noindent \textbf{moboehle}\footnote{\url{https://github.com/moboehle/Pytorch-LRP}}:\\
+	
+	\noindent Unterstützte Netzwerkschickten\footnote{\url{https://github.com/moboehle/Pytorch-LRP/blob/master/inverter_util.py}}:\\
+	
+	\noindent $allowed\_pass\_layers = (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d,\\
+	torch.nn.BatchNorm3d,
+	torch.nn.ReLU, torch.nn.ELU, Flatten,
+	torch.nn.Dropout,\\ torch.nn.Dropout2d,
+	torch.nn.Dropout3d,
+	torch.nn.Softmax,
+	torch.nn.LogSoftmax,
+	torch.nn.Sigmoid)$\\
+	
+	\noindent \textbf{fhvilshoj}\footnote{\url{https://github.com/fhvilshoj/TorchLRP}}:\\
+	
+	
+	
+	\noindent PyTorch implementation of some of the Layer-Wise Relevance Propagation (LRP) rules, [1, 2, 3], for linear layers and convolutional layers.
+	
+	The modules decorates torch.nn.Sequential, torch.nn.Linear, and torch.nn.Conv2d to be able to use autograd backprop algorithm to compute explanations.
+	\begin{itemize}
+		\item Ausgabe der Relevanzen von Zwischenschichten ist möglich
+		\item: Implementierte Regeln: epsilon Regeln mit epsilon=1e-1, gamma-regel mit gamma=1e-1. alphabeta-Reagel mit a1b0 und a2b1
+	\end{itemize}
+	
+
+	
+	\noindent \textbf{Zennit}:\footnote{\url{https://github.com/chr5tphr/zennit}}
+	Zennit (Zennit explains neural networks in torch) is a high-level framework in Python using PyTorch for explaining/exploring neural networks. Its design philosophy is intended to provide high customizability and integration as a standardized solution for applying LRP-based attribution methods in research.
+	\section{Detektion von Poisoning-Angriffen basierend auf LRP}
+	\subsection{Idee}
+	Die Idee zur Detektion von Poisoning-Angriffen besteht aus den folgenden Schritten:
+	
+	\begin{itemize}
+		\item Berechnung der Heatmaps mit Hilfe der LRP
+		\item Berechnung einer Distanzmatrix basierend auf $L²-$ oder GMW-Distanz
+		\item Spektrale Relevanzanalyse (Bestimmung der verschiedenen Cluster innerhalb einer Klasse)
+	\end{itemize}
+
+	\noindent  \textbf{Bemerkung:} Anstatt das Clustering nur auf den Heatmaps durchzuführen, könnten die LRP-Ausgaben und/oder Aktivierungen bestimmer NEtzwerkschichten hinzugenommen werden.
+	\subsection{Verwendete Distanzen}
+	\subsubsection{Euklidische Distanz}
+	\subsubsection{Gromov-Wasserstein-Distanz}
+	\subsection{Anwendung auf unterschiedliche Poisoning-Angriffe}	\subsubsection{Standard Poisoning-Angriffe}
+	\subsubsection{Label-konsistente Poisoning-Angriffe}
+	\section{Vergleich mit anderen Verfahren}
+	\subsection{Activation Clustering}
+	\subsection{Räumliche Transformationen}
+	\begin{itemize}
+		\item ASR ist sehr stark vom Ort des Triggers abhängig.
+		\item Ort des Triggers kann nicht direkt geändert werden.
+		\item Benutze Transformationen(Flipping, Scaling), um den Trigger wirkungslos zu machen.
+		\item Somit kann die ASR während der Inferenz verringert werden. Es lässt sich aber keine Auussage darüber treffen, ob ein Angriff vorliegt
+	\end{itemize}
+	
+	\section{Weitere mögliche Schritte}
+	\begin{itemize}
+		\item Automatische Platzierung des Auslösers an fest gewählter Position auf dem Verkehrsschild anstatt zufälligem Platzierem in einem Fenster mit vorher festgelegter Größe. In \cite{badnets} wird  Faster-RCNN (F-RCNN) zur Klassifikation des LISA-Datensatzes\footnote{\url{http://cvrr.ucsd.edu/LISA/lisa-traffic-sign-dataset.html}} benutzt. Es ist die Aufgabe, die Verkehrsschilder in die 3 Superklassen Stoppschild, Geschwindigkeitsbegrenzung und Warnschild einzuteilen. Der Datensatz enthält zudem die BoundingBoxen, sodass der Auslöser genauer angebracht werden kann.
+		\item Verbesserte Version der Layer-wise Relevance Propagation
+		\item Untersuchung anderer Verfahren, die die Interpretierbarkeit ermöglichen, beispielsweise: VisualBackProp: efficient visualization of CNNs\footnote{\url{https://arxiv.org/abs/1611.05418}}
+		\item Vergleich mit Cifar-10/Cifar-100 Datensatz\footnote{\url{https://www.cs.toronto.edu/~kriz/cifar.html}}\footnote{\url{https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf}}
+	\end{itemize}
+	
+	\newpage
+	\appendix
+	\section{Verwendete Netzwerke}
+	\section{Parameter für Training und Einlesen der Daten}
+	Die in \cite{CH} gewählten Parameter wären ein guter Ausgangspunkt.
+	\section{Datensätze}
+	\section{Programmcode}
+
+	\newpage
+	\begin{thebibliography}{}
+		\bibitem{LRP_DNN} Layer-wise Relevance Propagation for Deep
+		Neural Network Architectures. Alexander Binder, Sebastian Bach, Gregoire Montavon, Klaus-Robert Müller und Wojciech Samek
+		
+		\bibitem{CH}Finding and Removing Clever Hans:
+		Using Explanation Methods to Debug and Improve Deep Models
+		
+		\bibitem{DTD} Explaining nonlinear classification decisions with deep Taylor
+		decomposition
+		
+		\bibitem{LRP_first_paper} On Pixel-Wise Explanations for Non-Linear
+		Classifier Decisions by Layer-Wise Relevance
+		Propagation
+		
+		\bibitem{TD} S. Bazen, X. Joutard, The Taylor decomposition: a unified generalization of the
+		Oaxaca method to nonlinear models, Technical Report 2013-32, Aix-Marseille
+		University, 2013.
+		
+		\bibitem{oaxaca} R. Oaxaca, Male-female wage differentials in urban labor markets, Int. Econ. Rev.
+		14 (3) (1973) 693–709
+		
+		\bibitem{badnets} BadNets: Identifying Vulnerabilities in the Machine Learning Model Supply Chain
+		
+		\bibitem{XAI:book}Montavon G., Binder A., Lapuschkin S., Samek W., Müller KR. (2019) Layer-Wise Relevance Propagation: An Overview. In: Samek W., Montavon G., Vedaldi A., Hansen L., Müller KR. (eds) Explainable AI: Interpreting, Explaining and Visualizing Deep Learning. Lecture Notes in Computer Science, vol 11700. Springer, Cham. https://doi.org/10.1007/978-3-030-28954-6\_10
+		
+				
+	\end{thebibliography}
+
+	
+	
+\end{document}
