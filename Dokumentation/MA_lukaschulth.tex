@@ -31,6 +31,73 @@
 \usepackage[multiple]{footmisc} %multiple footnotes
 \newcommand\mytab{\tab \hspace{1cm}}
 \theoremstyle{break}
+
+%%% ------------ Kopf- und Fußzeile
+% https://esc-now.de/_/latex-individuelle-kopf--und-fusszeilen/?lang=de
+\usepackage[headtopline,headsepline]{scrpage2}
+\pagestyle{scrheadings}
+\clearscrheadfoot
+\ofoot{\pagemark}
+
+\ohead{\headmark}
+\automark[subsection]{section}
+
+% Linien
+
+\setheadtopline{0pt}
+\setheadsepline{.5pt}
+
+% Keywords command
+\providecommand{\keywords}[1]
+{
+	\small	
+	\textbf{\textit{Keywords---}} #1
+}
+%%% ---------------------------------------------------
+
+\usepackage{glossaries}
+
+\makeglossaries
+
+
+\newglossaryentry{latex}
+{
+	name=latex,
+	description={Is a mark up language specially suited 
+		for scientific documents}
+}
+
+%%% -----------------------------------------------------------
+% Python code einfügen:
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
+%%%%%%%%%%%%%%%%%%%% -------------------------------------------------
 \newtheorem{theorem}{Theorem}
 \title{Masterarbeit}
 \author{
@@ -48,11 +115,14 @@
 	\begin{abstract}
 		abstract
 	\end{abstract}
+	\keywords{one, two, three, four}
 	\newpage
 	
 	\listoffigures
 	
 	\listoftables
+	
+	\lstlistoflistings
 	
 	\newpage
 	\tableofcontents
@@ -65,7 +135,8 @@
 	\section{Einführung}
 	
 	A Complete List of All (arXiv) Adversarial Example Papers \footnote{\url{https://nicholas.carlini.com/writing/2019/all-adversarial-example-papers.html}}
-	
+	\\
+	In sicherheitskritischen Anwendungsgebieten ist die Interpretation einer Entscheidung genauso wichtig wie die Entscheidung selbst\cite{LRP_DNN}.
 	\subsection{Neuronale Netzwerke}
 	
 	\subsubsection{CNNS}
@@ -91,6 +162,8 @@
 		The widely used Oaxaca decomposition applies to linear models. Extending it to commonly used nonlinear models such as binary choice and duration models is not straightforward. This paper shows that the original decomposition using a linear model can be obtained as a first order Taylor expansion. This basis provides a means of obtaining a coherent and unified approach which applies to nonlinear models, which we refer to as a Taylor decomposition. Explicit formulae are provided for the Taylor decomposition for the main nonlinear models used in applied econometrics including the Probit binary choice and Weibull duration models. The detailed decomposition of the explained component is expressed in terms of what are usually referred to as marginal effects and a remainder. Given Jensen's inequality, the latter will always be present in nonlinear models unless an ad hoc or tautological basis for decomposition is used.
 	\end{comment}
 	
+	LRP in verschiedenen Anwendungsgebieten \cite{lrp_overview}, 10.2.
+	In diesem Paper:LRP-0 schlechter als LRP-$\varepsilon$ schlechter alsLRP-$\gamma$ schlechter als Composite-LRP.
 	\subsection{Verschiedene Verfahren}
 	
 	\begin{itemize}
@@ -145,8 +218,21 @@
 		\item Ausgabe der Relevanzen von Zwischenschichten ist möglich
 		\item: Implementierte Regeln: epsilon Regeln mit epsilon=1e-1, gamma-regel mit gamma=1e-1. alphabeta-Reagel mit a1b0 und a2b1
 	\end{itemize}
-	
 
+\begin{lstlisting}[language=Python, caption=Implementierte Regeln fhvilshoj]
+
+	conv2d = {
+		"gradient":             F.conv2d,
+		"epsilon":              Conv2DEpsilon.apply,
+		"gamma":                Conv2DGamma.apply,
+		"gamma+epsilon":        Conv2DGammaEpsilon.apply,
+		"alpha1beta0":          Conv2DAlpha1Beta0.apply,
+		"alpha2beta1":          Conv2DAlpha2Beta1.apply,
+		"patternattribution":   Conv2DPatternAttribution.apply,
+		"patternnet":           Conv2DPatternNet.apply,
+	}
+	
+\end{lstlisting}
 	
 	\noindent \textbf{Zennit}:\footnote{\url{https://github.com/chr5tphr/zennit}}
 	Zennit (Zennit explains neural networks in torch) is a high-level framework in Python using PyTorch for explaining/exploring neural networks. Its design philosophy is intended to provide high customizability and integration as a standardized solution for applying LRP-based attribution methods in research.
@@ -187,10 +273,52 @@
 	\newpage
 	\appendix
 	\section{Verwendete Netzwerke}
+	\subsection{Net}
+	
+	\begin{lstlisting}[language=Python, caption=Kleines Netzwerk]
+	
+	class Net(nn.Module):
+	
+		def __init__(self, ):
+			super(Net, self).__init__()
+			self.size = 64 * 4 * 4
+			self.conv1 = nn.Conv2d(in_channels=3, out_channels=12, kernel_size=5, padding=2)
+			self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+			self.conv1_in = nn.InstanceNorm2d(12)
+			self.conv2 = nn.Conv2d(in_channels=12, out_channels=32, kernel_size=5, padding=2)
+			
+			self.conv2_bn = nn.BatchNorm2d(32)
+			
+			self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, padding=2)
+			
+			self.fc1 = nn.Linear(self.size, 256)
+			self.fc1_bn = nn.BatchNorm1d(256)
+			self.fc2 = nn.Linear(256, 128)
+			self.fc3 = nn.Linear(128, 43)
+		
+	
+		def forward(self, x):
+			x = self.pool(F.relu(self.conv1_in(self.conv1(x))))
+			x = self.pool(F.relu(self.conv2_bn(self.conv2(x))))
+			x = self.pool(F.relu(self.conv3(x)))
+			x = x.view(-1, self.size)
+			x = F.relu(self.fc1_bn(self.fc1(x)))
+			x = F.dropout(x)
+			xx = F.relu(self.fc2(x))
+			x = F.dropout(xx)
+			x = self.fc3(x)
+			
+			return x, xx
+	
+	\end{lstlisting}
 	\section{Parameter für Training und Einlesen der Daten}
 	Die in \cite{CH} gewählten Parameter wären ein guter Ausgangspunkt.
 	\section{Datensätze}
 	\section{Programmcode}
+	
+	\newpage
+	
+	\printglossaries
 
 	\newpage
 	\begin{thebibliography}{}
@@ -217,6 +345,11 @@
 		\bibitem{badnets} BadNets: Identifying Vulnerabilities in the Machine Learning Model Supply Chain
 		
 		\bibitem{XAI:book}Montavon G., Binder A., Lapuschkin S., Samek W., Müller KR. (2019) Layer-Wise Relevance Propagation: An Overview. In: Samek W., Montavon G., Vedaldi A., Hansen L., Müller KR. (eds) Explainable AI: Interpreting, Explaining and Visualizing Deep Learning. Lecture Notes in Computer Science, vol 11700. Springer, Cham. https://doi.org/10.1007/978-3-030-28954-6\_10
+		
+		\bibitem{lrp_overview} Layer-Wise Relevance Propagation:
+		An Overview
+		Grégoire Montavon 1 , Alexander Binder 2 , Sebastian Lapuschkin 3 , Wojciech
+		Samek 3 , and Klaus-Robert Müller 1,4,5
 		
 				
 	\end{thebibliography}

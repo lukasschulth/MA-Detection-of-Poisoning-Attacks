@@ -1,18 +1,16 @@
+
+
 import os
 import shutil
 from distutils.dir_util import copy_tree
 from os.path import join
-from random import randint, sample, random
-
-
+from random import sample, random
 
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
 import numpy as np
-from PIL import Image
-from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 import torchvision
 from PIL import Image
@@ -22,87 +20,44 @@ import torch
 import random
 import torch.optim as optim
 
-
-
-
 #from tensorflow.contrib.training import HParams
 import json
 
-from Logger import ValidationType, Logger
+from TrafficSignDataset import TrafficSignDataset
+# from tensorflow.contrib.training import HParams
+import json
+import os
+import random
+import shutil
+from distutils.dir_util import copy_tree
+from os.path import join
+from random import sample, random
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+from PIL import Image
+from sklearn.cluster import KMeans
+from torch import nn
+from torch.functional import F
+from torch.utils.data import DataLoader
+
+from TrafficSignDataset import TrafficSignDataset
+from coding.testest.innvestigator import InnvestigateModel
+from pytorchlrp_fhj.lrp import sequential
+
+
+#from Logger import ValidationType, Logger
 #from .Logger import ValidationType, Logger
 #from TrafficSignAI.Logger import ValidationType, Logger
+from coding.pytorchlrp_fhj.examples.explain_mnist import plot_attribution
+from coding.pytorchlrp_fhj.examples.visualization import heatmap_grid
 
+from coding.pytorchlrp_fhj.lrp import Sequential
 
-
-import os
-
-
-import PIL.Image
-from torch.utils.data import Dataset, DataLoader
-
-class TrafficSignDataset(Dataset):
-
-    def __init__(self, data_dir, transform: transforms):
-        # Get your Dataset here
-
-        self.dataset_dictionary = self.load_data_dir(data_dir=data_dir)
-            #self.images = self.resizeImages(images=self.images)
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.dataset_dictionary['images'])
-
-    def __getitem__(self, idx):
-
-        label = self.dataset_dictionary['labels'][idx]
-
-        image = self.dataset_dictionary['images'][idx]
-
-        poison_label = self.dataset_dictionary['poison_labels'][idx]
-
-        path = self.dataset_dictionary['paths'][idx]
-        ## Swap  W x H x C to H x W x C
-        # image = torch.FloatTensor(image).transpose(1, 0)
-        # image = image.transpose(2, 0)
-
-        # image = transforms.ToPILImage()(image)
-        # image = self.transform(image)
-
-        if self.transform is not None:
-           image = self.transform(image)
-        data_dict = {'image': image, 'label': label, 'poison_label' :poison_label, 'path': path}
-        return data_dict
-
-    def load_data_dir(self, data_dir):
-        # Get all subdirectories of data_dir. Each represents a label.
-        directories = [d for d in os.listdir(data_dir)
-                       if os.path.isdir(os.path.join(data_dir, d))]
-        # d verschiedene Labels
-
-        # Loop through the label directories and collect the data in
-        # two lists, labels and images.
-        labels = []
-        images = []
-        poison_labels = []
-        paths = []
-
-        for d in directories:
-            label_dir = os.path.join(data_dir, d)
-            file_names = [os.path.join(label_dir, f) for f in os.listdir(label_dir) if not f.endswith(".csv")]
-
-            for f in file_names:
-                if f.endswith("_poison.jpeg"):
-                    poison_labels.append(int(1))
-                else:
-                    poison_labels.append(int(0))
-                # images.append(skimage.data.imread(f))
-                images.append(PIL.Image.open(f))
-                labels.append(int(d))
-                paths.append(f)
-
-        dataset_dictionary = {'labels': labels, 'images': images, 'poison_labels': poison_labels, 'paths': paths}
-
-        return dataset_dictionary
 
 class InceptionNet3(nn.Module):
     def __init__(self):
@@ -156,6 +111,88 @@ class InceptionNet3(nn.Module):
         layers = [inception, pool1, batchConv1, pool1, batchConv2, pool1, batchConv3, pool1]
         return nn.Sequential(*layers)
 
+class cnn_Net(nn.Module):
+    # https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
+    def __init__(self):
+        super(cnn_Net, self).__init__()
+        # 1 input image channel, 6 output channels, 3x3 square convolution
+        # kernel
+        self.conv1 = nn.Conv2d(3, 6, (3, 3))
+        self.conv2 = nn.Conv2d(6, 16, (3, 3))
+        # an affine operation: y = Wx + b
+        self.fc1 = nn.Linear(16 * 6 * 6, 120)  # 6*6 from image dimension
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 43)
+
+    def forward(self, x):
+        # Max pooling over a (2, 2) window
+        print(x.shape)
+        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        print(x.shape)
+        # If the size is a square, you can specify with a single number
+        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        print(x.shape)
+        x = x.view(-1, self.num_flat_features(x))
+        print(x.shape)
+        x = F.relu(self.fc1(x))
+        print(x.shape)
+        xx = F.relu(self.fc2(x))
+        print(xx.shape)
+        x = self.fc3(xx)
+        print(x.shape)
+        return x, xx
+
+    def num_flat_features(self, x):
+        size = x.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+
+def simple_Network2():
+    simple_model = nn.Sequential(
+            nn.Conv2d(3, 12, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2 )),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
+            nn.Conv2d(12, 32, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
+            nn.Conv2d(32, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
+            nn.Conv2d(64, 128, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
+            nn.Linear(in_features=512, out_features=256, bias=True),
+            nn.ReLU(),
+            nn.Linear(in_features=256, out_features=128, bias=True),
+            nn.ReLU(),
+            nn.Linear(in_features=128, out_features=43, bias=True),
+    )
+    return simple_model
+
+"""
+simple_Network2 (
+( conv1 ) : Conv2d ( 3 , 1 2 , k e r n e l _ s i z e =(5 , 5 ) , s t r i d e =(1 , 1 ) , padding =(2 , 2 ) )
+( r e l u 1 ) : ReLU ( )
+( p o o l 1 ) : MaxPool2d ( k e r n e l _ s i z e =2 , s t r i d e =2 , padding =0 , d i l a t i o n =1 , ceil_mode=F a l s e )
+( conv2 ) : Conv2d ( 1 2 , 3 2 , k e r n e l _ s i z e =(5 , 5 ) , s t r i d e =(1 , 1 ) , padding =(2 , 2 ) )
+( r e l u 2 ) : ReLU ( )
+( p o o l 2 ) : MaxPool2d ( k e r n e l _ s i z e =2 , s t r i d e =2 , padding =0 , d i l a t i o n =1 , ceil_mode=F a l s e )
+( conv3 ) : Conv2d ( 3 2 , 6 4 , k e r n e l _ s i z e =(5 , 5 ) , s t r i d e =(1 , 1 ) , padding =(2 , 2 ) )
+( r e l u 3 ) : ReLU ( )
+( p o o l 3 ) : MaxPool2d ( k e r n e l _ s i z e =2 , s t r i d e =2 , padding =0 , d i l a t i o n =1 , ceil_mode=F a l s e )
+( conv4 ) : Conv2d ( 6 4 , 1 2 8 , k e r n e l _ s i z e =(5 , 5 ) , s t r i d e =(1 , 1 ) , padding =(2 , 2 ) )
+( r e l u 4 ) : ReLU ( )
+( p o o l 4 ) : MaxPool2d ( k e r n e l _ s i z e =2 , s t r i d e =2 , padding =0 , d i l a t i o n =1 , ceil_mode=F a l s e )
+( f c 1 ) : L i n e a r ( i n _ f e a t u r e s =512 , o u t _ f e a t u r e s =256 , b i a s=True )
+( r e l u _ f c 1 ) : ReLU ( )
+( f c 2 ) : L i n e a r ( i n _ f e a t u r e s =256 , o u t _ f e a t u r e s =128 , b i a s=True )
+( r e l u _ f c 2 ) : ReLU ( )
+( f c 3 ) : L i n e a r ( i n _ f e a t u r e s =128 , o u t _ f e a t u r e s =43 , b i a s=True )
+
+"""
+
 class Net(nn.Module):
 
     def __init__(self, ):
@@ -175,9 +212,9 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(256, 128)
         self.fc3 = nn.Linear(128, 43)
 
-
     def forward(self, x):
         x = self.pool(F.relu(self.conv1_in(self.conv1(x))))
+        x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2_bn(self.conv2(x))))
         x = self.pool(F.relu(self.conv3(x)))
         #print(x.shape)
@@ -189,6 +226,7 @@ class Net(nn.Module):
         x = self.fc3(x)
         #print(xx.shape)
         return x, xx
+
 
 class BatchConv(nn.Module):
     def __init__(self, in_channels, out_channels, name="Example", **kwargs):
@@ -303,8 +341,8 @@ class modelAi:
         self.BDSR_classwise = np.zeros((self.num_classes,))
         self.isPretrained = isPretrained
 
-        self.logger = Logger("../logs")
-
+        #self.logger = Logger("../logs")
+    """
     def log_tensorboard(self, epoch, loss_train, accuracy_train, input, validationType: ValidationType):
         # ================================================================== #
         #                        Tensorboard Logging                         #
@@ -329,7 +367,7 @@ class modelAi:
                 self.logger.histo_summary(tag + '/grad', value.grad.data.cpu().numpy(), epoch + 1,
                                           loggerType=validationType)
 
-
+    """
     def evaluate_retraining_all_classes(self, data_loader, T=1):
         # Load retrained model:
         #self.load(self.best_model_path)
@@ -461,9 +499,12 @@ class modelAi:
 
         return activations, labels, poison_labels, predictions, paths
 
-    def did_saved_model(self, with_name : str = None):
+    def did_save_model(self, with_name: str = None):
+        # Überprüfe, ob ein Model mit dem gesuchten Namen bereits vorhanden und abgespeichert ist.
+
         #TODO: Check if dir exists
-        dir = os.listdir("../AI_Model")
+
+        dir = os.listdir("./AI_Model")
         if not with_name == None: # When a name is set, check if the dir contains a file with the specific name.
             for file in dir:
                 if file == with_name:
@@ -694,9 +735,6 @@ class modelAi:
         total_bd_ca5 = 0
         total_bd_nca5 = 0
 
-
-
-
         for data in test_loader:
             # show progress
             images, labels, poison_labels,idx,path  = data
@@ -837,17 +875,17 @@ class modelAi:
         epoch_acc = running_corrects / total
         self.save(current_epoch)
 
-        self.log_tensorboard(epoch=current_epoch, loss_train=epoch_loss, accuracy_train=epoch_acc, input=(images, labels), validationType=ValidationType.TRAIN)
+        #self.log_tensorboard(epoch=current_epoch, loss_train=epoch_loss, accuracy_train=epoch_acc, input=(images, labels), validationType=ValidationType.TRAIN)
         return epoch_loss, epoch_acc
 
     def evaluate_test(self, dataloader):
-        return self.__evaluate(dataloader, 0, ValidationType.TEST)
+        return self.__evaluate(dataloader, 0)
 
-    def evaluate_valid(self,dataloader, epoch,retraining=False):
-        loss, acc = self.__evaluate(dataloader,epoch, ValidationType.VALID,retraining=retraining)
+    def evaluate_valid(self,dataloader, epoch, retraining=False):
+        loss, acc = self.__evaluate(dataloader, epoch, retraining=retraining)
         return loss, acc
 
-    def __evaluate(self, test_dataloader, current_epoch, validation_type: ValidationType, visualize_after_epoch = 10, verbose = True,retraining=False):
+    def __evaluate(self, test_dataloader, current_epoch, retraining=False):
         self.net_retraining.eval()
         self.net.eval()
         predict_correct = 0
@@ -914,8 +952,7 @@ class modelAi:
         epoch_acc = predict_correct / total
 
 
-        self.log_tensorboard(epoch=current_epoch, loss_train=epoch_loss, accuracy_train=epoch_acc,
-                             input=(images, labels), validationType=validation_type)
+        #self.log_tensorboard(epoch=current_epoch, loss_train=epoch_loss, accuracy_train=epoch_acc,input=(images, labels), validationType=validation_type)
         return epoch_loss, epoch_acc
 
     """
@@ -952,7 +989,7 @@ class modelAi:
             if verbose:
                 print("=> Did save Model - {} - at epoch: {}".format(self.name, epoch))
 
-            torch.save(state, "../AI_Model/"+self.name)
+            torch.save(state, "./AI_Model/"+self.name)
     """
     def load(self,model_path):
         checkpoint = torch.load(model_path)
@@ -969,7 +1006,7 @@ class modelAi:
         if verbose:
             print("=> loading checkpoint '{}'".format(self.name))
 
-        checkpoint = torch.load("../AI_Model/"+self.name)
+        checkpoint = torch.load("./AI_Model/"+self.name)
         if type(checkpoint) is dict:
             start_epoch = checkpoint['epoch']
             self.net.load_state_dict(checkpoint['state_dict'])
@@ -989,8 +1026,6 @@ class modelAi:
         if verbose:
             print("=> Finished Loading\n")
 
-
-   
     def evaluate_retraining(self, class_to_check, T=1):
 
         # Create data for retraining evaluation:
@@ -1000,7 +1035,7 @@ class modelAi:
         #self.load(self.best_model_path)
         self.net_retraining.eval()
 
-        #num_classes könnt man irgendwie aus der letzten layer des Netztes abgreifen
+        #num_clasavesses könnt man irgendwie aus der letzten layer des Netztes abgreifen
         num_classes = 43
         number_of_predictions_of_suspicious_data = np.zeros((num_classes,), dtype=int)
 
@@ -1050,7 +1085,6 @@ class modelAi:
             print('p:', p)
 
         return lp, is_poisonous
-
 
 
     def retrain(self, train_dataloader, current_epoch):
@@ -1112,22 +1146,18 @@ class TrafficSignMain:
     test_dataloader: DataLoader = None
     test_dataloader_unpoisoned: DataLoader = None
 
-    def __init__(self, model : modelAi, epochs, image_size = 32) -> None:
+    def __init__(self, model: modelAi, epochs, image_size = 32) -> None:
         super().__init__()
 
-        self.visualizer = Visualizer()
+        #self.visualizer = Visualizer()
         self.model = model
-        self.model.visualizer = self.visualizer
+        #self.model.visualizer = self.visualizer
         self.epochs = epochs
 
         self.__create_train_transform(image_size)
         self.__create_test_transform(image_size)
 
-
-
-        self.hparams = HParams(
-            name=model.name,
-        )
+        #self.hparams = HParams(name=model.name,)
 
     def start_tensorboard(self):
         from tensorboard import program
@@ -1169,6 +1199,11 @@ class TrafficSignMain:
         )
 
     def creating_data(self, dataset=TrafficSignDataset, test_dir:str = None, train_dir:str = None, valid_dir:str = None, test_dir_unpoisoned:str = None, batch_size = 20):
+        if train_dir is not None:
+            train_dataset = dataset(train_dir, self.__train_transform)
+            self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+            del train_dataset
+
         if valid_dir is not None:
             valid_dataset = dataset(valid_dir, self.test_transform)
             self.valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True)
@@ -1179,17 +1214,13 @@ class TrafficSignMain:
             self.test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
             del test_dataset
 
-        if train_dir is not None:
-            train_dataset = dataset(train_dir, self.__train_transform)
-            self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-            del train_dataset
-
         if test_dir_unpoisoned is not None:
             test_dataset_unpoisoned = dataset(test_dir_unpoisoned, self.__train_transform)
             self.test_dataloader_unpoisoned = DataLoader(test_dataset_unpoisoned, batch_size=batch_size, shuffle=True)
             del test_dataset_unpoisoned
+        print("Data creation complete.")
 
-    def creating_data_for_ac(self, dataset=TrafficSignDataset,test_dir:str = None, train_dir:str = None, valid_dir:str = None, batch_size = 20):
+    def creating_data_for_ac(self, dataset=TrafficSignDataset, test_dir:str = None, train_dir:str = None, valid_dir:str = None, batch_size = 20):
         # Delete old dataset:
 
         if valid_dir is not None:
@@ -1210,7 +1241,7 @@ class TrafficSignMain:
     # Function for using the AI.
 
     def loading_ai(self, isPretrained: bool, should_train_if_needed=True, should_evaluate=True, verbose=True):
-        if self.model.did_saved_model(self.model.name):
+        if self.model.did_save_model(self.model.name):
             if verbose:
                 print("\n=> Found a saved model, start loading model.\n")
             last_epochs = self.model.load(verbose=verbose)
@@ -1486,7 +1517,7 @@ class ActivationClustering:
         copy_tree(root_dir + "Testing", self.checkpoint_dir + "Original_Data/" + "Testing/")
         print('Daten in extra Ordner gesichert ...')
 
-        if self.main.model.did_saved_model(self.main.model.name):
+        if self.main.model.did_save_model(self.main.model.name):
 
             last_epochs = self.main.model.load(verbose=False)
 
@@ -1869,7 +1900,6 @@ class PoisoningAttack():
       return image
 
   def insert_4corner_amplitude_backdoor(image, amplitude, p=0):
-      import operator
       # Get image size:
 
       num_col = image.size[0]
@@ -2653,13 +2683,13 @@ class PoisoningAttack():
 
 
 if __name__ == '__main__':
-    from Dataset.TrafficSignDataset_dictionary import TrafficSignDataset
+
+    from TrafficSignDataset import TrafficSignDataset
 
     print("Torch Version: " + str(torch.__version__))
     print("Is Cuda available: {}".format(torch.cuda.is_available()))
     print("Version of Numpy: ", np.__version__)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print(device)
 
     # data_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Poisoned_Git_Dataset_15"
     def set_inceptionV3_module():
@@ -2670,7 +2700,7 @@ if __name__ == '__main__':
         return module
 
 
-    root_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Unpoisoned Dataset/"
+    #root_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Unpoisoned Dataset/"
 
     # Für Clean Label Poisoning Attack wird model_to_poison_data benötigt
     """
@@ -2680,29 +2710,70 @@ if __name__ == '__main__':
     PA.standard_attack(root_dir=root_dir, s=3, percentage_poison=0.33)
     #PA.clean_label_attack(root_dir)
     """
-    model = modelAi(name_to_save='lukasNetz_inc3_10', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+
+    model = modelAi(name_to_save='simpleNet', net=cnn_Net, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=5, image_size=32)
+    print(model.net)
 
-    root_dir_unpoisoned = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Unpoisoned Dataset/"
-    #root_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Poisoned_Git_Dataset_15/"
-    root_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Poisoned_Git_Dataset/"
-    train_dir = root_dir + "Training"
-    valid_dir = root_dir + "Validation"
-    test_dir = root_dir + "Testing"
-    test_dir_unpoisoned = root_dir_unpoisoned + "Testing"
+    root_dir = "./dataset/"
+    root_dir_unpoisoned = root_dir
+    train_dir = root_dir + "Training/"
+    valid_dir = root_dir + "Validation/"
+    test_dir = root_dir + "Testing/"
+    test_dir_unpoisoned = root_dir_unpoisoned + "Testing/"
 
-    #main.creating_data(dataset=TrafficSignDataset, test_dir=test_dir, train_dir=train_dir, valid_dir=valid_dir, test_dir_unpoisoned=test_dir_unpoisoned)
+    main.creating_data(dataset=TrafficSignDataset, test_dir=test_dir, train_dir=train_dir, valid_dir=valid_dir, test_dir_unpoisoned=test_dir_unpoisoned)
 
     #main.start_tensorboard()
-    #main.loading_ai(should_train_if_needed=True, should_evaluate=True, isPretrained=False)
+    main.loading_ai(should_train_if_needed=False, should_evaluate=False, isPretrained=False)
 
-    # Lese Daten für Activation Clustering ohne Trafos ein:
-    main.creating_data_for_ac(dataset=TrafficSignDataset,train_dir=train_dir)
+    # Lese Daten für Activationload Clustering ohne Trafos ein:
+    #main.creating_data_for_ac(dataset=TrafficSignDataset, train_dir=train_dir)
 
-    AC = ActivationClustering(main, root_dir=root_dir)
-    AC.run_ac(check_all_classes=False, class_to_check=5)
-    AC.run_retraining(verbose=True)
-    AC.evaluate_retraining(class_to_check=5, T=1)
+    #AC = ActivationClustering(main, root_dir=root_dir)
+    #AC.run_ac(check_all_classes=False, class_to_check=5)
+    #AC.run_retraining(verbose=True)
+    #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
 
+    #LRP
+    #Load toolbox
+    from coding.pytorchlrp_fhj import lrp
+    num_samples_plot = min(20, 9) #20 = batch_size
+
+
+    # Sample batch from test_loader
+    for data in main.train_dataloader:
+        images = data['image']
+        labels = data['label']
+        break
+
+
+    """
+    #Torch LRP: model muss in Sequential Form gegeben sein
+    #images.requires_grad_(True)
+
+    #forward pass
+    pred_lrp = main.model.forward(images, explain = True, rule='epsilon', pattern=None)
+
+    # Choose argmax
+    pred_lrp = pred_lrp[torch.arange(images.shape[0]), pred_lrp.max(1)[1]]
+    pred_lrp = pred_lrp.sum()
+
+    # Backward pass (compute explanation)
+    pred_lrp.backward()
+
+    """
+    # TODO: InstanceNorm2d rausgenommen, dann lässt sich zumindest mal ein inn_model erstellen
+    # Pytorch-LRP Mnist Example
+    # jetzt für einfaches Netzwerk: https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
+    # Training läuft, inn_model lässt sich erstellen, aber nicht auswerten
+    inn_model = InnvestigateModel(model.net, lrp_exponent=2,
+                                  method='e-rule',
+                                  beta=0.5)
+
+
+    model_pred = inn_model.evaluate(images)
+    #print(model_pred)
+    model_prediction, true_relevance = inn_model.innvestigate(images)
