@@ -44,9 +44,10 @@ from sklearn.cluster import KMeans
 from torch import nn
 from torch.functional import F
 from torch.utils.data import DataLoader
+import numpy as np
 
 from TrafficSignDataset import TrafficSignDataset
-from coding.testest.innvestigator import InnvestigateModel
+
 from pytorchlrp_fhj.lrp import sequential
 
 
@@ -111,6 +112,45 @@ class InceptionNet3(nn.Module):
         layers = [inception, pool1, batchConv1, pool1, batchConv2, pool1, batchConv3, pool1]
         return nn.Sequential(*layers)
 
+class mnistNet_moboehle(nn.Module):
+    def __init__(self):
+        super(mnistNet_moboehle, self).__init__()
+        self.conv1 = nn.Conv2d(3, 10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.max_pool1 = nn.MaxPool2d(2, stride=(2, 2))
+        self.max_pool2 = nn.MaxPool2d(2, stride=(2, 2))
+        self.conv2_drop = nn.Dropout2d()
+        self.softmax = nn.LogSoftmax(dim=1)
+        self.relu = nn.ReLU()
+        self.fc1 = nn.Linear(500, 50)
+        self.fc2 = nn.Linear(50, 43)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.max_pool1(x)
+        x = self.relu(x)
+        x = self.relu(self.max_pool2(self.conv2_drop(self.conv2(x))))
+        #print(x.shape)
+        x = x.view(-1, 500)
+        xx = self.relu(self.fc1(x))
+        x = self.conv2_drop(xx)
+        x = self.fc2(x)
+        return x, xx#self.softmax(x)
+class fc_model(nn.Module):
+
+    def __init__(self):
+        super(fc_model, self).__init__()
+        self.fc1 = nn.Linear(16 * 6 * 6, 120)  # 6*6 from image dimension
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 43)
+
+    def forward(self, x):
+
+        x = F.relu(self.fc1(x))
+        xx = F.relu(self.fc2(x))
+        x = F.relu((self.fc3(xx)))
+        return x, xx
+
 class cnn_Net(nn.Module):
     # https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
     def __init__(self):
@@ -126,20 +166,20 @@ class cnn_Net(nn.Module):
 
     def forward(self, x):
         # Max pooling over a (2, 2) window
-        print(x.shape)
+        #print(x.shape)
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        print(x.shape)
+        #print(x.shape)
         # If the size is a square, you can specify with a single number
         x = F.max_pool2d(F.relu(self.conv2(x)), 2)
-        print(x.shape)
+        #print(x.shape)
         x = x.view(-1, self.num_flat_features(x))
-        print(x.shape)
+        #print(x.shape)
         x = F.relu(self.fc1(x))
-        print(x.shape)
+        #print(x.shape)
         xx = F.relu(self.fc2(x))
-        print(xx.shape)
+        #print(xx.shape)
         x = self.fc3(xx)
-        print(x.shape)
+        #print(x.shape)
         return x, xx
 
     def num_flat_features(self, x):
@@ -2683,7 +2723,7 @@ class PoisoningAttack():
 
 
 if __name__ == '__main__':
-
+    from coding.Aenderungen_LRP.TrafficSignAI.Models.InceptionNet3 import InceptionNet3
     from TrafficSignDataset import TrafficSignDataset
 
     print("Torch Version: " + str(torch.__version__))
@@ -2711,7 +2751,7 @@ if __name__ == '__main__':
     #PA.clean_label_attack(root_dir)
     """
 
-    model = modelAi(name_to_save='simpleNet', net=cnn_Net, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='incv3_matthias_v2', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=5, image_size=32)
     print(model.net)
@@ -2737,9 +2777,12 @@ if __name__ == '__main__':
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
 
-    #LRP
+
+    """  
+    ####################  LRP - moboehle ###################################
     #Load toolbox
-    from coding.pytorchlrp_fhj import lrp
+    #from coding.testest.innvestigator import InnvestigateModel
+    
     num_samples_plot = min(20, 9) #20 = batch_size
 
 
@@ -2750,30 +2793,175 @@ if __name__ == '__main__':
         break
 
 
-    """
-    #Torch LRP: model muss in Sequential Form gegeben sein
-    #images.requires_grad_(True)
-
-    #forward pass
-    pred_lrp = main.model.forward(images, explain = True, rule='epsilon', pattern=None)
-
-    # Choose argmax
-    pred_lrp = pred_lrp[torch.arange(images.shape[0]), pred_lrp.max(1)[1]]
-    pred_lrp = pred_lrp.sum()
-
-    # Backward pass (compute explanation)
-    pred_lrp.backward()
-
-    """
     # TODO: InstanceNorm2d rausgenommen, dann lässt sich zumindest mal ein inn_model erstellen
+    # Für das Netz cnn_Net funktioniert der Übergang von Linear zurück auf Con nicht. Anstatt [20,16,6,6] liegtd a plötzlich das Format [20,16,13,13]
+    # Absolut keine Ahnung warum, beim forward pass funktioniert alles, auch mit dem richtigen Format
+    # Das Netz aus dem tutorial MnistNet_moboehle funktioniert (Erweiterung auf 300 channels, Dimensio auf 500 erhöht beim Übergang von conv auf linear)
+    # Wie im Tutorial beschrieben entsteht auch hier ein buffer overflow: *** buffer overflow detected ***: terminated
+    # Wie im Tutial beschrieben könnte man das jetzt umgehen.
+
     # Pytorch-LRP Mnist Example
     # jetzt für einfaches Netzwerk: https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
     # Training läuft, inn_model lässt sich erstellen, aber nicht auswerten
+
+    # TODO: Hier sollte vorher noch der Dataloader ohne trafos gesetzt werden
     inn_model = InnvestigateModel(model.net, lrp_exponent=2,
                                   method='e-rule',
                                   beta=0.5)
 
 
-    model_pred = inn_model.evaluate(images)
-    #print(model_pred)
-    model_prediction, true_relevance = inn_model.innvestigate(images)
+    i1 = images[0]
+    l1 = labels[0]
+    print(l1)
+    print(i1.shape)
+    #plt.imshow(i1)
+    #h1 = true_relevance[0]
+
+    l1 = l1.numpy()
+    print(l1)
+    # TODO: Hier ein User Input mit dem class label, dass das Bild in i1 zeigt
+    #plt.imshow(heatmap1.permute(1, 2, 0))
+    #plt.imshow(i1.permute(1, 2, 0))
+    #plt.show()
+    evidence_for_class = []
+    model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=l1)
+    evidence_for_class.append(input_relevance_values)
+    evidence_for_class = np.array([elt.numpy() for elt in evidence_for_class])
+    print(evidence_for_class.shape)
+
+    idx = 10
+    vmin = np.percentile(evidence_for_class[:, idx], 50)
+    vmax = np.percentile(evidence_for_class[:, idx], 99.9)
+
+    prediction = np.argmax(model_prediction.detach(), axis=1)
+    print(prediction)
+    #plt.imshow(evidence_for_class[prediction[idx]][idx][0], vmin=vmin,
+     #           vmax=vmax, cmap="hot")
+    #plt.imshow(evidence_for_class[0][0][0], vmin=vmin,
+     #           vmax=vmax, cmap="hot")
+    #plt.show()
+
+    with open('test.npy', 'wb') as f:
+
+        np.save(f, evidence_for_class)
+
+
+    # Verfahre wie im github Beispiel, um die Heatmaps auszugeben:
+
+    evidence_for_class = []
+    # Overlay with noise
+    # data[0] += 0.25 * data[0].max() * torch.Tensor(np.random.randn(28*28).reshape(1, 28, 28))
+    model_prediction, true_relevance = inn_model.innvestigate(in_tensor=images)
+
+    for i in range(43):
+        # Unfortunately, we had some issue with freeing pytorch memory, therefore
+        # we need to reevaluate the model separately for every class.
+        model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=i)
+        evidence_for_class.append(input_relevance_values)
+
+    evidence_for_class = np.array([elt.numpy() for elt in evidence_for_class])
+
+    for idx, example in enumerate(images):
+
+        prediction = np.argmax(model_prediction.detach(), axis=1)
+        print('Prediction', prediction.shape)
+
+        fig, axes = plt.subplots(3, 5)
+        fig.suptitle("Prediction of model: " + str(prediction[idx]) + "({0:.2f})".format(
+            100*float(model_prediction[idx][model_prediction[idx].argmax()].exp()/model_prediction[idx].exp().sum())))
+
+        vmin = np.percentile(evidence_for_class[:, idx], 50)
+        vmax = np.percentile(evidence_for_class[:, idx], 99.9)
+
+        print(vmin)
+        print(vmax)
+
+        plt.imshow(example[0])
+        #axes[0, 2].set_title("Input (" + str(int(target[idx]))+ ")")
+        plt.imshow(evidence_for_class[prediction[idx]][idx][0], vmin=vmin,
+                          vmax=vmax, cmap="hot")
+        #axes[0, 3].set_title("Pred. Evd.")
+        #for ax in axes[0]:
+        #    ax.set_axis_off()
+
+        for j, ax in enumerate(axes[1:].flatten()):
+            im = ax.imshow(evidence_for_class[j][idx][0], cmap="hot", vmin=vmin,
+                          vmax=vmax)
+            ax.set_axis_off()
+            ax.set_title("Evd. " + str(j))
+        fig.colorbar(im, ax=axes.ravel().tolist())
+        #plt.show()
+
+    """
+
+
+    ##### LRP-moboehle: Modifizierte VErsion von Matthias
+    from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel
+
+    print(' ===> LRP started')
+    inn_model = InnvestigateModel(model.net, lrp_exponent=2,
+                                  method='e-rule',
+                                  beta=0.5)
+
+    # Wähle Trainingsdaten ohne transformations
+    # erstelle dazu einen neuen dataloader
+    lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
+    lrp_dataloader =DataLoader(lrp_train_dataset, batch_size=1, shuffle=True)
+
+
+    del lrp_train_dataset
+    # Wähle sample aus dem Datensatz
+
+    #for data in main.train_dataloader:
+    for data in lrp_dataloader:
+        images = data['image']
+        labels = data['label']
+        im_path = data['path']
+        #print(im_path)
+
+        model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=labels[0])
+
+        #print(model_prediction)
+        #print(input_relevance_values.shape)
+
+        #print('Label: ', labels)
+        d = input_relevance_values[0]
+        #d = np.swapaxes(d, 0, 2)
+        #print(d.shape)
+        #plt.imshow(d)
+        #plt.imshow(input_relevance_values[0])
+
+        with open('test.npy', 'wb') as f:
+
+            np.save(f, d)
+        #break
+
+
+        # Save heatmaps as images in folder
+
+        # Create folder for LRP output
+        path = os.getcwd()
+
+        path = path + "/LRP_Outputs/" + str(model.name) + "/"
+
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+        os.makedirs(path)
+
+        # Erstelle subfolder für jede einzelne Klasse:
+        for i in range(43):
+            os.mkdir(path + "/" + str(i).zfill(5))
+
+        # Speichere aktuelle Heatmap im entsprechden folder ab
+        #rel = np.swapaxes(input_relevance_values[0].detach().numpy(), 0, 2)
+        #print(rel.shape)
+        rel = np.sum(d.detach().numpy(), axis=0)
+        #print(rel.shape)
+
+        im = Image.fromarray(rel).convert('RGB')
+
+        im.save(path + str(labels[0].detach().numpy()).zfill(5) + "/" + im_path[0].rsplit('/', 1)[-1], subsampling=0, quality=100)
+
+        break
+
