@@ -2896,9 +2896,10 @@ if __name__ == '__main__':
 
 
     ##### LRP-moboehle: Modifizierte VErsion von Matthias
+    save_lrp = False
     from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel
 
-    print(' ===> LRP started')
+    print('===> LRP started')
     inn_model = InnvestigateModel(model.net, lrp_exponent=2,
                                   method='e-rule',
                                   beta=0.5)
@@ -2906,10 +2907,29 @@ if __name__ == '__main__':
     # Wähle Trainingsdaten ohne transformations
     # erstelle dazu einen neuen dataloader
     lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
-    lrp_dataloader =DataLoader(lrp_train_dataset, batch_size=1, shuffle=True)
-
+    lrp_dataloader =DataLoader(lrp_train_dataset, batch_size=1, shuffle=False)
 
     del lrp_train_dataset
+
+    # Create folder for LRP output
+    path = os.getcwd()
+
+    path_rel = path + "/LRP_Outputs/" + str(model.name) + str(inn_model.method) + "/relevances"
+    path_im = path + "/LRP_Outputs/" + str(model.name) + str(inn_model.method) + "/lrp_plots"
+    if os.path.exists(path_rel):
+        shutil.rmtree(path_rel)
+    if os.path.exists(path_im):
+        shutil.rmtree(path_im)
+    os.makedirs(path_rel)
+    os.makedirs(path_im)
+
+    # Erstelle subfolder für jede einzelne Klasse:
+    for i in range(43):
+        os.mkdir(path_rel + "/" + str(i).zfill(5))
+        os.mkdir(path_im + "/" + str(i).zfill(5))
+
+
+
     # Wähle sample aus dem Datensatz
 
     #for data in main.train_dataloader:
@@ -2931,27 +2951,13 @@ if __name__ == '__main__':
         #plt.imshow(d)
         #plt.imshow(input_relevance_values[0])
 
-        with open('test.npy', 'wb') as f:
+        #with open('test.npy', 'wb') as f:
 
-            np.save(f, d)
-        #break
+            #np.save(f, d)
+        break
 
 
-        # Save heatmaps as images in folder
 
-        # Create folder for LRP output
-        path = os.getcwd()
-
-        path = path + "/LRP_Outputs/" + str(model.name) + "/"
-
-        if os.path.exists(path):
-            shutil.rmtree(path)
-
-        os.makedirs(path)
-
-        # Erstelle subfolder für jede einzelne Klasse:
-        for i in range(43):
-            os.mkdir(path + "/" + str(i).zfill(5))
 
         # Speichere aktuelle Heatmap im entsprechden folder ab
         #rel = np.swapaxes(input_relevance_values[0].detach().numpy(), 0, 2)
@@ -2959,9 +2965,23 @@ if __name__ == '__main__':
         rel = np.sum(d.detach().numpy(), axis=0)
         #print(rel.shape)
 
-        im = Image.fromarray(rel).convert('RGB')
+        #im = Image.fromarray(rel).convert('RGB')
 
-        im.save(path + str(labels[0].detach().numpy()).zfill(5) + "/" + im_path[0].rsplit('/', 1)[-1], subsampling=0, quality=100)
+        #im.save(path + str(labels[0].detach().numpy()).zfill(5) + "/" + im_path[0].rsplit('/', 1)[-1], subsampling=0, quality=100)
 
-        break
+        # Abspeichern der Relevanzen als .npy file
+        if save_lrp:
+            fname_to_save_rel = path_rel + "/" + str(labels[0].detach().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".npy"
+            #print(fname_to_save_rel)
+            with open(fname_to_save_rel, 'wb') as f:
+
+                np.save(f, d)
+
+        # Abspeichern der lrp plots als jpgs
+        #fname_to_save_im = path_im + "/" + str(labels[0].detach().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".png"
+        #print(fname_to_save_im)
+        #plt.imshow(d)
+        #plt.savefig(fname_to_save_im)
+
+    print('===> LRP finished')
 

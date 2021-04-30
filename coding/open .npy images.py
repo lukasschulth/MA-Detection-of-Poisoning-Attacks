@@ -46,6 +46,7 @@ d = np.sum(d, axis=0)
 print(d.shape)
 print(d.min(), d.max())
 plt.imshow(d)
+plt.savefig('h1.png')
 plt.show()
 
 # Rescaled image:
@@ -59,7 +60,7 @@ plt.show()
 #Abspeichern
 path = os.getcwd()
 
-plt.savefig('h1.png')
+
 im = Image.fromarray(d).convert('RGB')
 
 print(im.size)
