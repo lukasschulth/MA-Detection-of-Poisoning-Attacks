@@ -2754,7 +2754,7 @@ if __name__ == '__main__':
     model = modelAi(name_to_save='incv3_matthias_v2', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=5, image_size=32)
-    print(model.net)
+    #print(model.net)
 
     root_dir = "./dataset/"
     root_dir_unpoisoned = root_dir
@@ -2777,122 +2777,6 @@ if __name__ == '__main__':
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
 
-
-    """  
-    ####################  LRP - moboehle ###################################
-    #Load toolbox
-    #from coding.testest.innvestigator import InnvestigateModel
-    
-    num_samples_plot = min(20, 9) #20 = batch_size
-
-
-    # Sample batch from test_loader
-    for data in main.train_dataloader:
-        images = data['image']
-        labels = data['label']
-        break
-
-
-    # TODO: InstanceNorm2d rausgenommen, dann lässt sich zumindest mal ein inn_model erstellen
-    # Für das Netz cnn_Net funktioniert der Übergang von Linear zurück auf Con nicht. Anstatt [20,16,6,6] liegtd a plötzlich das Format [20,16,13,13]
-    # Absolut keine Ahnung warum, beim forward pass funktioniert alles, auch mit dem richtigen Format
-    # Das Netz aus dem tutorial MnistNet_moboehle funktioniert (Erweiterung auf 300 channels, Dimensio auf 500 erhöht beim Übergang von conv auf linear)
-    # Wie im Tutorial beschrieben entsteht auch hier ein buffer overflow: *** buffer overflow detected ***: terminated
-    # Wie im Tutial beschrieben könnte man das jetzt umgehen.
-
-    # Pytorch-LRP Mnist Example
-    # jetzt für einfaches Netzwerk: https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
-    # Training läuft, inn_model lässt sich erstellen, aber nicht auswerten
-
-    # TODO: Hier sollte vorher noch der Dataloader ohne trafos gesetzt werden
-    inn_model = InnvestigateModel(model.net, lrp_exponent=2,
-                                  method='e-rule',
-                                  beta=0.5)
-
-
-    i1 = images[0]
-    l1 = labels[0]
-    print(l1)
-    print(i1.shape)
-    #plt.imshow(i1)
-    #h1 = true_relevance[0]
-
-    l1 = l1.numpy()
-    print(l1)
-    # TODO: Hier ein User Input mit dem class label, dass das Bild in i1 zeigt
-    #plt.imshow(heatmap1.permute(1, 2, 0))
-    #plt.imshow(i1.permute(1, 2, 0))
-    #plt.show()
-    evidence_for_class = []
-    model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=l1)
-    evidence_for_class.append(input_relevance_values)
-    evidence_for_class = np.array([elt.numpy() for elt in evidence_for_class])
-    print(evidence_for_class.shape)
-
-    idx = 10
-    vmin = np.percentile(evidence_for_class[:, idx], 50)
-    vmax = np.percentile(evidence_for_class[:, idx], 99.9)
-
-    prediction = np.argmax(model_prediction.detach(), axis=1)
-    print(prediction)
-    #plt.imshow(evidence_for_class[prediction[idx]][idx][0], vmin=vmin,
-     #           vmax=vmax, cmap="hot")
-    #plt.imshow(evidence_for_class[0][0][0], vmin=vmin,
-     #           vmax=vmax, cmap="hot")
-    #plt.show()
-
-    with open('test.npy', 'wb') as f:
-
-        np.save(f, evidence_for_class)
-
-
-    # Verfahre wie im github Beispiel, um die Heatmaps auszugeben:
-
-    evidence_for_class = []
-    # Overlay with noise
-    # data[0] += 0.25 * data[0].max() * torch.Tensor(np.random.randn(28*28).reshape(1, 28, 28))
-    model_prediction, true_relevance = inn_model.innvestigate(in_tensor=images)
-
-    for i in range(43):
-        # Unfortunately, we had some issue with freeing pytorch memory, therefore
-        # we need to reevaluate the model separately for every class.
-        model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=i)
-        evidence_for_class.append(input_relevance_values)
-
-    evidence_for_class = np.array([elt.numpy() for elt in evidence_for_class])
-
-    for idx, example in enumerate(images):
-
-        prediction = np.argmax(model_prediction.detach(), axis=1)
-        print('Prediction', prediction.shape)
-
-        fig, axes = plt.subplots(3, 5)
-        fig.suptitle("Prediction of model: " + str(prediction[idx]) + "({0:.2f})".format(
-            100*float(model_prediction[idx][model_prediction[idx].argmax()].exp()/model_prediction[idx].exp().sum())))
-
-        vmin = np.percentile(evidence_for_class[:, idx], 50)
-        vmax = np.percentile(evidence_for_class[:, idx], 99.9)
-
-        print(vmin)
-        print(vmax)
-
-        plt.imshow(example[0])
-        #axes[0, 2].set_title("Input (" + str(int(target[idx]))+ ")")
-        plt.imshow(evidence_for_class[prediction[idx]][idx][0], vmin=vmin,
-                          vmax=vmax, cmap="hot")
-        #axes[0, 3].set_title("Pred. Evd.")
-        #for ax in axes[0]:
-        #    ax.set_axis_off()
-
-        for j, ax in enumerate(axes[1:].flatten()):
-            im = ax.imshow(evidence_for_class[j][idx][0], cmap="hot", vmin=vmin,
-                          vmax=vmax)
-            ax.set_axis_off()
-            ax.set_title("Evd. " + str(j))
-        fig.colorbar(im, ax=axes.ravel().tolist())
-        #plt.show()
-
-    """
 
 
     ##### LRP-moboehle: Modifizierte VErsion von Matthias
