@@ -57,7 +57,8 @@ class InnvestigateModel(torch.nn.Module):
         self.inverter = RelevancePropagator(lrp_exponent=lrp_exponent,
                                             beta=beta, method=method, epsilon=epsilon,
                                             device=self.device)
-
+        # Dictionary for saving mean and std per batch norm layer
+        self.batch_norm_dict = {}
         # Parsing the individual model layers
         self.register_hooks(self.model)
         if method == "b-rule" and float(beta) in (-1., 0):
@@ -171,6 +172,31 @@ class InnvestigateModel(torch.nn.Module):
         self.prediction = self.model(in_tensor)
         return self.prediction
 
+    def get_batch_norm_inputs(self, in_tensor):
+
+        if in_tensor is not None:
+            self.evaluate(in_tensor)
+
+        # Get model list
+        model_list = self.inverter.module_list[::-1]
+        # Iterate through model list like in innvestigate()
+        # wenn eine layer asl bacthnorm erkannt wird Speichere den Input für die layer oder gebe ihn zurück
+        #print(model_list)
+        batch_norm_inputs = []
+        for layer in model_list:
+            if isinstance(layer, list) and isinstance(layer[-1][0], Cat):
+                for i, parallel_path in enumerate(layer):
+                    for layer_p in parallel_path:
+                        if isinstance(layer_p, torch.nn.BatchNorm2d):
+                            print(layer_p.in_tensor.shape)
+                            batch_norm_inputs.append(layer_p.in_tensor)
+            else:
+                if isinstance(layer, torch.nn.BatchNorm2d):
+                    print(layer.in_tensor.shape)
+                    batch_norm_inputs.append(layer.in_tensor)
+
+        return batch_norm_inputs
+
     def get_r_values_per_layer(self):
         if self.r_values_per_layer is None:
             pprint("No relevances have been calculated yet, returning None in"
@@ -244,6 +270,7 @@ class InnvestigateModel(torch.nn.Module):
             r_values_per_layer = [relevance]
 
             for layer in rev_model:
+                #print(layer)
 
                 #if isinstance(layer, list) and isinstance(layer[-1][0], TrafficSignAI.Models.Net.Cat): #Handle parallel flow with concat at the end
                 if isinstance(layer, list) and isinstance(layer[-1][0], Cat):

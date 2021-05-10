@@ -2788,6 +2788,68 @@ if __name__ == '__main__':
                                   method='e-rule',
                                   beta=0.5)
 
+
+    # %%%%%%%%%%%%%%%%%%%%%
+    lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
+    lrp_dataloader = DataLoader(lrp_train_dataset, batch_size=20, shuffle=False)
+
+    del lrp_train_dataset
+    num_total_samples = 0
+    summed = []
+    for data in lrp_dataloader:
+        images = data['image']
+        labels = data['label']
+        im_path = data['path']
+        num_total_samples += len(images)
+
+        bNormInputs = inn_model.get_batch_norm_inputs(images)
+
+        for i in range(len(bNormInputs)):
+            #print(bNormInputs[i].shape)
+            summed.append(torch.sum(bNormInputs[i], axis=0))
+        break
+
+    for i in range(len(bNormInputs)):
+        #print(summed[i].shape)
+        mean = summed[i]/num_total_samples
+        #print(mean.shape)
+
+        # Save means per layer in dict
+        inn_model.batch_norm_dict[str(i)] = {}
+        inn_model.batch_norm_dict[str(i)]['mean'] = mean
+
+        inn_model.inverter.batchNorm_dict[str(i)] = {}
+        inn_model.inverter.batchNorm_dict[str(i)]['mean'] = mean
+
+    #print(inn_model.batch_norm_dict[str(5)]['mean'].shape)
+
+    # Berechne Varianz
+    var_summed = []
+
+    for data in lrp_dataloader:
+        images = data['image']
+        labels = data['label']
+        im_path = data['path']
+        num_total_samples += len(images)
+
+        bNormInputs = inn_model.get_batch_norm_inputs(images)
+
+        for i in range(len(bNormInputs)):
+            #print(bNormInputs[i].shape)
+            var_summed.append(torch.sum(torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])), axis=0))
+        break
+
+    for i in range(len(bNormInputs)):
+        #print(summed[i].shape)
+        var = var_summed[i]/num_total_samples
+        #print(mean.shape)
+
+        # Save means per layer in dict
+        inn_model.batch_norm_dict[str(i)]['var'] = var
+        inn_model.inverter.batchNorm_dict[str(i)]['var'] = var
+
+    #print(inn_model.batch_norm_dict[str(5)]['var'].shape)
+
     # Wähle Trainingsdaten ohne transformations
     # erstelle dazu einen neuen dataloader
     lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
@@ -2838,7 +2900,7 @@ if __name__ == '__main__':
         #with open('test.npy', 'wb') as f:
 
             #np.save(f, d)
-        break
+
 
 
 
