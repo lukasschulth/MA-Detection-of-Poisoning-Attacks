@@ -178,21 +178,23 @@ class InnvestigateModel(torch.nn.Module):
             self.evaluate(in_tensor)
 
         # Get model list
-        model_list = self.inverter.module_list[::-1]
+        rev_model = self.inverter.module_list[::-1]
         # Iterate through model list like in innvestigate()
         # wenn eine layer asl bacthnorm erkannt wird Speichere den Input für die layer oder gebe ihn zurück
         #print(model_list)
         batch_norm_inputs = []
-        for layer in model_list:
+        print('Getting batchNorm inputs:')
+        for layer in rev_model:
+            print(layer)
             if isinstance(layer, list) and isinstance(layer[-1][0], Cat):
-                for i, parallel_path in enumerate(layer):
-                    for layer_p in parallel_path:
+                for i, parallel_path in enumerate(layer[:-1]):
+                    for layer_p in parallel_path[::-1]:
                         if isinstance(layer_p, torch.nn.BatchNorm2d):
-                            print(layer_p.in_tensor.shape)
+                            print('a: ', layer_p.in_tensor.shape)
                             batch_norm_inputs.append(layer_p.in_tensor)
             else:
                 if isinstance(layer, torch.nn.BatchNorm2d):
-                    print(layer.in_tensor.shape)
+                    print('b: ', layer.in_tensor.shape)
                     batch_norm_inputs.append(layer.in_tensor)
 
         return batch_norm_inputs
@@ -268,6 +270,10 @@ class InnvestigateModel(torch.nn.Module):
             del relevance_tensor
             # List to save relevance distributions per layer
             r_values_per_layer = [relevance]
+
+            # Reset batchNorm_iD
+            # We have to reset the id before iterating through the model again
+            self.inverter.batchNorm_id = 0
 
             for layer in rev_model:
                 #print(layer)

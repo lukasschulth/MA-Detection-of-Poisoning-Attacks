@@ -89,7 +89,7 @@ class RelevancePropagator:
                            torch.nn.InstanceNorm2d,
                            Cat)
     batchNorm_layers = (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d,
-                           torch.nn.BatchNorm3d)
+                        torch.nn.BatchNorm3d)
 
     # Implemented rules for relevance propagation.
     available_methods = ["e-rule", "b-rule"]
@@ -107,6 +107,8 @@ class RelevancePropagator:
             raise NotImplementedError("Only methods available are: " +
                                       str(self.available_methods))
         self.method = method
+        self.batchNorm_id = 0
+        self.batchNorm_dict = {}
 
     def reset_module_list(self):
         """
@@ -123,6 +125,7 @@ class RelevancePropagator:
             torch.cuda.empty_cache()
 
     def compute_propagated_relevance(self, layer, relevance):
+
         """
         This method computes the backward pass for the incoming relevance
         for the specified layer.
@@ -160,8 +163,12 @@ class RelevancePropagator:
         elif isinstance(layer, self.batchNorm_layers):
 
             print('Batch Normalization detected')
-            #return self.batch_nd_inverse(layer, relevance).detach()
-            return relevance
+            # Increase batch_normID
+            self.batchNorm_id += 1
+            #print(layer.weight.shape)
+            #print(layer.bias.shape)
+            return self.batch_nd_inverse(layer, relevance).detach()
+            #return relevance
 
         elif isinstance(layer, self.allowed_pass_layers):
             # The above layers are one-to-one mappings of input to
@@ -212,7 +219,7 @@ class RelevancePropagator:
                 return self.linear_fwd_hook
 
             if isinstance(layer, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
-                return self.silent_pass
+                return self.batchNorm_fwd_hook
 
         else:
             if isinstance(layer,
@@ -230,7 +237,7 @@ class RelevancePropagator:
                 return self.linear_fwd_hook_parallel
 
             if isinstance(layer, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
-                return self.silent_pass_parallel
+                return self.batchNorm_fwd_hook_parallel
 
         raise NotImplementedError("The network contains layers that"
                                       " are currently not supported {0:s}".format(str(layer)))
@@ -440,9 +447,23 @@ class RelevancePropagator:
         setattr(m, "out_shape", list(out_tensor.size()))
         return
 
+    @module_tracker_parallel
+    def batchNorm_fwd_hook_parallel(self, m, in_tensor: torch.Tensor, out_tensor: torch.Tensor):
+
+        setattr(m, "in_tensor", in_tensor[0])
+        setattr(m, "out_shape", list(out_tensor.size()))
+        return
+
     @module_tracker
     def linear_fwd_hook(self, m, in_tensor: torch.Tensor,
                         out_tensor: torch.Tensor):
+
+        setattr(m, "in_tensor", in_tensor[0])
+        setattr(m, "out_shape", list(out_tensor.size()))
+        return
+
+    @module_tracker
+    def batchNorm_fwd_hook(self, m, in_tensor: torch.Tensor, out_tensor: torch.Tensor):
 
         setattr(m, "in_tensor", in_tensor[0])
         setattr(m, "out_shape", list(out_tensor.size()))
@@ -476,7 +497,6 @@ class RelevancePropagator:
         setattr(m, "indices", indices)
         setattr(m, 'out_shape', out_tensor.size())
         setattr(m, 'in_shape', in_tensor[0].size())
-
 
     @module_tracker
     def max_pool_nd_fwd_hook(self, m, in_tensor: torch.Tensor,
@@ -641,3 +661,48 @@ class RelevancePropagator:
         setattr(m, "in_tensor", in_tensor[0])
         setattr(m, 'out_shape', list(out_tensor.size()))
         return
+
+    @module_tracker
+    def batch_nd_inverse(self, m, relevance):
+        batchNorm_easy_pass = False
+        print(m.in_tensor.shape)
+        if batchNorm_easy_pass:
+
+            relevance_out = relevance
+        else:
+        # For the implementation we follow "Opening the Machine Learning Black Box
+        # with Layer-wise Relevance Propagation", Chapter 2.3.1:
+        # https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwjDh-Lr17fwAhUCNuwKHSZzCgcQFjAAegQIBhAD&url=https%3A%2F%2Fdepositonce.tu-berlin.de%2Fbitstream%2F11303%2F8813%2F4%2Flapuschkin_sebastian.pdf&usg=AOvVaw2lteeO-jhXhjUQLA25O6aZ
+
+            gamma = m.weight
+            beta = m.bias
+            mean = self.batchNorm_dict[str(self.batchNorm_id-1)]['mean']
+            std = self.batchNorm_dict[str(self.batchNorm_id-1)]['var']
+            layer_in = m.in_tensor
+
+            mean = mean/(layer_in.shape[-1]*layer_in.shape[-2])
+
+            print('batchID: ', self.batchNorm_id -1)
+            print('layer_in:', layer_in.shape)
+            print('mean_shape:', mean.shape)
+            a = torch.squeeze(layer_in) - mean
+
+            std = std.sum(1).sum(1)
+            std = std/(layer_in.shape[-1]*layer_in.shape[-2])
+
+            print('std: ', std.shape)
+            b = torch.Tensor(std + self.eps)
+            b = torch.sqrt(b)
+
+            gamma = torch.unsqueeze(torch.tensor(gamma), 1)
+            gamma = torch.unsqueeze(gamma, 1)
+
+            c = gamma/b
+
+            beta = torch.unsqueeze(beta, 1)
+            beta = torch.unsqueeze(beta, 1)
+            rel_out = a * gamma
+
+            relevance_out = rel_out + beta
+            print('Relevance calculated')
+        return relevance_out

@@ -2754,7 +2754,7 @@ if __name__ == '__main__':
     model = modelAi(name_to_save='incv3_matthias_v2', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=5, image_size=32)
-    #print(model.net)
+    print(model.net)
 
     root_dir = "./dataset/"
     root_dir_unpoisoned = root_dir
@@ -2779,8 +2779,8 @@ if __name__ == '__main__':
 
 
 
-    ##### LRP-moboehle: Modifizierte VErsion von Matthias
-    save_lrp = False
+    ##### LRP-moboehle: Modifizierte Version von Matthias
+    save_lrp = True
     from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel
 
     print('===> LRP started')
@@ -2796,6 +2796,9 @@ if __name__ == '__main__':
     del lrp_train_dataset
     num_total_samples = 0
     summed = []
+
+    #TODO: Remove breaks in mean and var calculation
+
     for data in lrp_dataloader:
         images = data['image']
         labels = data['label']
@@ -2806,7 +2809,8 @@ if __name__ == '__main__':
 
         for i in range(len(bNormInputs)):
             #print(bNormInputs[i].shape)
-            summed.append(torch.sum(bNormInputs[i], axis=0))
+            #summed.append(torch.sum(bNormInputs[i], axis=0))
+            summed.append(bNormInputs[i].sum(0))
         break
 
     for i in range(len(bNormInputs)):
@@ -2836,7 +2840,8 @@ if __name__ == '__main__':
 
         for i in range(len(bNormInputs)):
             #print(bNormInputs[i].shape)
-            var_summed.append(torch.sum(torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])), axis=0))
+            #var_summed.append(torch.sum(torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])), axis=0))
+            var_summed.append((torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])).sum(0)))
         break
 
     for i in range(len(bNormInputs)):
@@ -2848,7 +2853,14 @@ if __name__ == '__main__':
         inn_model.batch_norm_dict[str(i)]['var'] = var
         inn_model.inverter.batchNorm_dict[str(i)]['var'] = var
 
-    #print(inn_model.batch_norm_dict[str(5)]['var'].shape)
+    print('hier')
+    for i in range(10):
+        print('i: ', i)
+
+        print(inn_model.batch_norm_dict[str(i)]['var'].shape)
+
+
+
 
     # Wähle Trainingsdaten ohne transformations
     # erstelle dazu einen neuen dataloader
@@ -2873,7 +2885,6 @@ if __name__ == '__main__':
     for i in range(43):
         os.mkdir(path_rel + "/" + str(i).zfill(5))
         os.mkdir(path_im + "/" + str(i).zfill(5))
-
 
 
     # Wähle sample aus dem Datensatz
