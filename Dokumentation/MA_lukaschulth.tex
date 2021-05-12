@@ -7,7 +7,6 @@
 %\usepackage{ngerman}[babel] 
 \usepackage[english,ngerman]{babel} %Version in meinem Numerik Vortrag
 \usepackage{caption}[2011/11/10]
-
 \newcommand{\figsource}[1]{%
 	\addtocounter{figure}{-1}
 	\captionlistentry{source: #1}
@@ -97,6 +96,10 @@
 }
 
 \lstset{style=mystyle}
+
+%%-------------bibfile---------------------------------
+\usepackage{apacite}
+
 %%%%%%%%%%%%%%%%%%%% -------------------------------------------------
 \newtheorem{theorem}{Theorem}
 \title{Masterarbeit}
@@ -139,13 +142,55 @@
 	In sicherheitskritischen Anwendungsgebieten ist die Interpretation einer Entscheidung genauso wichtig wie die Entscheidung selbst\cite{LRP_DNN}.
 	\subsection{Neuronale Netzwerke}
 	
+	Training;testing, Validation, Forward pass, backward pass
+	SGD erklärt im Einführungsteil von \cite{BatchNormalization}
+	
 	\subsubsection{CNNS}
-	Idee, Abstraktion, high level, low level features, bekannte Netzwerke
+	Idee, Abstraktion, high level, low level features, bekannte Netzwerke\\
+	
+	Ausführliche Einführung stanford Kurs\cite{cnn_stanford}. Unterschied zu FC layers: 
+	It is worth noting that the only difference between FC and CONV layers is that the neurons in the CONV layer are connected only to a local region in the input, and that many of the neurons in a CONV volume share parameters. However, the neurons in both layers still compute dot products, so their functional form is identical. Therefore, it turns out that it’s possible to convert between FC and CONV layers
+	
+	Starting with LeNet-5   [10], convolutional neural networks (CNN) have typically had a standardstructure – stacked convolutional layers (optionally followed by contrast normalization and max-pooling)  are  followed  by  one  or  more  fully-connected  layers.   Variants  of  this  basic  design  areprevalent in the image classification literature and have yielded the best results to-date on MNIST,CIFAR and most notably on the ImageNet classification challenge [9, 21].  For larger datasets suchas Imagenet, the recent trend has been to increase the number of layers  [12] and layer size [21, 14],while using dropout [7] to address the problem of overfitting.\cite{goingdeeperwithconvolutions}
+	
+	Softmax am Ende für Transformation in Probabilities.
+	
+	Netzwerk im Netzwerk \cite{cnn_architectures_stanford, goingdeeperwithconvolutions}
+	
+	\subsubsection{besonder Schichten}
+	
+	\begin{itemize}
+		\item \textit{BatchConv} besteht aus 
+		\begin{lstlisting}[language=Python, caption=python-interner Aufbau einer BatchConv Schicht]
+		nn.Conv2d(in_channels=in_channels, out_channels=out_channels, **kwargs)
+		nn.BatchNorm2d(num_features=out_channels)
+		nn.ReLU()
+		\end{lstlisting}
+		in genau dieser Reihenfolge
+		Bem.: Nur für BatchNorm2d müsste man LRP implementieren, für Conv2d funktioniert das bereits.
+	\end{itemize}
+
+	Batch Normalization\footnote{\url{https://arxiv.org/pdf/1502.03167.pdf}}
+	
+	
+	\subsubsection{Inception v3}
+	Filter,
+	In Klassischen feed forward Netzen wird Output der vorheigen layer ist input der nächsten layer
+	
+	Jetzt: Inception Block: Previous layer input, 4 operations in parallel, concatenation,1x1 conv -> lower dimension -> less computational cost
+	
+	Intermediate classifiers: kommt aus multitask learning. Eigentlich eine Möglickeit gegen vasnishing gradients
+	
+	\subsubsection{VGG16}
+	VGG16 is a convolutional neural network model proposed by K. Simonyan and A. Zisserman from the University of Oxford in the paper “Very Deep Convolutional Networks for Large-Scale Image Recognition”. The model achieves 92.7\% top-5 test accuracy in ImageNet, which is a dataset of over 14 million images belonging to 1000 classes. It was one of the famous model submitted to ILSVRC-2014. It makes the improvement over AlexNet by replacing large kernel-sized filters (11 and 5 in the first and second convolutional layer, respectively) with multiple 3×3 kernel-sized filters one after another. VGG16 was trained for weeks and was using NVIDIA Titan Black GPU’s.\cite{vgg16_neurohive} \cite{vgg16_architecture}
+	
 	
 	
 	\subsection{Poisoning-Angriffe}
 	
 	\section{Erklärbare KI}
+	
+	Erklärbarkeit vs. Interpretierbarkeit, youtube talk?!
 	
 	\subsection{Lokale Methoden}
 	
@@ -155,6 +200,8 @@
 	\subsection{Idee}
 	
 	In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vorgestellt. Zudem wird eine Taylor Zerlegung präsentiert, die eine Approximation der LRP darstellt.
+	
+	Hier\footnote{https://towardsdatascience.com/indepth-layer-wise-relevance-propagation-340f95deb1ea} werden einige Bereiche vorgestllt, in denen LRP angewendet wurde.
 	\subsection{Deep Taylor Decomposition}
 	Laut \cite{DTD} ist die in \cite{LRP_first_paper} vorgestellte Layer-wise Relevance Propagation eher heuristisch. In diesem Paper wird nun eine solide theoretische Grundlage geliefert.\\
 	
@@ -176,7 +223,7 @@
 	siehe \cite{XAI:book}, Kapitel 10.
 	
 	\subsection{Eigenschaften}
-	In \cite{LRP_DNN} werden die folgenden Eigenschaften für die drei verschiedenen Verfahren genannt, aber nicht wirklich untersucht?!
+
 	\begin{itemize}
 		\item Numerische Stabilität
 		\item Konsistenz (mit Linearer Abbildung)
@@ -195,8 +242,10 @@
 	Alternative pytorch-Implementierung basierend auf Tensorflow paper.\\
 	
 	\noindent \textbf{moboehle}\footnote{\url{https://github.com/moboehle/Pytorch-LRP}}:\\
-	
+	Der code entstand im Rahmen der Forschungsarbeit \cite{lrp_alzheimer}, in der eine Alzheimer-Festellung aufgrund von Bilddaten(scans?) vorgenommen wird.
 	\noindent Unterstützte Netzwerkschickten\footnote{\url{https://github.com/moboehle/Pytorch-LRP/blob/master/inverter_util.py}}:\\
+	\begin{comment}
+		
 	
 	\noindent $allowed\_pass\_layers = (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d,\\
 	torch.nn.BatchNorm3d,
@@ -205,18 +254,36 @@
 	torch.nn.Dropout3d,
 	torch.nn.Softmax,
 	torch.nn.LogSoftmax,
-	torch.nn.Sigmoid)$\\
+	torch.nn.Sigmoid)$\\\end{comment}
+	\begin{lstlisting}[language=Python, caption=Verfügbare Schichten und Aktivierungsfunktionen]
+	torch.nn.BatchNorm1d, 
+	torch.nn.BatchNorm2d
+	torch.nn.BatchNorm3d,
+	torch.nn.ReLU, 
+	torch.nn.ELU, 
+	Flatten,
+	torch.nn.Dropout,
+	torch.nn.Dropout2d,
+	torch.nn.Dropout3d,
+	torch.nn.Softmax,
+	torch.nn.LogSoftmax,
+	torch.nn.Sigmoid
 	
+	\end{lstlisting}
 	\noindent \textbf{fhvilshoj}\footnote{\url{https://github.com/fhvilshoj/TorchLRP}}:\\
 	
 	
 	
-	\noindent PyTorch implementation of some of the Layer-Wise Relevance Propagation (LRP) rules, [1, 2, 3], for linear layers and convolutional layers.
+	\noindent LRP für linear und Convolutional layers
 	
-	The modules decorates torch.nn.Sequential, torch.nn.Linear, and torch.nn.Conv2d to be able to use autograd backprop algorithm to compute explanations.
 	\begin{itemize}
+		\item Die Klassen
+	
+	torch.nn.Sequential, torch.nn.Linear und torch.nn.Conv2d werden erweitert, um autograd für die Berechnung der Relevanzen zu berechnen.
+	
 		\item Ausgabe der Relevanzen von Zwischenschichten ist möglich
 		\item: Implementierte Regeln: epsilon Regeln mit epsilon=1e-1, gamma-regel mit gamma=1e-1. alphabeta-Reagel mit a1b0 und a2b1
+		\item Netz muss hier umgeschrieben werden, sodass die Anwendung des Algorithmus möglich wird.
 	\end{itemize}
 
 \begin{lstlisting}[language=Python, caption=Implementierte Regeln fhvilshoj]
@@ -235,7 +302,12 @@
 \end{lstlisting}
 	
 	\noindent \textbf{Zennit}:\footnote{\url{https://github.com/chr5tphr/zennit}}
-	Zennit (Zennit explains neural networks in torch) is a high-level framework in Python using PyTorch for explaining/exploring neural networks. Its design philosophy is intended to provide high customizability and integration as a standardized solution for applying LRP-based attribution methods in research.
+	Zennit (Zennit explains neural networks in torch) 
+	\begin{itemize}
+		\item Modell wird mithilfe eines Canonizers so aufbereitet, dass LRP möglich wird
+		\item Backward pass wird modifiziert, um Heatmaps zu erhalten.
+		\item VGG- und ResNet-Beispiel
+	\end{itemize}
 	\section{Detektion von Poisoning-Angriffen basierend auf LRP}
 	\subsection{Idee}
 	Die Idee zur Detektion von Poisoning-Angriffen besteht aus den folgenden Schritten:
@@ -248,9 +320,40 @@
 
 	\noindent  \textbf{Bemerkung:} Anstatt das Clustering nur auf den Heatmaps durchzuführen, könnten die LRP-Ausgaben und/oder Aktivierungen bestimmer NEtzwerkschichten hinzugenommen werden.
 	\subsection{Verwendete Distanzen}
+	
+	Um die Struktur innerhalb einer Klasse zu analysieren, benötigen wir eine Metrik.
+	Anhand dieser wird abhängig von den Heatmps einer Klasse eine Affinitätsmatrix berechnet, die dann anschließend zur Berechnung der Spektralen Einbettung als wichtigster Schritt von SpRAy verwendet wird. Wir wollen dazu die im Folgenden vorgestellten Metriken verweden.\\
+	Wie in \cite{imagenet_unhansed_v1} summieren wir über die Farbkanäle, um einen einzelnen Relevanzwert pro Pixelpunkt zu erhalten. Wir benötigen also eine Metrik zur Berechnung der Distanz zwischen 32x32 großen Heatmaps.
+	
 	\subsubsection{Euklidische Distanz}
+	Für den Fall der euklidischen Distanz schreiben wir die Relevanzwerte pro Pixel als Vektor und berechnen die Distanz zweier Heatmaps x und y wie folgt\footnote{\url{https://paulrohan.medium.com/euclidean-distance-and-normalization-of-a-vector-76f7a97abd9}}:
+	$$ d_{x,y} = \sqrt{\sum_{i=1}^{32 * 32}{(x_i -y_i)^2}}.$$
+	
+	
 	\subsubsection{Gromov-Wasserstein-Distanz}
-	\subsection{Anwendung auf unterschiedliche Poisoning-Angriffe}	\subsubsection{Standard Poisoning-Angriffe}
+	
+	Python Optimal Transport Toolbox\footnote{\url{https://pythonot.github.io/quickstart.html}}\footnote{\url{https://pythonot.github.io/auto_examples/gromov/plot_gromov.html}}
+	
+	Matlab code\footnote{\url{https://github.com/gpeyre/2016-ICML-gromov-wasserstein}} zum Paper \cite{gwd_averaging_kernels}.
+	Implementierung ist mittlerweile auch in der Python Optimal Transport toolbox verfügbar(s.o.).
+	\subsection{Anwendung auf unterschiedliche Poisoning-Angriffe}
+	\noindent \textbf{Berechnung der Relevanzen}:\\
+	
+	\noindent Wir berechnen die Relevanzen jedes einzelenen Eingabebildes klassenweise, d.h. besitzt eine Eingabe das Label y, so berechnen auf einem trainierten Netzwerk, für jeden Pixelwert der Eingabe, wie relevant dieser für die Ausgabe f(x) = y ist.\\
+	Wir summieren über die Farbaxen des Bildes, um einzelne Relevanzen pro Pixelpunkt zu erhalten.\\
+	Für die Berechnung der Relevanzen benutzen wir eine modifizierte Version des im Rahmen von \cite{lrp_alzheimer} entstandenen Programmcodes\footnote{\url{https://github.com/moboehle/Pytorch-LRP}}.\\
+	\textbf{TODO:} LRP- für Batchnorm2D muss noch implementiert werden.\\
+	\\
+	\noindent \textbf{Vorverarbeitung der Relevanzen:}\\
+	In \cite{unmasking clever hans} wird anschließend ein Sum-Pooling auf die Relevanzen angewendet, um eine Dimensionsreduktion zu erhalten. Wie in \cite{imagenet_unhansed_v1} verzichten wir auf eine weitere Dimensionsreduktion, da wir nur relativ kleine Relevanzen der Größe $32x32$ verarbeiten.	\\
+	
+
+	\noindent \textbf{Berechnung der Distanzen und Aufstellen einer Affinitätsmatrix:}\\
+	
+	
+	\noindent \textbf{Berechnung Spektralen Einbettung:}\\
+	
+	\subsubsection{Standard Poisoning-Angriffe}
 	\subsubsection{Label-konsistente Poisoning-Angriffe}
 	\section{Vergleich mit anderen Verfahren}
 	\subsection{Activation Clustering}
@@ -311,6 +414,134 @@
 			return x, xx
 	
 	\end{lstlisting}
+	
+	\begin{lstlisting}[language=Python, caption=Einfachere Version von Inception v3]
+		InceptionNet3(
+		(features): Sequential(
+		(0): InceptionA(
+		(parallel_dummyA): New_parallel_chain_dummy()
+		(conv1x1): BatchConv(
+		(conv): Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1))
+		(bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(parallel_dummyB): New_parallel_chain_dummy()
+		(conv5x5_1): BatchConv(
+		(conv): Conv2d(3, 48, kernel_size=(1, 1), stride=(1, 1))
+		(bn): BatchNorm2d(48, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(conv5x5_2): BatchConv(
+		(conv): Conv2d(48, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+		(bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(parallel_dummyC): New_parallel_chain_dummy()
+		(conv3x3dbl_1): BatchConv(
+		(conv): Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1))
+		(bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(conv3x3dbl_2): BatchConv(
+		(conv): Conv2d(64, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+		(bn): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(conv3x3dbl_3): BatchConv(
+		(conv): Conv2d(96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+		(bn): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(parallel_dummyD): New_parallel_chain_dummy()
+		(pool): MaxPool2d(kernel_size=3, stride=1, padding=1, dilation=1, ceil_mode=False)
+		(pool1x1): BatchConv(
+		(conv): Conv2d(3, 32, kernel_size=(1, 1), stride=(1, 1))
+		(bn): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(parallel_dummyE): New_parallel_chain_dummy()
+		(cat): Cat()
+		)
+		(1): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+		(2): BatchConv(
+		(conv): Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1))
+		(bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(3): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+		(4): BatchConv(
+		(conv): Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1))
+		(bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(5): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+		(6): BatchConv(
+		(conv): Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1))
+		(bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+		(relu): ReLU()
+		)
+		(7): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+		)
+		(classifiers): Sequential(
+		(0): Linear(in_features=256, out_features=256, bias=True)
+		(1): ReLU(inplace=True)
+		(2): Dropout(p=0.5, inplace=False)
+		(3): Linear(in_features=256, out_features=128, bias=True)
+		(4): ReLU(inplace=True)
+		(5): Dropout(p=0.5, inplace=False)
+		(6): Linear(in_features=128, out_features=43, bias=True)
+		)
+		)
+	\end{lstlisting}
+	Aufbau dieses Netzwerkes:
+	 1. Inception-Modul
+	 2. [pool1, batchConv1, pool2, batchConv2, pool3, batchConv3, pool4]
+	 3. Drei Lineare Schichten mit ReLu und Dropout dazwischen
+	
+	Im Unterschied zum offiziellen Inception Netz(v1v2v3) gibt es in dieser 
+	 vereeinfachten Versionn keinen "stem" aus convs, 
+	 es geht direkt mit InceptionA los.
+	
+	 Wie ähnlich sind sich InceptionA(hier) und das offizielle InceptionA-Modul?
+	\begin{lstlisting}[language=Python, caption=Reversed Model incv3]
+	
+	[Linear(in_features=128, out_features=43, bias=True), 
+	Dropout(p=0.5, inplace=False), 
+	ReLU(inplace=True), 
+	Linear(in_features=256, out_features=128, bias=True), 
+	Dropout(p=0.5, inplace=False), 
+	ReLU(inplace=True), 
+	Linear(in_features=256, out_features=256, bias=True), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False), 
+	ReLU(), 
+	BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1)), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False), 
+	ReLU(), 
+	BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1)), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False), 
+	ReLU(), BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), 
+	Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1)), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
+	
+	[[Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU()], 
+	
+	[Conv2d(3, 48, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(48, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU(), Conv2d(48, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2)), BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU()], 
+	
+	[Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU(), 
+	Conv2d(64, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)), 
+	BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU(), 
+	Conv2d(96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)), 
+	BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU()], 
+	
+	[MaxPool2d(kernel_size=3, stride=1, padding=1, dilation=1, ceil_mode=False), Conv2d(3, 32, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), 
+	ReLU()], 
+	
+	[Cat()]]]
+	\end{lstlisting}
 	\section{Parameter für Training und Einlesen der Daten}
 	Die in \cite{CH} gewählten Parameter wären ein guter Ausgangspunkt.
 	\section{Datensätze}
@@ -351,8 +582,59 @@
 		Grégoire Montavon 1 , Alexander Binder 2 , Sebastian Lapuschkin 3 , Wojciech
 		Samek 3 , and Klaus-Robert Müller 1,4,5
 		
+		\bibitem{goingdeeperwithconvolutions}
+		Going deeper with convolutions. Christian Szegedy, Wei Liu, Yangqing Jia, Pierre Sermanet, Scott Reed, Dragomir Anguelov, Dumitru Erhan, Vincent Vanhoucke Andrew Rabinovich.\\
+		\url{https://arxiv.org/pdf/1409.4842v1.pdf}
+		
+		\bibitem{twdata}
+		Bharath Raj.\\
+		\url{https://towardsdatascience.com/a-simple-guide-to-the-versions-of-the-inception-network-7fc52b863202}\\
+		zugegriffen am 29.04.2021
+		
+		\bibitem{vgg16_neurohive}
+		Neurohive: VGG16 – Convolutional Network for Classification and Detection. 20 November 2018\\
+		\url{https://neurohive.io/en/popular-networks/vgg16/}\\
+		zugegriffen am 29.04.2021
+		
+		\bibitem{vgg16_architecture}
+		Understanding the VGG19 Architecture. Aakash Kaushik.\\
+		SRM Institute of Science and Technology.\\
+		\url{https://iq.opengenus.org/vgg19-architecture/}
+		
+		\bibitem{optimaltransport_twds}
+		Optimal transport: a hidden gem that empowers today’s machine learning. Ievgen Redko. Hubert Curien laboratory UMR CNRS 5516, University Jean Monnet of Saint-Etienne. 15 June 2020.\\
+		\url{https://towardsdatascience.com/optimal-transport-a-hidden-gem-that-empowers-todays-machine-learning-2609bbf67e59}\\
+		zugegriffen am 29.04.2021
+		
+		\bibitem{cnn_stanford}
+		\url{https://cs231n.github.io/convolutional-networks/}\\
+		zugegriffen am 30.04.2021
+		
+		\bibitem{cnn_architectures_stanford}
+		CNN Architectures - Lecture 9. Fei-Fei Li, Justin Johnson, Serena Yeung
+		\url{https://www.youtube.com/watch?v=DAOcjicFr1Y}\\
+		zugegriffen am 30 April 2021
+		
+		\bibitem{lrp_alzheimer}
+		Moritz Böhle, Fabian Eitel, Martin Weygandt, Kerstin Ritter. Tue, 27 Aug 2019.
+		Layer-Wise Relevance Propagation for Explaining Deep Neural Network Decisions in MRI-Based Alzheimer's Disease Classification
+		\url{https://arxiv.org/abs/1903.07317}
+		
+		\bibitem{BatchNormalization}
+		Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift. 2 März 2015. Sergey Ioffe Christian Szegedy.
+		\url{https://arxiv.org/pdf/1502.03167.pdf}
+		
+		\bibitem{unmasking clever hans} Lapuschkin, S., Wäldchen, S., Binder, A. et al. Unmasking Clever Hans predictors and assessing what machines really learn. Nat Commun 10, 1096 (2019). https://doi.org/10.1038/s41467-019-08987-4
+		
+		\bibitem{imagenet_unhansed_v1} Analyzing ImageNet with Spectral Relevance Analysis: Towards ImageNet un-Hans'ed.\\
+		Christopher J. Anders, Talmaj Marinč, David Neumann, Wojciech Samek, Klaus-Robert Müller, Sebastian Lapuschkin\\
+		\url{https://arxiv.org/abs/1912.11425v1}
 				
 	\end{thebibliography}
+
+	\newpage
+	\bibliographystyle{apacite}
+	\bibliography{ma_lukasschulth}
 
 	
 	
