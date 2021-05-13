@@ -211,9 +211,9 @@ class InnvestigateModel(torch.nn.Module):
             # List to save relevance distributions per layer
             r_values_per_layer = [relevance]
             for layer in rev_model:
-                print(layer)
+                #print(layer)
                 #print(layer.in_shape)
-                print(layer.out_shape)
+                #print(layer.out_shape)
                 # Compute layer specific backwards-propagation of relevance values
                 relevance = self.inverter.compute_propagated_relevance(layer, relevance)
                 r_values_per_layer.append(relevance.cpu())

@@ -44,9 +44,10 @@ from sklearn.cluster import KMeans
 from torch import nn
 from torch.functional import F
 from torch.utils.data import DataLoader
+import numpy as np
 
 from TrafficSignDataset import TrafficSignDataset
-from coding.testest.innvestigator import InnvestigateModel
+
 from pytorchlrp_fhj.lrp import sequential
 
 
@@ -111,6 +112,45 @@ class InceptionNet3(nn.Module):
         layers = [inception, pool1, batchConv1, pool1, batchConv2, pool1, batchConv3, pool1]
         return nn.Sequential(*layers)
 
+class mnistNet_moboehle(nn.Module):
+    def __init__(self):
+        super(mnistNet_moboehle, self).__init__()
+        self.conv1 = nn.Conv2d(3, 10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.max_pool1 = nn.MaxPool2d(2, stride=(2, 2))
+        self.max_pool2 = nn.MaxPool2d(2, stride=(2, 2))
+        self.conv2_drop = nn.Dropout2d()
+        self.softmax = nn.LogSoftmax(dim=1)
+        self.relu = nn.ReLU()
+        self.fc1 = nn.Linear(500, 50)
+        self.fc2 = nn.Linear(50, 43)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.max_pool1(x)
+        x = self.relu(x)
+        x = self.relu(self.max_pool2(self.conv2_drop(self.conv2(x))))
+        #print(x.shape)
+        x = x.view(-1, 500)
+        xx = self.relu(self.fc1(x))
+        x = self.conv2_drop(xx)
+        x = self.fc2(x)
+        return x, xx#self.softmax(x)
+class fc_model(nn.Module):
+
+    def __init__(self):
+        super(fc_model, self).__init__()
+        self.fc1 = nn.Linear(16 * 6 * 6, 120)  # 6*6 from image dimension
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 43)
+
+    def forward(self, x):
+
+        x = F.relu(self.fc1(x))
+        xx = F.relu(self.fc2(x))
+        x = F.relu((self.fc3(xx)))
+        return x, xx
+
 class cnn_Net(nn.Module):
     # https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
     def __init__(self):
@@ -126,20 +166,20 @@ class cnn_Net(nn.Module):
 
     def forward(self, x):
         # Max pooling over a (2, 2) window
-        print(x.shape)
+        #print(x.shape)
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        print(x.shape)
+        #print(x.shape)
         # If the size is a square, you can specify with a single number
         x = F.max_pool2d(F.relu(self.conv2(x)), 2)
-        print(x.shape)
+        #print(x.shape)
         x = x.view(-1, self.num_flat_features(x))
-        print(x.shape)
+        #print(x.shape)
         x = F.relu(self.fc1(x))
-        print(x.shape)
+        #print(x.shape)
         xx = F.relu(self.fc2(x))
-        print(xx.shape)
+        #print(xx.shape)
         x = self.fc3(xx)
-        print(x.shape)
+        #print(x.shape)
         return x, xx
 
     def num_flat_features(self, x):
@@ -2683,7 +2723,7 @@ class PoisoningAttack():
 
 
 if __name__ == '__main__':
-
+    from coding.Aenderungen_LRP.TrafficSignAI.Models.InceptionNet3 import InceptionNet3
     from TrafficSignDataset import TrafficSignDataset
 
     print("Torch Version: " + str(torch.__version__))
@@ -2711,7 +2751,7 @@ if __name__ == '__main__':
     #PA.clean_label_attack(root_dir)
     """
 
-    model = modelAi(name_to_save='simpleNet', net=cnn_Net, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='incv3_matthias_v2', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=5, image_size=32)
     print(model.net)
@@ -2737,43 +2777,168 @@ if __name__ == '__main__':
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
 
-    #LRP
-    #Load toolbox
-    from coding.pytorchlrp_fhj import lrp
-    num_samples_plot = min(20, 9) #20 = batch_size
 
 
-    # Sample batch from test_loader
-    for data in main.train_dataloader:
-        images = data['image']
-        labels = data['label']
-        break
+    ##### LRP-moboehle: Modifizierte Version von Matthias
+    save_lrp = True
+    from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel
 
-
-    """
-    #Torch LRP: model muss in Sequential Form gegeben sein
-    #images.requires_grad_(True)
-
-    #forward pass
-    pred_lrp = main.model.forward(images, explain = True, rule='epsilon', pattern=None)
-
-    # Choose argmax
-    pred_lrp = pred_lrp[torch.arange(images.shape[0]), pred_lrp.max(1)[1]]
-    pred_lrp = pred_lrp.sum()
-
-    # Backward pass (compute explanation)
-    pred_lrp.backward()
-
-    """
-    # TODO: InstanceNorm2d rausgenommen, dann lässt sich zumindest mal ein inn_model erstellen
-    # Pytorch-LRP Mnist Example
-    # jetzt für einfaches Netzwerk: https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html
-    # Training läuft, inn_model lässt sich erstellen, aber nicht auswerten
+    print('===> LRP started')
     inn_model = InnvestigateModel(model.net, lrp_exponent=2,
                                   method='e-rule',
                                   beta=0.5)
 
 
-    model_pred = inn_model.evaluate(images)
-    #print(model_pred)
-    model_prediction, true_relevance = inn_model.innvestigate(images)
+    # %%%%%%%%%%%%%%%%%%%%%
+    lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
+    lrp_dataloader = DataLoader(lrp_train_dataset, batch_size=20, shuffle=False)
+
+    del lrp_train_dataset
+    num_total_samples = 0
+    summed = []
+
+    #TODO: Remove breaks in mean and var calculation
+
+    for data in lrp_dataloader:
+        images = data['image']
+        labels = data['label']
+        im_path = data['path']
+        num_total_samples += len(images)
+
+        bNormInputs = inn_model.get_batch_norm_inputs(images)
+
+        for i in range(len(bNormInputs)):
+            #print(bNormInputs[i].shape)
+            #summed.append(torch.sum(bNormInputs[i], axis=0))
+            summed.append(bNormInputs[i].sum(0))
+        break
+
+    for i in range(len(bNormInputs)):
+        #print(summed[i].shape)
+        mean = summed[i]/num_total_samples
+        #print(mean.shape)
+
+        # Save means per layer in dict
+        inn_model.batch_norm_dict[str(i)] = {}
+        inn_model.batch_norm_dict[str(i)]['mean'] = mean
+
+        inn_model.inverter.batchNorm_dict[str(i)] = {}
+        inn_model.inverter.batchNorm_dict[str(i)]['mean'] = mean
+
+    #print(inn_model.batch_norm_dict[str(5)]['mean'].shape)
+
+    # Berechne Varianz
+    var_summed = []
+
+    for data in lrp_dataloader:
+        images = data['image']
+        labels = data['label']
+        im_path = data['path']
+        num_total_samples += len(images)
+
+        bNormInputs = inn_model.get_batch_norm_inputs(images)
+
+        for i in range(len(bNormInputs)):
+            #print(bNormInputs[i].shape)
+            #var_summed.append(torch.sum(torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])), axis=0))
+            var_summed.append((torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])).sum(0)))
+        break
+
+    for i in range(len(bNormInputs)):
+        #print(summed[i].shape)
+        var = var_summed[i]/num_total_samples
+        #print(mean.shape)
+
+        # Save means per layer in dict
+        inn_model.batch_norm_dict[str(i)]['var'] = var
+        inn_model.inverter.batchNorm_dict[str(i)]['var'] = var
+
+    print('hier')
+    for i in range(10):
+        print('i: ', i)
+
+        print(inn_model.batch_norm_dict[str(i)]['var'].shape)
+
+
+
+
+    # Wähle Trainingsdaten ohne transformations
+    # erstelle dazu einen neuen dataloader
+    lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
+    lrp_dataloader =DataLoader(lrp_train_dataset, batch_size=1, shuffle=False)
+
+    del lrp_train_dataset
+
+    # Create folder for LRP output
+    path = os.getcwd()
+
+    path_rel = path + "/LRP_Outputs/" + str(model.name) + str(inn_model.method) + "/relevances"
+    path_im = path + "/LRP_Outputs/" + str(model.name) + str(inn_model.method) + "/lrp_plots"
+    if os.path.exists(path_rel):
+        shutil.rmtree(path_rel)
+    if os.path.exists(path_im):
+        shutil.rmtree(path_im)
+    os.makedirs(path_rel)
+    os.makedirs(path_im)
+
+    # Erstelle subfolder für jede einzelne Klasse:
+    for i in range(43):
+        os.mkdir(path_rel + "/" + str(i).zfill(5))
+        os.mkdir(path_im + "/" + str(i).zfill(5))
+
+
+    # Wähle sample aus dem Datensatz
+
+    #for data in main.train_dataloader:
+    for data in lrp_dataloader:
+        images = data['image']
+        labels = data['label']
+        im_path = data['path']
+        #print(im_path)
+
+        model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=labels[0])
+
+        #print(model_prediction)
+        #print(input_relevance_values.shape)
+
+        #print('Label: ', labels)
+        d = input_relevance_values[0]
+        #d = np.swapaxes(d, 0, 2)
+        #print(d.shape)
+        #plt.imshow(d)
+        #plt.imshow(input_relevance_values[0])
+
+        #with open('test.npy', 'wb') as f:
+
+            #np.save(f, d)
+
+
+
+
+
+        # Speichere aktuelle Heatmap im entsprechden folder ab
+        #rel = np.swapaxes(input_relevance_values[0].detach().numpy(), 0, 2)
+        #print(rel.shape)
+        rel = np.sum(d.detach().numpy(), axis=0)
+        #print(rel.shape)
+
+        #im = Image.fromarray(rel).convert('RGB')
+
+        #im.save(path + str(labels[0].detach().numpy()).zfill(5) + "/" + im_path[0].rsplit('/', 1)[-1], subsampling=0, quality=100)
+
+        # Abspeichern der Relevanzen als .npy file
+        if save_lrp:
+            fname_to_save_rel = path_rel + "/" + str(labels[0].detach().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".npy"
+            #print(fname_to_save_rel)
+            with open(fname_to_save_rel, 'wb') as f:
+
+                np.save(f, d)
+
+        # Abspeichern der lrp plots als jpgs
+        #fname_to_save_im = path_im + "/" + str(labels[0].detach().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".png"
+        #print(fname_to_save_im)
+        #plt.imshow(d)
+        #plt.savefig(fname_to_save_im)
+
+    print('===> LRP finished')
+
