@@ -43,9 +43,29 @@ for root, dirs, files in os.walk(path):
 # Convert list of relevances to numpy array
 rel_array = np.asarray(relevances)
 #Plot heatmap
-# plt.imshow(heatmaps[0])
+plt.imshow(heatmaps[0])
 
-print(rel_array.shape)
+print('relarray.shape: ', rel_array.shape)
+
+#Normalize relevance maps to [0,1] before computing pw. L2 dist:
+
+rel_array_normalized = []
+for i in range(rel_array.shape[0]):
+    r = rel_array[i]
+    min = r.min()
+    max = r.max()
+
+    # Normalize "by hand"
+    r = (r-min)/(max-min)
+
+    # Division by total mass
+    r = r/r.sum()
+
+    rel_array_normalized.append(r)
+
+rel_array_normalized = np.asarray(rel_array_normalized)
+
+
 #rel_array = np.concatenate(rel_array, axis=2)
 #print(rel_array.shape)
 
@@ -54,40 +74,9 @@ print(rel_array.shape)
 # L2-Distance
 
 
-l2_dist = distance_matrix(rel_array, rel_array)
-
-
-# TODO: Gromov-Wasserstein-Distance
-
-
-#### Compute pair_wise (binary) affinity scores using kNN
-k = 10
-#Ohne kNN: Sortiere jeden Zeile und merke die k Indices(ungleich der Diagonalen) mit der niedrigsten Distanz.
-ind = np.argsort(l2_dist, axis=1)
-
-#Reduziere die Inidces zeilenweise auf die ersten 10+1 Indices, da der identische Punkt immer mit Abstand 0 dazugehört
-ind = ind[:, 0:k]
-
-
-#print(ind)
-#print(ind.shape)
-#print(ind.shape[0])
-A = np.zeros_like(l2_dist)
-
-# Setze 1's an die passenden Stellen in A
-for i in range(0, ind.shape[0]): # Zeilen
-    for j in range(0, ind.shape[1]): # Spalten
-        # Man sollte sich lieber die Indices in ind anschauen und dann
-        # an der richtigen Stelle in A einen Eintrag setzen
-        #print(i, j)
-        A[i, ind[i, j]] = 1
-
-
-# Die Summe über jede Zeile von A ist nun 10, d.h. die 10 nächst gelegenen Punkte sind pro Zeile mit einer 1 vermerkt
-#print(np.sum(A, 1))
-
-# Erzeuge eine symmetrische Affinitätsmatrix
-A = 0.5 * (A + np.transpose(A))
+l2_dist = distance_matrix(rel_array_normalized, rel_array_normalized) # Distanzmatrix der pw. Distanzen zwischen den Heatmaps
+print('max: ', l2_dist.max())
+print('min: ', l2_dist.min())
 
 ##### Berechne Distanzen mithilfe von Gromov-Wasserstein
 
@@ -95,11 +84,11 @@ A = 0.5 * (A + np.transpose(A))
 heatmap_array = np.asarray(heatmaps)
 print(heatmap_array.shape)
 im1 = heatmap_array[0]
-im2 = heatmap_array[17]
+im2 = heatmap_array[19]
 
+print('l2:', l2_dist[0][19])
 # Berechne GW-Distanz zwischen beiden Heatmaps
 #n_samples = 32*32
-#TODO: Normalisiere jedes Bild
 
 # Speichere Pixelkoordinaten als (x,y)
 # Speichere zusaätzlich Relevanz r passen zum Koordinatenpunkt
@@ -147,29 +136,6 @@ def heatmap_to_rel_coord(im):
 xy1, x1, y1, r1 = heatmap_to_rel_coord(im1)
 xy2, x2, y2, r2 = heatmap_to_rel_coord(im2)
 
-
-n_samples = 30  # nb samples
-
-mu_s = np.array([0, 0])
-cov_s = np.array([[1, 0], [0, 1]])
-
-mu_t = np.array([4, 4, 4])
-cov_t = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-
-
-xs = ot.datasets.make_2D_samples_gauss(n_samples, mu_s, cov_s)
-#print(xs)
-P = sp.linalg.sqrtm(cov_t)
-xt = np.random.randn(n_samples, 3).dot(P) + mu_t
-#print(xt)
-
-fig = pl.figure()
-ax1 = fig.add_subplot(121)
-ax1.plot(xs[:, 0], xs[:, 1], '+b', label='Source samples')
-ax2 = fig.add_subplot(122, projection='3d')
-ax2.scatter(xt[:, 0], xt[:, 1], xt[:, 2], color='r')
-pl.show()
-
 # Compute distance kernels, normalize them and then display
 
 C1 = sp.spatial.distance.cdist(xy1, xy1)
@@ -177,13 +143,6 @@ C2 = sp.spatial.distance.cdist(xy2, xy2)
 
 C1 /= C1.max()
 C2 /= C2.max()
-
-pl.figure()
-pl.subplot(121)
-pl.imshow(C1)
-pl.subplot(122)
-pl.imshow(C2)
-pl.show()
 
 # Compute Gromov-Wasserstein plans and distance
 # https://pythonot.github.io/gen_modules/ot.gromov.html#ot.gromov.gromov_wasserstein
@@ -201,23 +160,109 @@ gw, log = ot.gromov.entropic_gromov_wasserstein(
 print('Gromov-Wasserstein distances: ' + str(log0['gw_dist']))
 print('Entropic Gromov-Wasserstein distances: ' + str(log['gw_dist']))
 
-
-pl.figure(1, (10, 5))
-
-pl.subplot(1, 2, 1)
-pl.imshow(gw0, cmap='jet')
-pl.title('Gromov Wasserstein')
-
-pl.subplot(1, 2, 2)
-pl.imshow(gw, cmap='jet')
-pl.title('Entropic Gromov Wasserstein')
-
-#pl.show()
+#print(gw0,log0)
+# Compute distance matrices for GWD and EGWD:
 
 
+# GWD-Matrix:
+def compute_GWD_matrix(heatmap_array, method='GWD'):
+
+    # Initialize matrix:
+    GWD = np.zeros((heatmap_array.shape[0], heatmap_array.shape[0]))
+    # Iterate through matrix(we only need upper oder lower triangle since distances are symmetric
+    for i in range(heatmap_array.shape[0]):
+        for j in range(i-1):
+            im1 = heatmap_array[i]
+            im2 = heatmap_array[j]
+            xy1, x1, y1, r1 = heatmap_to_rel_coord(im1)
+            xy2, x2, y2, r2 = heatmap_to_rel_coord(im2)
+
+            C1 = sp.spatial.distance.cdist(xy1, xy1)
+            C2 = sp.spatial.distance.cdist(xy2, xy2)
+
+            C1 /= C1.max()
+            C2 /= C2.max()
+
+            if method == 'GWD':
+                gw, log = ot.gromov.gromov_wasserstein(
+                C1, C2, r1, r2, 'square_loss', verbose=True, log=True)
+            elif method == 'EGWD':
+                gw, log = ot.gromov.entropic_gromov_wasserstein(
+                C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True, verbose=True)
+            else:
+                print('METHOD not implemented.')
+
+            GWD[i][j] = log['gw_dist']
+
+            #Use symmetry
+            GWD[j][i] = GWD[i][j]
 
 
-# Compute spectral embedding:
+        # Setze Diagonalelement =0
+        GWD[i][i] = 0
 
+    return GWD
+
+
+#GWD = compute_GWD_matrix(heatmap_array, method='GWD')
+#EGWD = compute_GWD_matrix(heatmap_array, method='EGWD')
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+# Compute Affinity matrices/Transformation of distance matrices: -------------------------------------------------------
+#### Compute pw (binary) affinity scores using kNN
+k = 10
+#Ohne kNN: Sortiere jeden Zeile und merke die k Indices(ungleich der Diagonalen) mit der niedrigsten Distanz.
+ind = np.argsort(l2_dist, axis=1)
+
+#Reduziere die Inidces zeilenweise auf die ersten 10+1 Indices, da der identische Punkt immer mit Abstand 0 dazugehört
+ind = ind[:, 0:k]
+
+#print(ind)
+#print(ind.shape)
+#print(ind.shape[0])
+A = np.zeros_like(l2_dist)
+
+# Setze 1's an die passenden Stellen in A
+for i in range(0, ind.shape[0]): # Zeilen
+    for j in range(0, ind.shape[1]): # Spalten
+        # Man sollte sich lieber die Indices in ind anschauen und dann
+        # an der richtigen Stelle in A einen Eintrag setzen
+        #print(i, j)
+        A[i, ind[i, j]] = 1
+
+
+# Die Summe über jede Zeile von A ist nun 10, d.h. die 10 nächst gelegenen Punkte sind pro Zeile mit einer 1 vermerkt
+#print(np.sum(A, 1))
+
+# Erzeuge eine symmetrische Affinitätsmatrix
+A = 0.5 * (A + np.transpose(A))
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Compute spectral embedding: ------------------------------------------------------------------------------------------
+ # compute the symmetrized and normalized p.s.d. graph laplacian
+ # COmpute D:
+D = np.zeros_like(A)
+Dinv = np.zeros_like(A)
+#A = np.array([[1,2],[3,4]])
+rowwise_sum = A.sum(1)
+
+
+for i in range(D.shape[0]):
+    D[i][i] = A.sum(1)[i]
+    Dinv[i][i] = np.sqrt(A.sum(1)[i])
+
+L = D-A
+
+Lsym = Dinv*L*Dinv
+
+
+# Eigenvalue Decomposition of Lsym:
+#TODO: Wahl von k und q?
+
+from scipy.sparse.linalg import eigs
+vals, vecs = eigs(Lsym)
+print(vals.shape)
 
 
