@@ -906,12 +906,11 @@ class modelAi:
 if __name__ == '__main__':
 
     root_dir = "./dataset/"
-    root_dir_unpoisoned = root_dir
 
-    train_dir = root_dir + "Training/"
-    valid_dir = root_dir + "Validation/"
-    test_dir = root_dir + "Testing/"
-    test_dir_unpoisoned = root_dir_unpoisoned + "Testing/"
+    train_dir_unpoisoned = root_dir + "Training/"
+    valid_dir_unpoisoned = root_dir + "Validation/"
+    test_dir_unpoisoned = root_dir + "Testing/"
+
 
     from coding.Aenderungen_LRP.TrafficSignAI.Models.InceptionNet3 import InceptionNet3
     from TrafficSignDataset import TrafficSignDataset
@@ -929,9 +928,6 @@ if __name__ == '__main__':
 
         return module
 
-
-    #root_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Unpoisoned Dataset/"
-
     # Für Clean Label Poisoning Attack wird model_to_poison_data benötigt
     """
     model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data', net=InceptionNet3, poisoned_data=False, isPretrained=False,lr=1e-3)
@@ -940,10 +936,14 @@ if __name__ == '__main__':
     PA.standard_attack(root_dir=root_dir, s=3, percentage_poison=0.33)
     #PA.clean_label_attack(root_dir)
     """
-    poison_model = modelAi(name_to_save='posion_model')
+    poison_model = modelAi(name_to_save='poison_model')
     Main = TrafficSignMain(model=poison_model, epochs=0)
     PA = PoisoningAttack(Main)
-    PA.standard_attack(root_dir=root_dir)
+    PA.standard_attack(root_dir=root_dir, s=3)
+    root_dir_poisoned = "dataset/Poisoned_Git_Dataset/"
+    train_dir = root_dir_poisoned + "Training/"
+    valid_dir = root_dir_poisoned + "Validation/"
+    test_dir = root_dir_poisoned + "Testing/"
 
     #sys.exit()
 

@@ -1,6 +1,6 @@
 import torch
 
-from coding.main_file_lukasschulth import TrafficSignMain
+from coding.TrafficSignMain import TrafficSignMain
 
 import json
 import os
