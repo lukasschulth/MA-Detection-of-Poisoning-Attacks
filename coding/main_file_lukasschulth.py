@@ -936,10 +936,10 @@ if __name__ == '__main__':
     PA.standard_attack(root_dir=root_dir, s=3, percentage_poison=0.33)
     #PA.clean_label_attack(root_dir)
     """
-    poison_model = modelAi(name_to_save='poison_model')
-    Main = TrafficSignMain(model=poison_model, epochs=0)
-    PA = PoisoningAttack(Main)
-    PA.standard_attack(root_dir=root_dir, s=3)
+    #poison_model = modelAi(name_to_save='poison_model')
+    #Main = TrafficSignMain(model=poison_model, epochs=0)
+    #PA = PoisoningAttack(Main)
+    #PA.standard_attack(root_dir=root_dir, s=3)
     root_dir_poisoned = "dataset/Poisoned_Git_Dataset/"
     train_dir = root_dir_poisoned + "Training/"
     valid_dir = root_dir_poisoned + "Validation/"
@@ -947,9 +947,9 @@ if __name__ == '__main__':
 
     #sys.exit()
 
-    model = modelAi(name_to_save='incv3_matthias_v2', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='incv3_20_epochs_normalized', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
-    main = TrafficSignMain(model, epochs=5, image_size=32)
+    main = TrafficSignMain(model, epochs=20, image_size=32)
     #print(model.net)
 
     main.creating_data(dataset=TrafficSignDataset, test_dir=test_dir, train_dir=train_dir, valid_dir=valid_dir, test_dir_unpoisoned=test_dir_unpoisoned)
@@ -966,7 +966,7 @@ if __name__ == '__main__':
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
 
-    sys.exit()
+
 
     ##### LRP-moboehle: Modifizierte Version von Matthias
     save_lrp = True
@@ -986,7 +986,7 @@ if __name__ == '__main__':
     num_total_samples = 0
     summed = []
 
-    #TODO: Remove breaks in mean and var calculation
+
 
     for data in lrp_dataloader:
         images = data['image']
@@ -1000,7 +1000,7 @@ if __name__ == '__main__':
             #print(bNormInputs[i].shape)
             #summed.append(torch.sum(bNormInputs[i], axis=0))
             summed.append(bNormInputs[i].sum(0))
-        break
+
 
     for i in range(len(bNormInputs)):
         #print(summed[i].shape)
@@ -1031,7 +1031,7 @@ if __name__ == '__main__':
             #print(bNormInputs[i].shape)
             #var_summed.append(torch.sum(torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])), axis=0))
             var_summed.append((torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])).sum(0)))
-        break
+
 
     for i in range(len(bNormInputs)):
         #print(summed[i].shape)
@@ -1100,10 +1100,6 @@ if __name__ == '__main__':
         #with open('test.npy', 'wb') as f:
 
             #np.save(f, d)
-
-
-
-
 
         # Speichere aktuelle Heatmap im entsprechden folder ab
         #rel = np.swapaxes(input_relevance_values[0].detach().numpy(), 0, 2)
