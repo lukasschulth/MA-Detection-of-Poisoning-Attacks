@@ -85,8 +85,6 @@ def set_seed(seed):
 #from TrafficSignAI.Visualization.Visualizer import Visualizer
 #from Attacks_Poisoning.modelAi_save_best import modelAI
 
-
-
 class modelAi:
 
     def __init__(self, name_to_save, net: nn.Module = InceptionNet3, criterion = nn.CrossEntropyLoss(), poisoned_data = True, lr=1e-4, num_classes=43, isPretrained=False):
@@ -576,23 +574,18 @@ class modelAi:
             cdm_total += cdm
             rba_total += rba
 
-
-
         epoch_loss = running_loss / len(test_loader)
 
         epoch_acc = running_corrects / total
 
-
-        print("Test_loss_unpoisoned:", epoch_loss)
-        print("test_acc_unpoisoned:", epoch_acc)
+        print("Test loss unpoisoned:", epoch_loss)
+        print("Test Acc unpoisoned:", epoch_acc)
 
         return epoch_loss, epoch_acc, cba_total, cdm_total, rba_total
 
     def train(self, train_dataloader, current_epoch, retraining=False):
         self.net_retraining.train()
         self.net.train()
-
-        self.scheduler.step(current_epoch)  # After 100 steps/epochs the learning rate will be reduce. This provides overfitting and gives a small learning boost.
 
         torch.set_grad_enabled(True)
         total = 0
@@ -632,6 +625,7 @@ class modelAi:
             else:
                 self.optimizer.step()
 
+            self.scheduler.step()  # After 100 steps/epochs the learning rate will be reduce. This provides overfitting and gives a small learning boost.
             # if current_epoch % visualize_at_each_epoch==0:
             #   self._create_tensorboard_visualization(images,labels, outputs, ValidationType.TRAIN, label_array,epoch=current_epoch)
 
@@ -905,6 +899,14 @@ class modelAi:
 
 if __name__ == '__main__':
 
+    #deterministic results:
+    seed=0
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+
     root_dir = "./dataset/"
 
     train_dir_unpoisoned = root_dir + "Training/"
@@ -945,9 +947,13 @@ if __name__ == '__main__':
     valid_dir = root_dir_poisoned + "Validation/"
     test_dir = root_dir_poisoned + "Testing/"
 
+    #train_dir = train_dir_unpoisoned
+    #valid_dir = valid_dir_unpoisoned
+    #test_dir = test_dir_unpoisoned
+
     #sys.exit()
 
-    model = modelAi(name_to_save='incv3_20_epochs_normalized', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='optimizing_net_normalization', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=20, image_size=32)
     #print(model.net)
@@ -955,7 +961,7 @@ if __name__ == '__main__':
     main.creating_data(dataset=TrafficSignDataset, test_dir=test_dir, train_dir=train_dir, valid_dir=valid_dir, test_dir_unpoisoned=test_dir_unpoisoned)
 
     #main.start_tensorboard()
-    main.loading_ai(should_train_if_needed=False, should_evaluate=True, isPretrained=False)
+    main.loading_ai(should_train_if_needed=True, should_evaluate=True, isPretrained=False)
 
     # Lese Daten für Activationload Clustering ohne Trafos ein:
     #main.creating_data_for_ac(dataset=TrafficSignDataset, train_dir=train_dir)
@@ -967,6 +973,7 @@ if __name__ == '__main__':
     #AC.evaluate_retraining_all_classes(T=1)
 
 
+    sys.exit()
 
     ##### LRP-moboehle: Modifizierte Version von Matthias
     save_lrp = True
@@ -977,77 +984,77 @@ if __name__ == '__main__':
                                   method='e-rule',
                                   beta=0.5)
 
+    #  %% --- Berechnung von mean und Varianz über den gesamten Trainingsdatensatz
+    if False:
+        lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
+        lrp_dataloader = DataLoader(lrp_train_dataset, batch_size=20, shuffle=False)
 
-    # %%%%%%%%%%%%%%%%%%%%%
-    lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
-    lrp_dataloader = DataLoader(lrp_train_dataset, batch_size=20, shuffle=False)
-
-    del lrp_train_dataset
-    num_total_samples = 0
-    summed = []
+        del lrp_train_dataset
+        num_total_samples = 0
+        summed = []
 
 
 
-    for data in lrp_dataloader:
-        images = data['image']
-        labels = data['label']
-        im_path = data['path']
-        num_total_samples += len(images)
+        for data in lrp_dataloader:
+            images = data['image']
+            labels = data['label']
+            im_path = data['path']
+            num_total_samples += len(images)
 
-        bNormInputs = inn_model.get_batch_norm_inputs(images)
+            bNormInputs = inn_model.get_batch_norm_inputs(images)
+
+            for i in range(len(bNormInputs)):
+                #print(bNormInputs[i].shape)
+                #summed.append(torch.sum(bNormInputs[i], axis=0))
+                summed.append(bNormInputs[i].sum(0))
+
 
         for i in range(len(bNormInputs)):
-            #print(bNormInputs[i].shape)
-            #summed.append(torch.sum(bNormInputs[i], axis=0))
-            summed.append(bNormInputs[i].sum(0))
+            #print(summed[i].shape)
+            mean = summed[i]/num_total_samples
+            #print(mean.shape)
 
+            # Save means per layer in dict
+            inn_model.batch_norm_dict[str(i)] = {}
+            inn_model.batch_norm_dict[str(i)]['mean'] = mean
 
-    for i in range(len(bNormInputs)):
-        #print(summed[i].shape)
-        mean = summed[i]/num_total_samples
-        #print(mean.shape)
+            inn_model.inverter.batchNorm_dict[str(i)] = {}
+            inn_model.inverter.batchNorm_dict[str(i)]['mean'] = mean
 
-        # Save means per layer in dict
-        inn_model.batch_norm_dict[str(i)] = {}
-        inn_model.batch_norm_dict[str(i)]['mean'] = mean
+        #print(inn_model.batch_norm_dict[str(5)]['mean'].shape)
 
-        inn_model.inverter.batchNorm_dict[str(i)] = {}
-        inn_model.inverter.batchNorm_dict[str(i)]['mean'] = mean
+        # Berechne Varianz
+        var_summed = []
 
-    #print(inn_model.batch_norm_dict[str(5)]['mean'].shape)
+        for data in lrp_dataloader:
+            images = data['image']
+            labels = data['label']
+            im_path = data['path']
+            num_total_samples += len(images)
 
-    # Berechne Varianz
-    var_summed = []
+            bNormInputs = inn_model.get_batch_norm_inputs(images)
 
-    for data in lrp_dataloader:
-        images = data['image']
-        labels = data['label']
-        im_path = data['path']
-        num_total_samples += len(images)
+            for i in range(len(bNormInputs)):
+                #print(bNormInputs[i].shape)
+                #var_summed.append(torch.sum(torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])), axis=0))
+                var_summed.append((torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])).sum(0)))
 
-        bNormInputs = inn_model.get_batch_norm_inputs(images)
 
         for i in range(len(bNormInputs)):
-            #print(bNormInputs[i].shape)
-            #var_summed.append(torch.sum(torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])), axis=0))
-            var_summed.append((torch.square((bNormInputs[i] - inn_model.batch_norm_dict[str(i)]['mean'])).sum(0)))
+            #print(summed[i].shape)
+            var = var_summed[i]/num_total_samples
+            #print(mean.shape)
 
+            # Save means per layer in dict
+            inn_model.batch_norm_dict[str(i)]['var'] = var
+            inn_model.inverter.batchNorm_dict[str(i)]['var'] = var
 
-    for i in range(len(bNormInputs)):
-        #print(summed[i].shape)
-        var = var_summed[i]/num_total_samples
-        #print(mean.shape)
+        print('hier')
+        for i in range(10):
+            print('i: ', i)
 
-        # Save means per layer in dict
-        inn_model.batch_norm_dict[str(i)]['var'] = var
-        inn_model.inverter.batchNorm_dict[str(i)]['var'] = var
-
-    print('hier')
-    for i in range(10):
-        print('i: ', i)
-
-        print(inn_model.batch_norm_dict[str(i)]['var'].shape)
-
+            print(inn_model.batch_norm_dict[str(i)]['var'].shape)
+    # ------------------------------------------------------------------------------------------------------------------
 
 
 
