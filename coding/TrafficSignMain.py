@@ -9,7 +9,7 @@ from TrafficSignDataset import TrafficSignDataset
 from coding.modelAi import modelAi
 
 
-class TrafficSignMain:
+class TrafficSignMain():
 
     __train_transform: transforms
 
@@ -21,14 +21,14 @@ class TrafficSignMain:
     test_dataloader: DataLoader = None
     test_dataloader_unpoisoned: DataLoader = None
 
-    def __init__(self, model: modelAi, epochs, image_size = 32) -> None:
+    def __init__(self, model: modelAi, epochs, image_size=32, batch_size=32) -> None:
         super().__init__()
 
         #self.visualizer = Visualizer()
         self.model = model
         #self.model.visualizer = self.visualizer
         self.epochs = epochs
-
+        self.batch_size = batch_size
         self.__create_train_transform(image_size)
         self.__create_test_transform(image_size)
 
@@ -38,7 +38,7 @@ class TrafficSignMain:
         from tensorboard import program
         from tensorboard.util import tb_logging
         tb = program.TensorBoard()
-        tb.configure(argv=['','--logdir', "../logs"])
+        tb.configure(argv=['', '--logdir', "../logs"])
         a = tb.launch()
 
         print("\n---------------------------------------------------------------------")
@@ -56,6 +56,8 @@ class TrafficSignMain:
                 transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
                 transforms.RandomAffine(15),
                 transforms.RandomGrayscale(),
+                #transforms.Normalize(mean=[0.485, 0.456, 0.406], # pytorch nets values
+                #                 std=[0.229, 0.224, 0.225]),
                 transforms.ToTensor()
                 # ,
                 # transforms.Normalize(
@@ -73,25 +75,25 @@ class TrafficSignMain:
             ]
         )
 
-    def creating_data(self, dataset=TrafficSignDataset, test_dir:str = None, train_dir:str = None, valid_dir:str = None, test_dir_unpoisoned:str = None, batch_size = 20):
+    def creating_data(self, dataset=TrafficSignDataset, test_dir:str = None, train_dir:str = None, valid_dir:str = None, test_dir_unpoisoned:str = None ):
         if train_dir is not None:
             train_dataset = dataset(train_dir, self.__train_transform)
-            self.train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+            self.train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
             del train_dataset
 
         if valid_dir is not None:
             valid_dataset = dataset(valid_dir, self.test_transform)
-            self.valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True)
+            self.valid_dataloader = DataLoader(valid_dataset, batch_size=self.batch_size, shuffle=True)
             del valid_dataset
 
         if test_dir is not None:
             test_dataset = dataset(test_dir, self.test_transform)
-            self.test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+            self.test_dataloader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=True)
             del test_dataset
 
         if test_dir_unpoisoned is not None:
             test_dataset_unpoisoned = dataset(test_dir_unpoisoned, self.__train_transform)
-            self.test_dataloader_unpoisoned = DataLoader(test_dataset_unpoisoned, batch_size=batch_size, shuffle=True)
+            self.test_dataloader_unpoisoned = DataLoader(test_dataset_unpoisoned, batch_size=self.batch_size, shuffle=True)
             del test_dataset_unpoisoned
         print("Data creation complete.")
 
@@ -135,17 +137,17 @@ class TrafficSignMain:
         if should_evaluate:
             self.evaluate_ai(verbose=verbose)
 
-    def train_ai(self, epochs, lastEpochs=0, verbose=True):
+    def train_ai(self, epochs, last_epochs=0, verbose=True):
         print(f"=>\tStart training AI on {self.model.device}")
 
         for epoch in range(epochs):
-            train_loss, train_acc = self.model.train(train_dataloader=self.train_dataloader, current_epoch=lastEpochs + epoch)
+            train_loss, train_acc = self.model.train(train_dataloader=self.train_dataloader, current_epoch=last_epochs + epoch)
             if verbose:
                 print("=>\t[%d] loss: %.3f, accuracy: %.3f" % (epoch, train_loss, train_acc * 100) + "%")
-            if not self.valid_dataloader == None:
-                loss, pred_correct = self.model.evaluate_valid(dataloader=self.valid_dataloader, epoch=lastEpochs + epoch)
+            if self.valid_dataloader is not None:
+                loss, pred_correct = self.model.evaluate_valid(dataloader=self.valid_dataloader, epoch=last_epochs + epoch)
                 if verbose:
-                    print("=>\tAccuracy of validation Dataset: %.3f" % (pred_correct * 100) + "% \n")
+                    print("=>\tAccuracy on validation Dataset: %.3f" % (pred_correct * 100) + "% \n")
 
         print("=>\tFINISHED TRAINING")
     """
@@ -181,7 +183,7 @@ class TrafficSignMain:
                 loss, pred_correct = self.model.evaluate_test(dataloader=self.test_dataloader_unpoisoned)
                 print('Performance of poisoned net on unpoisoned training data:')
                 print(f"loss on test dataset: {loss}")
-                print(f"Accuracy of test Dataset: {pred_correct.__round__(3)} \n")
+                print(f"Accuracy on test Dataset: {pred_correct.__round__(3)} \n")
 
     def get_activations(self, data_loader):
 
