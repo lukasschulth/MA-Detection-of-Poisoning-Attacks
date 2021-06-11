@@ -289,7 +289,7 @@ def heatmap_to_distance_matrix(im, threshold=0.99):
 
 if __name__ == '__main__':
 
-    number_samples = 90 #number of samples per class to check for poisoning attack
+    number_samples = 10 #number of samples per class to check for poisoning attack
 
     """
     clustering = np.array([1, 1, 0, 0])
@@ -341,11 +341,11 @@ if __name__ == '__main__':
 
     # Convert list of relevances to numpy array
     rel_array = np.asarray(relevances).astype(np.float64)
-    rel_array = rel_array[0:number_samples]
-    heatmaps = heatmaps[0:number_samples]
-    poison_labels = poison_labels[0:number_samples]
+    rel_array = rel_array[5:number_samples+5]
+    heatmaps = heatmaps[5:number_samples+5]
+    poison_labels = poison_labels[5:number_samples+5]
 
-    print(poison_labels)
+    print('poisonLabels: ', poison_labels)
     #Plot heatmap
     #for i in range(20):
     #    plt.imshow(heatmaps[i])
