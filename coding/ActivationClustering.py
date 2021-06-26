@@ -106,7 +106,7 @@ class ActivationClustering:
         copy_tree(self.root_dir + "Testing", self.checkpoint_dir + "Original_Data/" + "Testing/")
         print('Daten in extra Ordner gesichert ...')
 
-        if self.main.model.did_saved_model(self.main.model.name):
+        if self.main.model.did_save_model(self.main.model.name):
 
             last_epochs = self.main.model.load(verbose=False)
 

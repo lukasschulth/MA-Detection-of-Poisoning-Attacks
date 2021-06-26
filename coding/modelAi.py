@@ -10,7 +10,7 @@ from TrafficSignDataset import TrafficSignDataset
 
 class modelAi:
 
-    def __init__(self, name_to_save, net: nn.Module = InceptionNet3, criterion = nn.CrossEntropyLoss(), poisoned_data = True, lr=1e-4, num_classes=43, isPretrained=False):
+    def __init__(self, name_to_save, net: nn.Module = InceptionNet3, criterion=nn.CrossEntropyLoss(), poisoned_data=True, lr=1e-4, num_classes=43, isPretrained=False):
         #super().__init__()
 
         self.name = name_to_save
@@ -24,7 +24,8 @@ class modelAi:
         self.optimizer = optim.Adam(self.net.parameters(), lr=lr)
         self.optimizer_retraining = optim.Adam(self.net_retraining.parameters(), lr=lr)
         #self.optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-        self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
+        #self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, verbose=True)
         self.poisoned_data = poisoned_data
         self.path = []
         self.num_classes = num_classes
@@ -186,7 +187,6 @@ class modelAi:
         poison_labels = np.concatenate((poison_labels, last_poison_labels), axis=0)
         predictions = np.concatenate((predictions, last_preds), axis=0)
 
-
         return activations, labels, poison_labels, predictions, paths
 
     def did_save_model(self, with_name: str = None):
@@ -195,7 +195,7 @@ class modelAi:
         #TODO: Check if dir exists
 
         dir = os.listdir("./AI_Model")
-        if not with_name == None: # When a name is set, check if the dir contains a file with the specific name.
+        if with_name is not None: # When a name is set, check if the dir contains a file with the specific name.
             for file in dir:
                 if file == with_name:
                    return True
@@ -513,7 +513,7 @@ class modelAi:
         self.net_retraining.train()
         self.net.train()
 
-        self.scheduler.step(current_epoch)  # After 100 steps/epochs the learning rate will be reduce. This provides overfitting and gives a small learning boost.
+        #self.scheduler.step(current_epoch)  # After 100 steps/epochs the learning rate will be reduce. This provides overfitting and gives a small learning boost.
 
         torch.set_grad_enabled(True)
         total = 0
@@ -561,9 +561,10 @@ class modelAi:
             running_corrects += torch.sum(preds == labels).item()
 
         epoch_loss = running_loss / len(train_dataloader)
-
         epoch_acc = running_corrects / total
-        self.save(current_epoch)
+
+        # Saving model after each training epoch, independent from val_loss
+        #self.save(current_epoch)
 
         #self.log_tensorboard(epoch=current_epoch, loss_train=epoch_loss, accuracy_train=epoch_acc, input=(images, labels), validationType=ValidationType.TRAIN)
         return epoch_loss, epoch_acc
@@ -571,7 +572,7 @@ class modelAi:
     def evaluate_test(self, dataloader):
         return self.__evaluate(dataloader, 0)
 
-    def evaluate_valid(self,dataloader, epoch, retraining=False):
+    def evaluate_valid(self, dataloader, epoch, retraining=False):
         loss, acc = self.__evaluate(dataloader, epoch, retraining=retraining)
         return loss, acc
 
@@ -607,8 +608,6 @@ class modelAi:
                 _, pred = torch.max(outputs,1)
             else:
                 _, preds = torch.max(outputs, 1)
-
-
 
             loss = self.criterion(outputs, labels)
 
@@ -657,7 +656,7 @@ class modelAi:
         print("==> Model saved.")
     """
     def save(self, epoch, verbose=True):
-        if self.name == None:
+        if self.name is None:
             if verbose:
                 print("=> Model won't save, because name is None.")
         else:
@@ -697,6 +696,7 @@ class modelAi:
             print("=> loading checkpoint '{}'".format(self.name))
 
         checkpoint = torch.load("./AI_Model/"+self.name)
+
         if type(checkpoint) is dict:
             start_epoch = checkpoint['epoch']
             self.net.load_state_dict(checkpoint['state_dict'])
@@ -713,6 +713,7 @@ class modelAi:
             self.net.load_state_dict(state_dict=state_dict)
 
         self.net.to(self.device)
+
         if verbose:
             print("=> Finished Loading\n")
 
@@ -775,7 +776,6 @@ class modelAi:
             print('p:', p)
 
         return lp, is_poisonous
-
 
     def retrain(self, train_dataloader, current_epoch):
         self.net_retraining.train()

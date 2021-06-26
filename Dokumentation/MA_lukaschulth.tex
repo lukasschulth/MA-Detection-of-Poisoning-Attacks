@@ -214,7 +214,14 @@
 	
 	Clustering auf Datenpunkten direkt(~50 Prozent = raten), Clustering auf Aktivierungen gut geeigneter Netzwerkschichten. Clustering auf den Heatmaps der verdächtigen Klasse.\\
 	\\
-	In \autoref{chapter_nn} geben wir eine kurze Einführung in Neuronale Netzwerke und stellen die untersuchten Modelle vor. \autoref{chapter_poisoningattacks} führt in die unterschiedlichen Möglichkeiten eines Poisoning-Angriffs auf Neuronale Netzwerke ein. \autoref{chapter_xai} gibt eine kurze Übersicht über den Bereich der Erklärbaren Künstlichen Intelligenz, wobei ein Beispiel eines Verfahrens, die sogenannte Layer-wise Relevanz Propagation ausführlich in \autoref{chapter_lrp} vorgestellt wird. Kern der Arbeit bildet \autoref{chapter_algorithm}, wo wir zu Beginn die grundlegenden Bestandteile des Algorithmus zur Detektion von Poisoning-Angriffen auf Neuronale Netzwerke erklären, bevor die experimentellen Ergebnisse in \autoref{chapter_results} ausführen. Ein Vergleich mit anderen Detektionsverfahren wird in \autoref{chapter_comparisons} durchegführt.
+	
+	Clustering auf unterschiedlichen Repräsentationen der Bilder:
+	\begin{itemize}
+		\item Clustering direkt auf den Bildern\\
+		\item Clustering auf den Activations einer Netzwerkschicht(Im Paper \cite{AC} wird die vorletzte Schicht benutzt)
+		\item Clustering auf den Heatmaps
+	\end{itemize}
+	In \autoref{chapter_nn} geben wir eine kurze Einführung in Neuronale Netzwerke und stellen die untersuchten Modelle vor. \autoref{chapter_poisoningattacks} führt in die unterschiedlichen Möglichkeiten eines Poisoning-Angriffs auf Neuronale Netzwerke ein. \autoref{chapter_xai} gibt eine kurze Übersicht über den Bereich der Erklärbaren Künstlichen Intelligenz, wobei ein Beispiel eines Verfahrens, die sogenannte Layer-wise Relevanz Propagation ausführlich in \autoref{chapter_lrp} vorgestellt wird. Kern der Arbeit bildet \autoref{chapter_algorithm}, wo wir zu Beginn die grundlegenden Bestandteile des Algorithmus zur Detektion von Poisoning-Angriffen auf Neuronale Netzwerke erklären, bevor die experimentellen Ergebnisse in \autoref{chapter_results} ausführen. Ein Vergleich mit anderen Detektionsverfahren wird in \autoref{chapter_comparisons} durchgeführt.
 	\section{Neuronale Netzwerke} \label{chapter_nn}
 	Wir betrachten ein \gls{nn}, dass die Funktion $f_{\theta}:\mathbb{R}^n \to\mathbb{R}$, mit $\theta = (w_{il}, b_{il})$ beschreibt. 
 	i: Schicht
@@ -235,6 +242,12 @@
 	fehlende Interpretierbarkeit
 	
 	ReLUs in den meisten Netzwerken
+	
+	Definition Klasse
+	
+	Supervised vs Unsupervised
+	
+	Dimensionality reduction and Visualisation
 	
 	
 	\subsubsection{CNNS}
@@ -275,12 +288,25 @@
 	Intermediate classifiers: kommt aus multitask learning. Eigentlich eine Möglickeit gegen vasnishing gradients
 	
 	\subsubsection{VGG16}
-	VGG16 is a convolutional neural network model proposed by K. Simonyan and A. Zisserman from the University of Oxford in the paper “Very Deep Convolutional Networks for Large-Scale Image Recognition”. The model achieves 92.7\% top-5 test accuracy in ImageNet, which is a dataset of over 14 million images belonging to 1000 classes. It was one of the famous model submitted to ILSVRC-2014. It makes the improvement over AlexNet by replacing large kernel-sized filters (11 and 5 in the first and second convolutional layer, respectively) with multiple 3×3 kernel-sized filters one after another. VGG16 was trained for weeks and was using NVIDIA Titan Black GPU’s.\cite{vgg16_neurohive} \cite{vgg16_architecture}
+	VGG16 is a convolutional neural network model proposed by K. Simonyan and A. Zisserman from the University of Oxford in the paper “Very Deep Convolutional Networks for Large-Scale Image Recognition”. The model achieves 92.7\% top-5 test accuracy in ImageNet, which is a dataset of over 14 million images belonging to 1000 classes. It was one of the famous model submitted to ILSVRC-2014. It makes the improvement over AlexNet by replacing large kernel-sized filters (11 and 5 in the first and second convolutional layer, respectively) with multiple 3×3 kernel-sized filters one after another. VGG16 was trained for weeks and was using NVIDIA Titan Black GPU’s.%\cite{vgg16_neurohive} \cite{vgg16_architecture}
+	
+	\subsection{Datensatz}
 	
 	
 	
 	\section{Poisoning-Angriffe} \label{chapter_poisoningattacks}
 	\subsection{Standard Poisoning-Angriffe}
+	Wir wollen Schilder der Klasse 50kmh absichtlich falsch als 80kmh. Wir wählen diese beiden Klassen aufgrunde der Größe beider Klassen(s. Aufstellung in Praktikumsbericht). Stoppschildklasse ist wohl vergleichsweise ze8imlich klein.\\
+	
+	Dazu fügen wir auf den 50er Schildern einen Sticker ein und ändern das Label auf 80.
+	
+	Für die Bewertung, wie erfolgreich ein Angriff war, fügen wir in jedem Bild der 50er Klasse im Testdatensatz einen Sticker ein und messen, wie groß der Anteil der 50er Schilder ist, die als 80er Schild klassifiziert werden.\\
+	
+	\noindent \textbf{CH- und Backdoor-Artefakte}:\\
+	In \cite{imagenet_unhansed_v2} wird wie folgt zwischen Clever Hans- und Backdoor-Artefakten unterschieden. In beiden Fällen wird rechts oben im Bild ein grauer 3x3 Sticker eingefügt.
+	Bei CH geschieht dies bei $25 \%$ der "airplane"-Klasse. Bei Backdoor-Artefakten werden $10 \%$ aller Bilder korrumpiert. Im zweiten Fall wird das entspechende Label abgeändert. Dies entspricht dann einem Standard- bzw. Clean-Label-Poisoning-Angriff. (Wie git funktioniert der CLPA/CH hier ohne die Bilder vorher schlechter zu machen? TODO: Vergleich mit \cite{labelconsistent}). In \cite{imagenet_unhansed_v2}, Kapitel 2.1 wird auch auf die Methode der Spektralen Signatur \cite{spectral_signatures} eingegangen, die zur Detektion genutzt wird. Diese eignet sich wohl sehr gut für die Backdoor-Attacks, aber nur schlecht für die CH-Artefakte.
+	
+	
 	\subsection{Label-konsistente Poisoning-Angriffe}
 	
 	\section{Erklärbare KI} \label{chapter_xai}
@@ -395,6 +421,7 @@ Um dies zu verhindern, wird in der LRP-$\varepsilon$-Regel ein vorher festgelegt
 In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vorgestellt. Zudem wird eine Taylor Zerlegung präsentiert, die eine Approximation der LRP darstellt. 
 	
 	Hier\footnote{https://towardsdatascience.com/indepth-layer-wise-relevance-propagation-340f95deb1ea} werden einige Bereiche vorgestllt, in denen LRP angewendet wurde.
+	\begin{comment}
 	
 	
 	The overall idea of pixel-wise decomposition is to understand the contribution of a single pixel
@@ -427,7 +454,8 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	
 	feedforward-Netzwerke
 	Feedforward neural networks constitute a popular architec-ture type, ranging from simple multi-layer perceptrons andshallower convolutional architectures such as the LeNet-5[21]to deeper and more complex Inception [22] and VGG-likearchitectures [23]. These types of neural network commonlyuse ReLU non-linearities and first pass information throughastack of convolution and pooling layers, followed by severalfully connected layers. The good performance of feedforwardarchitectures in numerous problem domains, and the avail-ability as pre-trained models makes them a valuable standardarchitecture in neural network design.
-	
+		content...
+	\end{comment}
 	\subsection{Behandlung von biases}
 	
 	\subsection{Beispiel an einem kleinen Netzwerk}
@@ -487,6 +515,8 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	\subsection{LRP für Deep Neural Nets/Composite LRP}
 	
 	\subsection{Verarbeitung der Heatmaps}
+	
+	Aktuell benutzte defaul colormap ist Option D (Viridis)\footnote{\url{https://bids.github.io/colormap/}}
 	\begin{itemize}
 		\item Wertebereich
 		\item Interpretation
@@ -494,6 +524,23 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		\item Normalisierung
 	\end{itemize}
 
+	\begin{figure}
+		\centering
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=.4\linewidth]{1450_poison}
+			\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}
+			
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=.7\linewidth]{1450_poison_lrp.png}
+			\caption{Zugehörige Heatmap bezüglich der Klasse 'Höchstgeschwindigkeit: 80km/h'}
+			
+		\end{subfigure}
+		\caption{(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap.}
+		\label{vergleich_original_lrp}
+	\end{figure}
 	\subsection{Implementierung}
 	
 	\subsubsection{Tensorflow}
@@ -582,20 +629,76 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		\item Spektrale Relevanzanalyse (Bestimmung der verschiedenen Cluster innerhalb einer Klasse)
 	\end{itemize}
 
-	\noindent  \textbf{Bemerkung:} Anstatt das Clustering nur auf den Heatmaps durchzuführen, könnten die LRP-Ausgaben und/oder Aktivierungen bestimmer NEtzwerkschichten hinzugenommen werden.
-	\subsection{Verwendete Distanzen}
+	\noindent  \textbf{Bemerkung:} Anstatt das Clustering nur auf den Heatmaps durchzuführen, könnten die LRP-Ausgaben und/oder Aktivierungen bestimmer NEtzwerkschichten hinzugenommen werden.\\
+	
+	The theory of optimal transport generalizes thatintuition in the case where, instead of moving only one item at a time, one is concernedwith the problem of moving simultaneously several items (or a continuous distributionthereof) from one configuration onto another.\cite{computationalOT}
+	\subsection{Verwendete Distanzen \& Approximationen}
 	
 	Um die Struktur innerhalb einer Klasse zu analysieren, benötigen wir eine Metrik.
 	Anhand dieser wird abhängig von den Heatmps einer Klasse eine Affinitätsmatrix berechnet, die dann anschließend zur Berechnung der Spektralen Einbettung als wichtigster Schritt von SpRAy verwendet wird. Wir wollen dazu die im Folgenden vorgestellten Metriken verweden.\\
-	Wie in \cite{imagenet_unhansed_v1} summieren wir über die Farbkanäle, um einen einzelnen Relevanzwert pro Pixelpunkt zu erhalten. Wir benötigen also eine Metrik zur Berechnung der Distanz zwischen 32x32 großen Heatmaps.
+	Wie in \cite{imagenet_unhansed_v1} summieren wir über die Farbkanäle, um einen einzelnen Relevanzwert pro Pixelpunkt zu erhalten. Wir benötigen also eine Metrik zur Berechnung der Distanz zwischen 32x32 großen Heatmaps.\\
+	Wir normalisieren die Relevanzen zusätzlich auf das Intervall $[0,1]$.
 	
-	\subsubsection{Euklidische Distanz}
+	\begin{definition}[Distanz]
+		Eine \emph{Distanz}
+	\end{definition}
+	\begin{definition}
+		Eine \emph{Metrik}
+	\end{definition}[Metrik]
+
+	
+	
+	\subsubsection{Euklidische Distanz} \label{l2dist}
 	Für den Fall der euklidischen Distanz schreiben wir die Relevanzwerte pro Pixel als Vektor und berechnen die Distanz zweier Heatmaps x und y wie folgt\footnote{\url{https://paulrohan.medium.com/euclidean-distance-and-normalization-of-a-vector-76f7a97abd9}}:
 	$$ d_{x,y} = \sqrt{\sum_{i=1}^{32 * 32}{(x_i -y_i)^2}}.$$
 	
 	\subsubsection{Gromov-Hausdorff-Distanz}
+	
+	\begin{definition}[Hausdorff-Distanz]
+		Sei $(M,d)$ ein metrischer Raum.
+		Für 
+		Seien $X,Y \subset (M,d)$ definieren wir die \emph{Hausdorff-Distanz} $d_H(X,Y)$ als
+		
+		\begin{equation}
+			d_H(X,Y) = \max \lbrace \sup_{x \in X} \inf_{y \in Y} d(x,y), \sup_{y \in Y} \inf_{x \in Y} d(x,y) \rbrace .
+		\end{equation} 
+		
+	\end{definition}
+
+	%\begin{figure}
+	%	\includegraphics{Hausdorff_distance_sample}
+	%\end{figure}
+	\begin{definition}[Metrischer Maßraum]
+	Ein \emph{metrischer Maßraum} ist ein Tripel $(X,d_x,\mu_X)$, wobei $(X,d_X)$ ein metrischer Raum und $\mu_X$ ein borelsches W-Maß auf $X$ ist.
+	\end{definition}
+
+	\begin{definition}[Correspondance]
+		content...
+	\end{definition}
+
+	\begin{definition}[Kopplung]
+	Seien 
+	\end{definition}
+	
+	Seien $(X,d_X)$ und $(Y,d_Y)$ zwei metrische Räume. Wir betrachten im Folgenden die Abbildung
+	\begin{equation}
+		\Gamma_{X,Y}: (X\times Y) \times (X \times Y) \to \mathbb{R^{+}},
+	\end{equation}
+	gegeben durch
+	
+	$\Gamma_{X,Y}(x,y,x',y'):= |d_X(x,x') - d_Y(y,y')|$.
+	
+	\begin{definition}[Gromov-Hausdorff-Distanz]
+	Für die metrischen Räume $(X,d_X)$ und $(Y,d_Y)$ ist die \emph{Gromov-Hausdorff-Distanz} definiert als
+	\begin{equation}
+		d_{\mathcal{G}\mathcal{H}} = \frac{1}{2}\inf_{R}||\Gamma_{X,Y}||_{L^\infty(R \times R)}.
+	\end{equation}
+	\end{definition}
 	\subsubsection{Gromov-Wasserstein-Distanz}
+	
+	
 	\subsubsection{Entropisch Regularisierte Gromov-Wasserstein-Distanz}
+	Entropic Regularization of Optimal Transport \cite{computationalOT}
 	Mehrere Möglichkeiten einer Regularisierung der GW-Distanz\footnote{\url{https://www.youtube.com/watch?v=cPVMHWF8fmE&t=2532s}}:
 	\begin{itemize}
 		\item first\\
@@ -630,22 +733,116 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		\item kNN-Graph\\
 		\item fully connected graph
 	\end{itemize}
+
+	\subsection{k-means / k-means++ -Clustering}
+	
+	Beispiel-Implementierung\footnote{\url{https://towardsdatascience.com/k-means-implementation-in-python-and-spark-856e7eb5fe9b}}\\
+	\\
+	Baryzentrische Koordinaten \footnote{\url{https://de.wikipedia.org/wiki/Baryzentrische_Koordinaten}}
 	\subsection{Anwendung auf unterschiedliche Poisoning-Angriffe} \label{chapter_results} \label{chapter_experiments}
 	\noindent \textbf{Berechnung der Relevanzen}:\\
 	
 	\noindent Wir berechnen die Relevanzen jedes einzelenen Eingabebildes klassenweise, d.h. besitzt eine Eingabe das Label y, so berechnen auf einem trainierten Netzwerk, für jeden Pixelwert der Eingabe, wie relevant dieser für die Ausgabe f(x) = y ist.\\
 	Wir summieren über die Farbaxen des Bildes, um einzelne Relevanzen pro Pixelpunkt zu erhalten.\\
 	Für die Berechnung der Relevanzen benutzen wir eine modifizierte Version des im Rahmen von \cite{lrp_alzheimer} entstandenen Programmcodes\footnote{\url{https://github.com/moboehle/Pytorch-LRP}}.\\
+	\\
 	\noindent \textbf{Vorverarbeitung der Relevanzen:}\\
 	In \cite{unmaskingCH} wird anschließend ein Sum-Pooling auf die Relevanzen angewendet, um eine Dimensionsreduktion zu erhalten. Wie in \cite{imagenet_unhansed_v1} verzichten wir auf eine weitere Dimensionsreduktion, da wir nur relativ kleine Relevanzen der Größe $32x32$ verarbeiten.	\\
 	
 
 	\noindent \textbf{Berechnung der Distanzen und Aufstellen einer Affinitätsmatrix:}\\
 	
+	Wir berechnen zunächst eine Distannzmatrix, die die paarweisen Distanzen aller Heatmaps einer Klasse enthält.	
+	
+	Für die Berechnung der euklidischen Distanz betrachten wir Heatmaps $x,y$ der Größe $32x32$ als Elemente $x,y \in \mathbb{R}^{32*32}$ Die Distanz lässt sich dann wie in \autoref{l2dist} berechnen.\\
+	
+	Die Gromov-Wasserstein-Distanz lässt sich wie in \cite{gwd_averaging_kernels} angegeben berechnen. \\
+	
+	Barycenters Definition und Vergleich zum euklidischen Raum \cite{bary_wasserstein_space}
+	
+	In einer Affinitätsmatrix oder Ähnlichkeitsmatrik sind die \\
 	
 	\noindent \textbf{Berechnung Spektralen Einbettung:}\\
 	
+	\noindent \textbf{Dimensionsreduktion vor dem Clustering ?!}\\
+	
+	In \cite{AC} wird beispielsweise eine Dimensionsreduktion mit PCA durchgeführt.
+	
+	\noindent \textbf{k-Means-Clustering:}\\
+	\begin{remark}
+		In \cite{imagenet_unhansed_v1} Kapitel '2.3. Fisher Discriminant Analysis for Clever Hans
+		identification' wird ein Verfahren vorgestellt, mit dem verdächtige Klassen indentifiziert werden können. Für diese würde man anschließend das obige Verfahren durchführen
+	\end{remark}
 	\subsubsection{Standard Poisoning-Angriffe}
+	
+	
+	=> Did save Model - incv320epochsnormalized - at epoch: 19
+	=>	[19] loss: 0.125, accuracy: 96.514%
+	=>	Accuracy of validation Dataset: 98.491% 
+	
+	=>	FINISHED TRAINING
+	loss on test dataset: 3.284087032527311
+	Accuracy of test Dataset: 0.919 
+	
+	BDSR classwise:
+	[nan nan  1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+	nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+	nan nan nan nan nan nan nan]
+	
+	Performance of poisoned net on unpoisoned training data:
+	loss on test dataset: 0.15269652156995248
+	Accuracy of test Dataset: 0.961 \\
+
+	
+	\noindent \textbf{Performance auf nicht korrumpierten Daten:}\\
+	=>	FINISHED TRAINING
+	loss on test dataset: 0.15834395289583986
+	Accuracy of test Dataset: 0.968 \\
+	
+	%BDSR classwise:
+	%[nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+	%nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+	%nan nan nan nan nan nan nan]
+	%Performance of poisoned net on unpoisoned training data:
+	%loss on test dataset: 0.2061727911354566
+	%Accuracy of test Dataset: 0.951 
+	
+	%: Warum gibts bei den beiden oberen Auswertungen %einen Unterschied?
+	
+	\noindent \textbf{Spektralanalyse:}\\
+	
+	\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=0.5\textheight]{specClustering_l2_k10.png}
+		\caption{Ergebnis des spektralen Clusterings unter Verwendung der Euklidischen Distanz und k=10 Nachbarn}
+	\end{center}
+	\end{figure}
+	
+	\noindent \textbf{Clustering(euklidisch):}
+	$(tn, fp, fn, tp) = 1650, 0, 386, 427)$\\
+	\\
+	\noindent \textbf{Clustering(GWD):}
+	\begin{figure}[h]
+		\begin{center}
+			\includegraphics[width=0.5\textheight]{HeatmapPunktwolke99.png}
+			\caption{Auswahl der relevantesten Pixel (bis zu $99\%$ der Gesamtmasse) zweier Heatmaps}
+		\end{center}
+	\end{figure}
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=0.5\textheight]{HeatmapPunktwolke50.png}
+		\caption{Auswahl der relevantesten Pixel (bis zu $50\%$ der Gesamtmasse) zweier Heatmaps}
+	\end{center}
+\end{figure}
+
+	\begin{figure}[h]
+		\begin{center}
+			\includegraphics[width=0.5\textheight]{bary_embedding99.png}
+			\caption{Einbettung des Baryzentrums mithilfe von Multidimensionaler Skalierung(MDS) bei der Wahl von $99\%$ der Gesamtmasse}
+		\end{center}
+	\end{figure}
+
 	\subsubsection{Label-konsistente Poisoning-Angriffe}
 	\section{Vergleich mit anderen Verfahren} \label{chapter_comparisons}
 	\subsection{Activation Clustering}

@@ -162,7 +162,7 @@ class RelevancePropagator:
 
         elif isinstance(layer, self.batchNorm_layers):
 
-            print('Batch Normalization detected')
+            #print('Batch Normalization detected')
             # Increase batch_normID
             self.batchNorm_id += 1
             #print(layer.weight.shape)
@@ -664,7 +664,7 @@ class RelevancePropagator:
 
     @module_tracker
     def batch_nd_inverse(self, m, relevance):
-        batchNorm_easy_pass = False
+        batchNorm_easy_pass = True
         print(m.in_tensor.shape)
         if batchNorm_easy_pass:
 

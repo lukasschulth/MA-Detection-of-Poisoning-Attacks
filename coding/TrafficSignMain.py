@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 from TrafficSignDataset import TrafficSignDataset
 from coding.modelAi import modelAi
-
+from pytorchtools import EarlyStopping
 
 class TrafficSignMain():
 
@@ -117,7 +117,7 @@ class TrafficSignMain():
 
     # Function for using the AI.
 
-    def loading_ai(self, isPretrained: bool, should_train_if_needed=True, should_evaluate=True, verbose=True):
+    def loading_ai(self, isPretrained: bool, should_train_if_needed=True, should_evaluate=True, verbose=True, patience=20):
         if self.model.did_save_model(self.model.name):
             if verbose:
                 print("\n=> Found a saved model, start loading model.\n")
@@ -125,7 +125,7 @@ class TrafficSignMain():
             if self.epochs != 0 and should_train_if_needed:
                 if verbose:
                     print("Continue training at epoch: ", last_epochs)
-                self.train_ai(self.epochs, lastEpochs=last_epochs, verbose=verbose)
+                self.train_ai(self.epochs, last_epochs=last_epochs, verbose=verbose, patience=patience)
         else:
             if verbose:
                 print(
@@ -137,18 +137,28 @@ class TrafficSignMain():
         if should_evaluate:
             self.evaluate_ai(verbose=verbose)
 
-    def train_ai(self, epochs, last_epochs=0, verbose=True):
+    def train_ai(self, epochs, last_epochs=0, patience=20, verbose=True):
         print(f"=>\tStart training AI on {self.model.device}")
+
+        # initialize the early_stopping object
+        early_stopping = EarlyStopping(model=self.model, patience=patience, verbose=True)
 
         for epoch in range(epochs):
             train_loss, train_acc = self.model.train(train_dataloader=self.train_dataloader, current_epoch=last_epochs + epoch)
             if verbose:
                 print("=>\t[%d] loss: %.3f, accuracy: %.3f" % (epoch, train_loss, train_acc * 100) + "%")
-            if self.valid_dataloader is not None:
-                loss, pred_correct = self.model.evaluate_valid(dataloader=self.valid_dataloader, epoch=last_epochs + epoch)
-                if verbose:
-                    print("=>\tAccuracy on validation Dataset: %.3f" % (pred_correct * 100) + "% \n")
 
+            if self.valid_dataloader is not None:
+                val_loss, val_pred_correct = self.model.evaluate_valid(dataloader=self.valid_dataloader, epoch=last_epochs + epoch)
+                early_stopping(val_loss, model=self.model, epoch=epoch)
+
+                if early_stopping.early_stop:
+                    print('Early stopping')
+                    break
+
+                if verbose:
+                    print("=>\tAccuracy on validation Dataset: %.3f" % (val_pred_correct * 100) + "% \n")
+                self.model.scheduler.step(val_loss)
         print("=>\tFINISHED TRAINING")
     """
     def retraining_train_ai(self, epochs, isPretrained: bool, lastEpochs=0, verbose=True):

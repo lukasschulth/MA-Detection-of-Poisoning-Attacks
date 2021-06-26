@@ -1,11 +1,11 @@
+"""
+kmeans mit Euklidischer Distanz
 
-
-# Open images of suspicious class
-path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_matthias_v2e-rule/relevances/00026/'
+"""
 
 
 import os
-
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 from PIL import Image
@@ -15,12 +15,40 @@ import numpy as np
 import matplotlib.pylab as pl
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 from scipy.spatial import distance_matrix
+from scipy.sparse.linalg import eigs, eigsh
+import sys
+
+from sklearn.metrics import confusion_matrix
+y_true = [0, 0, 0, 1, 1, 1, 1, 1]
+y_pred = [0, 1, 0, 1, 0, 1, 0, 1]
+
+print(1- np.asarray(y_true))
+a,b,c,d = confusion_matrix(y_true, y_pred).ravel()
+#a,b,c,d = confusion_matrix(poison_labels, clustering_result).ravel()
+#specificity = tn / (tn+fp)
+#print(tn, fp, fn, tp)
+print(a,b,c,d)
+
+#sys.exit()
+# Open images of suspicious class
+#path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_matthias_v2e-rule/relevances/00026/'
+path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_20_epochs_normalizede-rule/relevances/00005/'
+
 
 relevances =[]
 heatmaps = []
+poison_labels =[]
 for root, dirs, files in os.walk(path):
 
     for name in files:
+
+        print(name)
+        # Save poison labels
+
+        if name.endswith("_poison.npy"):
+            poison_labels.append(int(1))
+        else:
+            poison_labels.append(int(0))
 
 
         # Load .npy file
@@ -42,8 +70,11 @@ for root, dirs, files in os.walk(path):
 
 # Convert list of relevances to numpy array
 rel_array = np.asarray(relevances)
+
 #Plot heatmap
-plt.imshow(heatmaps[0])
+#for i in range(20):
+#    plt.imshow(heatmaps[i])
+#    plt.show()
 
 print('relarray.shape: ', rel_array.shape)
 
@@ -64,6 +95,11 @@ for i in range(rel_array.shape[0]):
     rel_array_normalized.append(r)
 
 rel_array_normalized = np.asarray(rel_array_normalized)
+
+# Zeige normalisierte Heatmap
+#plt.imshow(rel_array_normalized[0].reshape(32,32))
+#plt.show()
+# Remark: Heatmap und normalisierte HEatmap sehen im plot identisch aus
 
 
 #rel_array = np.concatenate(rel_array, axis=2)
@@ -115,7 +151,7 @@ def heatmap_to_rel_coord(im):
         for j in range(32):
             x.append(i)
             y.append(j)
-            r.append(im1[i][j])
+            r.append(im[i][j])
             xy.append([i, j])
     xy = np.asarray(xy)
     x = np.asarray(x)
@@ -146,31 +182,19 @@ C2 /= C2.max()
 
 # Compute Gromov-Wasserstein plans and distance
 # https://pythonot.github.io/gen_modules/ot.gromov.html#ot.gromov.gromov_wasserstein
-p = r1
-#print(p.sum())
-q = r2
-#print(q.sum())
-gw0, log0 = ot.gromov.gromov_wasserstein(
-    C1, C2, p, q, 'square_loss', verbose=True, log=True)
 
-gw, log = ot.gromov.entropic_gromov_wasserstein(
-    C1, C2, p, q, 'square_loss', epsilon=5e-4, log=True, verbose=True)
-
-
-print('Gromov-Wasserstein distances: ' + str(log0['gw_dist']))
-print('Entropic Gromov-Wasserstein distances: ' + str(log['gw_dist']))
 
 #print(gw0,log0)
 # Compute distance matrices for GWD and EGWD:
 
 
 # GWD-Matrix:
-def compute_GWD_matrix(heatmap_array, method='GWD'):
+def compute_GWD_matrix(heatmap_array, method='GWD', verbose=False):
 
     # Initialize matrix:
     GWD = np.zeros((heatmap_array.shape[0], heatmap_array.shape[0]))
     # Iterate through matrix(we only need upper oder lower triangle since distances are symmetric
-    for i in range(heatmap_array.shape[0]):
+    for i in tqdm(range(heatmap_array.shape[0])):
         for j in range(i-1):
             im1 = heatmap_array[i]
             im2 = heatmap_array[j]
@@ -185,10 +209,10 @@ def compute_GWD_matrix(heatmap_array, method='GWD'):
 
             if method == 'GWD':
                 gw, log = ot.gromov.gromov_wasserstein(
-                C1, C2, r1, r2, 'square_loss', verbose=True, log=True)
+                C1, C2, r1, r2, 'square_loss', verbose=verbose, log=True)
             elif method == 'EGWD':
                 gw, log = ot.gromov.entropic_gromov_wasserstein(
-                C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True, verbose=True)
+                C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True, verbose=verbose)
             else:
                 print('METHOD not implemented.')
 
@@ -206,6 +230,12 @@ def compute_GWD_matrix(heatmap_array, method='GWD'):
 
 #GWD = compute_GWD_matrix(heatmap_array, method='GWD')
 #EGWD = compute_GWD_matrix(heatmap_array, method='EGWD')
+
+fname_to_save = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_20_epochs_normalizede-rule/EGWD' + ".npy"
+#with open(fname_to_save, 'wb') as f:
+#
+#    np.save(f, EGWD)
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -214,6 +244,8 @@ def compute_GWD_matrix(heatmap_array, method='GWD'):
 k = 10
 #Ohne kNN: Sortiere jeden Zeile und merke die k Indices(ungleich der Diagonalen) mit der niedrigsten Distanz.
 ind = np.argsort(l2_dist, axis=1)
+#ind = np.argsort(GWD, axis=1)
+#ind = np.argsort(EGWD, axis=1)
 
 #Reduziere die Inidces zeilenweise auf die ersten 10+1 Indices, da der identische Punkt immer mit Abstand 0 dazugehört
 ind = ind[:, 0:k]
@@ -260,9 +292,38 @@ Lsym = Dinv*L*Dinv
 
 # Eigenvalue Decomposition of Lsym:
 #TODO: Wahl von k und q?
+#TODO: eigsh vs eigs? #eigsh gibt nur relle Eigenwerte zurück
+l = 30
 
-from scipy.sparse.linalg import eigs
-vals, vecs = eigs(Lsym)
-print(vals.shape)
+vals, vecs = eigsh(Lsym, k=l)
+print(vals)
+x = range(1, l+1)
+y = np.sort(np.real(vals))
+
+plt.plot(x, y, 'o')
+plt.title(r'Absolute values of first ' + str(l) + ' eigenvalues of $L_{sym}$ with ' + str(k) + '-nearest neighbours')
+#plt.xlim([0, 25])
+#plt.show()
+from sklearn.cluster import KMeans
 
 
+kmeans = KMeans(n_clusters=2, random_state=0).fit_predict(rel_array_normalized)
+print(kmeans.sum())
+# kmeans wirft 2036 Bilder in die eine Klasse, bei 2463 Bildern entspricht das 82.66 Prozent bzw. 27.33 Prozent
+print(kmeans)
+
+# Tausche labels, sodass die kleinere Klasse das poison_label=1 besitzt
+clustering_result = 1-np.asarray(kmeans)
+print(clustering_result.sum())
+
+
+print(set(clustering_result))
+print(set(poison_labels))
+# Auswertung des Clusterings für zwei Klassen
+from sklearn.metrics import confusion_matrix
+
+a,b,c,d = confusion_matrix(poison_labels, clustering_result).ravel()
+#specificity = tn / (tn+fp)
+#print(tn, fp, fn, tp)
+# 1650 0 386 427
+print(a, b, c, d)
