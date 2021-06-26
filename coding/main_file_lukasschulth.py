@@ -71,6 +71,7 @@ def hparams_debug_string():
     return 'Hyperparameters:\n' + '\n'.join(hp)
 """
 
+
 def set_seed(seed):
     import os
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -87,12 +88,13 @@ def set_seed(seed):
 
 class modelAi:
 
-    def __init__(self, name_to_save, net: nn.Module = InceptionNet3, criterion = nn.CrossEntropyLoss(), poisoned_data = True, lr=1e-4, num_classes=43, isPretrained=False):
+    def __init__(self, name_to_save, net: nn.Module = InceptionNet3, criterion=nn.CrossEntropyLoss(), poisoned_data=True, lr=1e-4, num_classes=43, isPretrained=False):
         #super().__init__()
 
         self.name = name_to_save
         self.best_model_path = None
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        #self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
         #self.name_to_save = name_to_save
         self.net = net().to(self.device)
         self.net_retraining = net().to(self.device)
@@ -625,7 +627,7 @@ class modelAi:
             else:
                 self.optimizer.step()
 
-            self.scheduler.step()  # After 100 steps/epochs the learning rate will be reduce. This provides overfitting and gives a small learning boost.
+            #self.scheduler.step()  # After 100 steps/epochs the learning rate will be reduce. This provides overfitting and gives a small learning boost.
             # if current_epoch % visualize_at_each_epoch==0:
             #   self._create_tensorboard_visualization(images,labels, outputs, ValidationType.TRAIN, label_array,epoch=current_epoch)
 
@@ -730,7 +732,8 @@ class modelAi:
         print("==> Model saved.")
     """
     def save(self, epoch, verbose=True):
-        if self.name == None:
+
+        if self.name is None:
             if verbose:
                 print("=> Model won't save, because name is None.")
         else:
@@ -849,7 +852,6 @@ class modelAi:
 
         return lp, is_poisonous
 
-
     def retrain(self, train_dataloader, current_epoch):
         self.net_retraining.train()
         self.scheduler.step(
@@ -900,7 +902,7 @@ class modelAi:
 if __name__ == '__main__':
 
     #deterministic results:
-    seed=0
+    seed = 0
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     torch.manual_seed(seed)
@@ -912,7 +914,6 @@ if __name__ == '__main__':
     train_dir_unpoisoned = root_dir + "Training/"
     valid_dir_unpoisoned = root_dir + "Validation/"
     test_dir_unpoisoned = root_dir + "Testing/"
-
 
     from coding.Aenderungen_LRP.TrafficSignAI.Models.InceptionNet3 import InceptionNet3
     from TrafficSignDataset import TrafficSignDataset
@@ -931,13 +932,14 @@ if __name__ == '__main__':
         return module
 
     # Für Clean Label Poisoning Attack wird model_to_poison_data benötigt
-    """
-    model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data', net=InceptionNet3, poisoned_data=False, isPretrained=False,lr=1e-3)
-    Main = TrafficSignMain(model_to_poison_data, epochs=5, image_size=32)
+    from neural_nets import Net
+    model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data_Net10', net=Net, poisoned_data=False, isPretrained=False,lr=1e-3)
+    Main = TrafficSignMain(model_to_poison_data, epochs=0, image_size=32)
     PA = PoisoningAttack(Main)
-    PA.standard_attack(root_dir=root_dir, s=3, percentage_poison=0.33)
-    #PA.clean_label_attack(root_dir)
-    """
+    #PA.standard_attack(root_dir=root_dir, s=3, percentage_poison=0.33)
+    PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=150, n_steps=1, step_size=1.0)
+    #PA.clean_label_attack(root_dir=root_dir, disp=True)
+    sys.exit()
     #poison_model = modelAi(name_to_save='poison_model')
     #Main = TrafficSignMain(model=poison_model, epochs=0)
     #PA = PoisoningAttack(Main)
@@ -953,15 +955,15 @@ if __name__ == '__main__':
 
     #sys.exit()
 
-    model = modelAi(name_to_save='optimizing_net_normalization', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='early stopping test2', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
-    main = TrafficSignMain(model, epochs=20, image_size=32)
+    main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
 
     main.creating_data(dataset=TrafficSignDataset, test_dir=test_dir, train_dir=train_dir, valid_dir=valid_dir, test_dir_unpoisoned=test_dir_unpoisoned)
 
     #main.start_tensorboard()
-    main.loading_ai(should_train_if_needed=True, should_evaluate=True, isPretrained=False)
+    main.loading_ai(should_train_if_needed=True, should_evaluate=True, isPretrained=False, patience=20)
 
     # Lese Daten für Activationload Clustering ohne Trafos ein:
     #main.creating_data_for_ac(dataset=TrafficSignDataset, train_dir=train_dir)
