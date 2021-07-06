@@ -32,7 +32,7 @@ from sklearn.metrics import confusion_matrix
 import time
 import torch
 import random
-import numpy as np
+
 import cupy
 #print(torch.rand(10).cuda())
 
@@ -187,6 +187,9 @@ def compute_barycenter_from_measured_distances(measured_distances, id, n_samples
     lambdas /= lambdas.sum()
     #print(lambdas.shape)
 
+    lambdas = list(lambdas)
+
+
     # Berechne Barycenter mit POT-Funktion
     barycenter = ot.gromov.gromov_barycenters(n_samples, Cs, ps, p, lambdas=lambdas, loss_fun='square_loss')
     print('Bary computed.')
@@ -281,11 +284,13 @@ def smacof_mds(C, dim, max_iter=3000, eps=1e-9):
 
         return npos
 
+
 def heatmap_to_distance_matrix(im, threshold=0.99):
         xy, x, y, r = heatmap_to_rel_coord(im)
         C, p = rel_coords_to_distance_matrix(xy, x, y, r, threshold=threshold)
 
         return C, p
+
 
 def compute_GWD_to_index(cp1, cp2):
 
@@ -304,9 +309,9 @@ def compute_GWD_to_index(cp1, cp2):
 if __name__ == '__main__':
     parallel_computation = False
     threshold = 0.99
-    number_samples = 7 #number of samples per class to check for poisoning attack
+    number_samples = 10  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
-    n_samples = 10 # number of points in barycenter
+    n_samples = 10  # number of points in barycenter
     scaling = 1
     """
     pl = [0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1]
@@ -334,11 +339,12 @@ if __name__ == '__main__':
     # Open images of suspicious class
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_matthias_v2e-rule/relevances/00026/'
     path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_20_epochs_normalizede-rule/relevances/00005/'
-    path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
+    #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
+    path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s3_15e-rule/relevances/00005/'
 
-    relevances =[]
+    relevances = []
     heatmaps = []
-    poison_labels =[]
+    poison_labels = []
     for root, dirs, files in os.walk(path):
 
         for name in files:
@@ -371,9 +377,9 @@ if __name__ == '__main__':
 
     # Convert list of relevances to numpy array
     rel_array = np.asarray(relevances).astype(np.float64)
-    rel_array = rel_array[8:number_samples+5]
-    heatmaps = heatmaps[8:number_samples+5]
-    poison_labels = poison_labels[8:number_samples+5]
+    rel_array = rel_array[8: 8 + number_samples]
+    heatmaps = heatmaps[8: 8 + number_samples]
+    poison_labels = poison_labels[8: 8 + number_samples]
 
     print('poisonLabels: ', poison_labels)
     #Plot heatmap
@@ -442,7 +448,6 @@ if __name__ == '__main__':
     axs[0, 0].imshow(im1)
     axs[1, 0].imshow(im2)
 
-
     r2_inds = r2.argsort()
     r2_sorted = r2[r2_inds[::-1]]
     xy2_sorted = xy2[r2_inds[::-1]]
@@ -453,7 +458,6 @@ if __name__ == '__main__':
 
     counter2 = 0
     sum = 0
-
 
     while sum <= threshold:
         sum += r2_sorted[counter2]
@@ -478,8 +482,6 @@ if __name__ == '__main__':
     r1 = r1_sorted[:counter1].astype(np.float64)
     r2 = r2_sorted[:counter2].astype(np.float64)
 
-
-
     # Plot point cloud of first image
     axs[0, 1].scatter(xy1[:, 0], xy1[:, 1])
     axs[0, 1].set_xlim((0, 32))
@@ -491,11 +493,10 @@ if __name__ == '__main__':
     axs[1, 1].set_ylim((32, 0))
     #plt.setp(axs, ylim=axs[0, 0].get_ylim())
     axs[1, 1].set_aspect('equal')
-    plt.show()
-    #TODO: Der plot sieht jetzt zwar passend aus, werden die Relevanzen in rel_to_heatmap in der richtigen Reihenfolge ausgelesen?
+    plt.draw()
+    print('continuing')
+    #plt.show()
 
-
-    #print('MINMIN: ', r1.min())
 
     C1 = sp.spatial.distance.cdist(xy1, xy1).astype(np.float64)
     C2 = sp.spatial.distance.cdist(xy2, xy2).astype(np.float64)
@@ -503,7 +504,7 @@ if __name__ == '__main__':
     #print(xy1)
     plt.scatter(xy1[:, 0], xy1[:, 1], color='r')
     plt.title('xy1 Punkte')
-    plt.show()
+    plt.draw()
 
     #C1 /= C1.max()
     #C2 /= C2.max()
@@ -511,49 +512,30 @@ if __name__ == '__main__':
     C1 /= C1.sum()
     C2 /= C2.sum()
 
-    #print(C2.shape)
-
-    # Setze Gewichte gleichverteilt
-    #TODO: Nehme ich r1,r2 (oben), d.h. verschieden gewichtet, erhalte ich eine Fehlermedlung bei der Berechnung von bary
-    #r1 = ot.unif(len(xy1))
-    #r2 = ot.unif(len(xy2))
-
-    #Idee: Normiere r1 und r2 so, dass die Summe 1 ergibt
+    #Normiere r1 und r2 so, dass die Summe 1 ergibt
     r1 /= r1.sum()
     r2 /= r2.sum()
-    #print('SUMSUM: ', r2.sum())
-    lambdas = [0.5, 0.5]
-    # Idee funktioniert
 
+    lambdas = [0.5, 0.5]
 
     p = ot.unif(n_samples)
     #TODO: n_samples gibt auf der einen Seit an, wie viele Punkte ausgewählt werden sollen, andererseits ist das aber auch die Dimension (n_samples,n_samples) des bary_centers
     # Wie passt das zusammen?
     #Compute barycenter
     bary = ot.gromov.gromov_barycenters(n_samples, [C1, C2], [r1, r2], p, lambdas, 'square_loss', max_iter=100, tol=1e-3, verbose=False)
-    #print(bary.max())
-    #print(bary.min())
 
-    #print(bary.shape)
-    #print(bary)
-    plt.imshow(bary)
-    plt.show()
+    #plt.imshow(bary)
+    #plt.draw()
 
     clf = PCA(n_components=2)
 
     embedding = scaling * clf.fit_transform(smacof_mds(bary, 2))
-    #embedding = smacof_mds(bary, 32)
-    #print(embedding)
+
     plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
     plt.title('Embedding')
     plt.show()
-    print(embedding)
-
-
 
     # Sampled original image
-
-
     npos1 = smacof_mds(C1, 2)
     npos2 = scaling *smacof_mds(C2, 2)
 
@@ -561,11 +543,7 @@ if __name__ == '__main__':
     plt.title('Embedded distance matrix of first original image')
     plt.show()
 
-
-
-
-
-    bary = compute_barycenter_from_images([heatmap_array[1],heatmap_array[2]],n_samples=n_samples)
+    bary = compute_barycenter_from_images([heatmap_array[1], heatmap_array[2], heatmap_array[3]], n_samples=n_samples)
     
     
     #clf = PCA(n_components=2)
@@ -574,6 +552,7 @@ if __name__ == '__main__':
     #print(embedding)
     plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
     plt.title('Embedding Durschnitt')
+
     plt.show()
 
     #Compute distance between bary and original image:
@@ -665,8 +644,7 @@ if __name__ == '__main__':
     p = np.square(distances)
     p /= p.sum()
     print(p)
-    #seq2 = np.delete(seq, np.where(seq == idx))
-    #TODO: Setze Wahrscheinlichkeit an Stelle des ersten indexes auf 0 und normalisiere anschließend
+
     p[idx_1] = 0
     p /= p.sum()
     print(p)
@@ -699,24 +677,13 @@ if __name__ == '__main__':
         start_time = time.time()
         for i in range(0, n):
             print('i: ', i)
-            #print(cc[0]['weights'].shape)
-            #print(cc[1]['weights'].shape)#
 
-            #print(cc[0]['dist_m'].shape)
-            #print(cc[1]['dist_m'].shape)
-            print(cc[0]['dist_m'])
-            print(measured_distances[i][0].shape)
-            print(measured_distances[i][0].max())
-            print(measured_distances[i][0].min())
-            print(measured_distances[i][0].sum())
-            print(cc[0]['weights'].sum())
-            print(cc[0]['weights'])
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[0]['dist_m'], measured_distances[i][0],
                     cc[0]['weights'], measured_distances[i][1], 'square_loss', epsilon=5e-4, log=True)
             distances_to_cluster_centers[i][0] = log['gw_dist']
-
             print('done.')
+
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[1]['dist_m'], measured_distances[i][0],
                     cc[1]['weights'], measured_distances[i][1], 'square_loss', epsilon=5e-4, log=True)
@@ -764,6 +731,7 @@ if __name__ == '__main__':
         print('==> Recalculate barycenters per cluster')
 
         # Compute barycenter per cluster and update cluster center:
+        # TODO: Vermultich läuft die Berechnung der barycentren aus den mesasured distances falsch ab, Die anschließend berechneten Distanzen sind dann so klein, dass ein numerischer Fahler/Warning ausgegeben wird. Vergleiche das mit der Berechnung im einführende Beispiel, da funktioniert alles
         bary1 = scaling * compute_barycenter_from_measured_distances(measured_distances=measured_distances, id=0)
 
         clf = PCA(n_components=2)
@@ -772,7 +740,7 @@ if __name__ == '__main__':
         print(embedding)
         plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
         plt.title('Embedding des neu berechneten Barycenters')
-        plt.show()
+        #plt.show()
 
 
         # Create measured distance matrix of barycenter
@@ -802,8 +770,7 @@ if __name__ == '__main__':
 
         print("--- %s seconds ---" % (time.time() - start_time))
 
-
-    # Change clustering labels, if the bigger class is labels with '1':
+    # Change clustering labels, if the bigger class is labeled with '1':
     if clustering.sum() > clustering.shape[0]/2:
         clustering = 1 - clustering
 
