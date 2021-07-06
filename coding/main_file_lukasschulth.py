@@ -936,7 +936,7 @@ if __name__ == '__main__':
     model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data_Net10', net=Net, poisoned_data=False, isPretrained=False,lr=1e-3)
     Main = TrafficSignMain(model_to_poison_data, epochs=0, image_size=32)
     PA = PoisoningAttack(Main)
-    #PA.standard_attack(root_dir=root_dir, s=3, percentage_poison=0.33)
+    #PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
     #PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=150, n_steps=1, step_size=1.0)
 
 
@@ -955,7 +955,7 @@ if __name__ == '__main__':
 
     #sys.exit()
 
-    model = modelAi(name_to_save='CLA_inc_v3', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='SA_incV3_s2_pp05', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
@@ -964,7 +964,7 @@ if __name__ == '__main__':
 
     #main.start_tensorboard()
     main.loading_ai(should_train_if_needed=False, should_evaluate=True, isPretrained=False, patience=20)
-    sys.exit()
+
     # Lese Daten für Activationload Clustering ohne Trafos ein:
     #main.creating_data_for_ac(dataset=TrafficSignDataset, train_dir=train_dir)
 
@@ -973,7 +973,7 @@ if __name__ == '__main__':
     #AC.run_retraining(verbose=True)
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
-
+    sys.exit()
     ##### LRP-moboehle: Modifizierte Version von Matthias
     save_lrp = True
     from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel

@@ -843,6 +843,48 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		\end{center}
 	\end{figure}
 
+
+	n=5
+	Berechnung der Distanzen:
+	Clustering:  [1. 0. 1. 0. 1.]
+	--- 379.38680505752563 seconds ---
+	
+	Berechnung von 2 Baryzentren
+	--- 725.2780563831329 seconds ---
+	
+	n=25
+	Berechnung der Distanzen:
+	Clustering:  [1. 0. 1. 0. 1. 0. 1. 0. 0. 1. 1. 0. 0. 0. 1. 0. 0. 0. 1. 0. 0. 1. 0. 1.
+	1.]
+	--- 1860.5442748069763 seconds ---
+	
+	Berechnung von zwei Baryzentren
+	--- 2443.7355489730835 seconds ---
+	
+	n=50
+	Berechnung der Distanzen:
+	--- 1956.3804433345795 seconds ---
+	
+	Berechnung von zwei Barycentern:
+	--- 5670.336745262146 seconds ---
+	
+	15 Prozenmt 3x3 Sticker
+	=> Did save Model - SA_incV3_s3_15 - at epoch: 50
+	=>	[50] loss: 0.060, accuracy: 98.405%
+	EarlyStopping counter: 20 out of 20
+	Early stopping
+	=>	FINISHED TRAINING
+	loss on test dataset: 3.736420426017416
+	Accuracy of test Dataset: 0.911 
+	
+	BDSR classwise:
+	[nan nan  1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+	nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+	nan nan nan nan nan nan nan]
+	Performance of poisoned net on unpoisoned training data:
+	loss on test dataset: 0.1822473893020984
+	Accuracy on test Dataset: 0.961 
+	
 	\subsubsection{Label-konsistente Poisoning-Angriffe}
 	\section{Vergleich mit anderen Verfahren} \label{chapter_comparisons}
 	\subsection{Activation Clustering}
