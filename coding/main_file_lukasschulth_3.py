@@ -12,10 +12,10 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 from PIL import Image
-#import ot
+
 import scipy as sp
-import numpy as np
-import matplotlib.pylab as pl
+
+
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 from scipy.spatial import distance_matrix
 from numpy.random import choice
@@ -28,13 +28,13 @@ from sklearn.metrics import confusion_matrix
 #specificity = tn / (tn+fp)
 #print(tn, fp, fn, tp)
 
-#import ot
+
 import time
 import torch
 import random
 
 import cupy
-#print(torch.rand(10).cuda())
+print(torch.rand(10).cuda())
 
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
@@ -340,7 +340,7 @@ if __name__ == '__main__':
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_matthias_v2e-rule/relevances/00026/'
     path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_20_epochs_normalizede-rule/relevances/00005/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
-    path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s3_15e-rule/relevances/00005/'
+    path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
 
     relevances = []
     heatmaps = []

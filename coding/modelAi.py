@@ -16,7 +16,7 @@ class modelAi:
         self.name = name_to_save
         self.best_model_path = None
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        #self.name_to_save = name_to_save
+
         self.net = net().to(self.device)
         self.net_retraining = net().to(self.device)
         self.criterion = criterion
@@ -497,12 +497,9 @@ class modelAi:
             cdm_total += cdm
             rba_total += rba
 
-
-
         epoch_loss = running_loss / len(test_loader)
 
         epoch_acc = running_corrects / total
-
 
         print("Test_loss_unpoisoned:", epoch_loss)
         print("test_acc_unpoisoned:", epoch_acc)
@@ -510,6 +507,7 @@ class modelAi:
         return epoch_loss, epoch_acc, cba_total, cdm_total, rba_total
 
     def train(self, train_dataloader, current_epoch, retraining=False):
+        print(self.device)
         self.net_retraining.train()
         self.net.train()
 
