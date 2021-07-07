@@ -46,7 +46,8 @@ class InnvestigateModel(torch.nn.Module):
         """
         super(InnvestigateModel, self).__init__()
         self.model = the_model
-        self.device = torch.device("cpu", 0)
+        #self.device = torch.device("cpu", 0)
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.method = str(method)
         self.prediction = None
         self.r_values_per_layer = None
@@ -257,7 +258,7 @@ class InnvestigateModel(torch.nn.Module):
             else:
                 org_shape = self.prediction[0].size()
                 self.prediction = self.prediction[0].view(org_shape[0], -1)
-                only_max_score = torch.zeros_like(self.prediction).to(self.device)
+                only_removed  parameter inside scheduler.step()max_score = torch.zeros_like(self.prediction).to(self.device)
                 only_max_score[:, rel_for_class] += self.prediction[:, rel_for_class]
                 relevance_tensor = only_max_score.view(org_shape)
                 self.prediction.view(org_shape)
