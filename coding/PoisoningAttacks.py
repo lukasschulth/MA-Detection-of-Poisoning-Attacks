@@ -181,19 +181,11 @@ class PoisoningAttack():
         path = root_dir + "Poisoned_Git_Dataset/"
         if os.path.exists(path):
             shutil.rmtree(path)
-        # if not os.path.exists(path):
-        #    os.makedirs(path)
-        # else:
-        #    shutil.rmtree(path)           # Removes all the subdirectories!
-        #    os.makedirs(path)
-        # Kopiere die Ordner Training, Validation, Testing in neues directory path
-        # shutil.move(train_dir, path)
+
         shutil.copytree(train_dir, path + "Training/")
         shutil.copytree(valid_dir, path + "Validation/")
         shutil.copytree(test_dir, path + "Testing/")
-        # copy_tree(train_dir, path)
-        # copy_tree(valid_dir, path)
-        # copy_tree(test_dir, path)
+
 
         # Create PoisonedClass directory:
         if not os.path.exists(root_dir + "Poisoned_Class/"):
@@ -411,7 +403,7 @@ class PoisoningAttack():
     def clean_label_attack(self,root_dir,amplitude=255, percentage_poison=0.15, im_size=32, s=3, class_to_poison=5,
                                     stickerfenster_x=(10, 22), stickerfenster_y=(16, 24), d=0, eps=300, n_steps=10,
                                     insert='amplitude', batch_size=20, disp=False, num_classes=43, projection='l2',
-                                    step_size=2.0):
+                                    step_size=0.015):
 
         from os.path import dirname as up
 
@@ -519,7 +511,15 @@ class PoisoningAttack():
         y_train = y_train[choice_train]
         # print('x_nat_shape',x_nat_train.shape)
 
+        ################################################################################################################
+        ################################################################################################################
+        ##
         ## Poison Training Data:
+        ##
+        ################################################################################################################
+        ################################################################################################################
+
+
 
         # Erstelle random id_x und id_y list der Länge number_of_elements to poison_target_class_training
         id_x_training = np.random.choice(stickerfenster_x, num_samples_to_poison_train, replace=True)
@@ -549,7 +549,7 @@ class PoisoningAttack():
                 loss = self.main.model.criterion(outputs, y_true)
 
                 grads = torch.autograd.grad(loss, input)[0]  # .cpu().numpy()
-                print(grads)
+
                 # Gradient descent step
                 x_new = x_old + step_size * torch.sign(grads)
                 x_new = x_new.cpu().numpy()
@@ -630,6 +630,16 @@ class PoisoningAttack():
             os.remove(poison_dir_training + str(i) + ".jpeg")
 
         print('==> Training Data poisoned.')
+
+
+
+        ################################################################################################################
+        ################################################################################################################
+        ##
+        ## Poison Validation Data:
+        ##
+        ################################################################################################################
+        ################################################################################################################
 
         # Get validation Data:
         x_nat_val = []
@@ -782,25 +792,24 @@ class PoisoningAttack():
 
         print('==> Validation Data poisoned.')
 
-        ## Insert backdoor on samples in TESTING DATA:
+        ################################################################################################################
+        ################################################################################################################
+        ##
+        ## Poison Testing Data:
+        ##
+        ################################################################################################################
+        ################################################################################################################
+
+
+        ## Insert backdoor on ALL samples in TESTING DATA:
         # Wähle indices für alle Testing samples außer class_to_poison
 
-        # num_samples_to_poison_test = len(test_dataset) -
-        # id_x_val = np.random.choice(stickerfenster_x, num_samples_to_poison_val, replace=True)
-        # id_y_val = np.random.choice(stickerfenster_y, num_samples_to_poison_val, replace=True)
-        # Insert amplitude trigger on every other sample except the poisoned class
         classes_to_poison = range(num_classes)
-
         classes_to_poison = np.setdiff1d(classes_to_poison, class_to_poison)
-
+        """
         for i in classes_to_poison:
             poison_dir_testing = test_dir + str(i).zfill(5) + "/"
-            """
-            if i < 10:
-            poison_dir_testing = test_dir + "0000" + str(i) + "/"
-            else:
-            poison_dir_testing = test_dir + "000" + str(i) + "/"
-            """
+            
             size_class_testing = len([name for name in os.listdir(poison_dir_testing) if
                                   os.path.isfile(os.path.join(poison_dir_testing, name))])
             id_x_train = np.random.choice(stickerfenster_x, size_class_testing, replace=True)
@@ -834,8 +843,53 @@ class PoisoningAttack():
                 image = self.insert_4corner_amplitude_backdoor(image, amplitude=amplitude, p=d)
 
             # Save Image
+            print(poison_dir_testing + id + "_poison.jpeg")
             image.save(poison_dir_testing + id + "_poison.jpeg", format='JPEG', subsampling=0, quality=100)
             # Remove unpoisoned image
             os.remove(poison_dir_testing + id + ".jpeg")
 
-            print('==> Testing Data poisoned.')
+        print('==> Testing Data poisoned.')
+        """
+
+        for i in classes_to_poison:
+            poison_dir_testing = test_dir + str(i).zfill(5) + "/"
+
+            size_class_testing = len([name for name in os.listdir(poison_dir_testing) if
+                                  os.path.isfile(os.path.join(poison_dir_testing, name))])
+            print('size ClASs testing: ', size_class_testing)
+            id_x_train = np.random.choice(stickerfenster_x, size_class_testing, replace=True)
+            id_y_train = np.random.choice(stickerfenster_y, size_class_testing, replace=True)
+
+            for id, id_x, id_y in zip(range(size_class_testing), id_x_train, id_y_train):
+                id = str(id)
+                id_x = int(id_x)
+                id_y = int(id_y)
+                image = Image.open(
+                    poison_dir_testing + id + ".jpeg")  # '/home/bsi/Dokumente/Dataset_poisoned/Training/00002/1.jpeg')
+
+                pixels = image.load()  # create the pixel map
+
+                if insert == 'sticker':
+                    # id_x = np.random.choice(stickerfenster_x, size_class_testing, replace=True)
+                    # id_y = np.random.choice(stickerfenster_y, size_class_testing, replace=True)
+
+                    for ii in range(s):
+                        for jj in range(s):
+                            pixels[id_x + ii, id_y + jj] = (245, 255, 0)
+                            # print(pixels[id_x + i, id_y + j])
+
+                if insert == 'bw':
+                    image = self.insert_3b3_black_and_white(image)
+
+                if insert == 'amplitude':
+                    image = self.insert_amplitude_backdoor(image, amplitude=amplitude)
+
+                if insert == 'amplitude4':
+                    image = self.insert_4corner_amplitude_backdoor(image, amplitude=amplitude, p=d)
+
+                # Save Image
+                image.save(poison_dir_testing + id + "_poison.jpeg", format='JPEG', subsampling=0, quality=100)
+                # Remove unpoisoned image
+                os.remove(poison_dir_testing + id + ".jpeg")
+
+        print('==> Testing Data poisoned.')
