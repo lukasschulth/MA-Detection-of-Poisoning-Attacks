@@ -3,6 +3,10 @@ kmeans++ mit GWD und GW-Barycenters
 
 """
 import concurrent
+
+from joblib._multiprocessing_helpers import mp
+
+from istarmap import istarmap
 import multiprocessing
 import os
 from sklearn import manifold
@@ -112,7 +116,7 @@ def compute_barycenter_from_images(images, threshold=0.99, n_samples=400):
             sum += r_sorted[counter]
             counter += 1
 
-        # Compute distance kernels, normalize them and then display
+        # Compute distance kernels, normalize them
 
         xy = xy_sorted[:counter].astype(np.float64)
         r = r_sorted[:counter].astype(np.float64)
@@ -136,7 +140,7 @@ def compute_barycenter_from_images(images, threshold=0.99, n_samples=400):
     return barycenter
 
 
-def compute_barycenter_from_measured_distances(measured_distances, id, n_samples=50):
+def compute_barycenter_from_measured_distances(measured_distances, clustering, id, n_samples=50):
 
     """
     Computes the 'average' of n measured distance matrices in the sense of Wasserstein distance.
@@ -173,13 +177,19 @@ def compute_barycenter_from_measured_distances(measured_distances, id, n_samples
     md = measured_distances
     idx = np.where(clustering == id)
     #print('idx: ', idx[0][0])
-    #print(md[:, 0][idx[0]].shape)
+    print('mdshape: ', md.shape)
+    print(md[:, 0].shape)
+    print(idx[0].shape)
+    print(md[:, 0][idx[0]].shape)
 
+    print(idx[0][0:1])
     Cs = md[:, 0][idx[0]]
-    #print(Cs.shape)
+
+    print(Cs.shape)
+
     p = ot.unif(n_samples)
     ps = md[:, 1][idx[0]]
-    #print(ps.shape)
+    print(ps.shape)
     #lambdas = np.asarray(lambdas)
     #lambdas /= np.float(len(lambdas))
 
@@ -188,7 +198,6 @@ def compute_barycenter_from_measured_distances(measured_distances, id, n_samples
     #print(lambdas.shape)
 
     lambdas = list(lambdas)
-
 
     # Berechne Barycenter mit POT-Funktion
     barycenter = ot.gromov.gromov_barycenters(n_samples, Cs, ps, p, lambdas=lambdas, loss_fun='square_loss')
@@ -346,6 +355,7 @@ if __name__ == '__main__':
     relevances = []
     heatmaps = []
     poison_labels = []
+    examples = False
 
     for root, dirs, files in os.walk(path):
 
@@ -384,6 +394,7 @@ if __name__ == '__main__':
     poison_labels = poison_labels[8: 8 + number_samples]
 
     print('poisonLabels: ', poison_labels)
+    print('Anzahl an korrumpierten Datenpunkten in der Teilmenge: ', np.asarray(poison_labels).sum())
     #Plot heatmap
     #for i in range(20):
     #    plt.imshow(heatmaps[i])
@@ -419,159 +430,185 @@ if __name__ == '__main__':
     #Wähle erste und zweite Heatmap aus der Liste aus:
     heatmap_array = np.asarray(heatmaps).astype(np.float64)
 
-    im1 = heatmap_array[3]  #77
-    im2 = heatmap_array[2]  #88 #beides Heatmaps mit Sticker
+    if examples:
+        im1 = heatmap_array[3]  #77
+        im2 = heatmap_array[2]  #88 #beides Heatmaps mit Sticker
 
-    # Speichere Bilder als png
-    #matplotlib.image.imsave('poison3.png', im1)
-    #matplotlib.image.imsave('poison4.png', im2)
+        # Speichere Bilder als png
+        #matplotlib.image.imsave('poison3.png', im1)
+        #matplotlib.image.imsave('poison4.png', im2)
 
-    #plt.imshow(im1)
-    #plt.show()
-    #plt.imshow(im2)
-    #plt.show()
+        #plt.imshow(im1)
+        #plt.show()
+        #plt.imshow(im2)
+        #plt.show()
 
-    #print('Min: ', im1.min())
-    #print('Max: ', im1.max())
-    #print(im1)
-    #print(im2.min())
+        #print('Min: ', im1.min())
+        #print('Max: ', im1.max())
+        #print(im1)
+        #print(im2.min())
 
-    xy1, x1, y1, r1 = heatmap_to_rel_coord(im1)
-    xy2, x2, y2, r2 = heatmap_to_rel_coord(im2)
-
-
-    #print('argmax: ', np.argmax(r1))
-    #print('MAx, x, y: ', x1[np.argmax(r1)], y1[np.argmax(r1)])
-    #r2_sorted = np.sort(r2)[::-1]
-    #print(r2_sorted)
-
-    fig, axs = plt.subplots(2, 2)
-    fig.suptitle('Heatmap und erzeugte Punktwolke')
-    axs[0, 0].imshow(im1)
-    axs[1, 0].imshow(im2)
-
-    r2_inds = r2.argsort()
-    r2_sorted = r2[r2_inds[::-1]]
-    xy2_sorted = xy2[r2_inds[::-1]]
-
-    r1_inds = r1.argsort()
-    r1_sorted = r1[r1_inds[::-1]]
-    xy1_sorted = xy1[r1_inds[::-1]]
-
-    counter2 = 0
-    sum = 0
-
-    while sum <= threshold:
-        sum += r2_sorted[counter2]
-        counter2 += 1
-
-    sum1 = 0
-    counter1 = 0
-
-    while sum1 < threshold:
-        sum1 += r1_sorted[counter1]
-        counter1 += 1
-
-    #print('counter2: ', counter2)
-    #print('counter1: ', counter1)
+        xy1, x1, y1, r1 = heatmap_to_rel_coord(im1)
+        xy2, x2, y2, r2 = heatmap_to_rel_coord(im2)
 
 
-    #sys.exit()
-    # Compute distance kernels, normalize them and then display
+        #print('argmax: ', np.argmax(r1))
+        #print('MAx, x, y: ', x1[np.argmax(r1)], y1[np.argmax(r1)])
+        #r2_sorted = np.sort(r2)[::-1]
+        #print(r2_sorted)
 
-    xy1 = xy1_sorted[:counter1].astype(np.float64)
-    xy2 = xy2_sorted[:counter2].astype(np.float64)
-    r1 = r1_sorted[:counter1].astype(np.float64)
-    r2 = r2_sorted[:counter2].astype(np.float64)
+        fig, axs = plt.subplots(2, 2)
+        fig.suptitle('Heatmap und erzeugte Punktwolke')
+        axs[0, 0].imshow(im1)
+        axs[1, 0].imshow(im2)
 
-    # Plot point cloud of first image
-    axs[0, 1].scatter(xy1[:, 0], xy1[:, 1])
-    axs[0, 1].set_xlim((0, 32))
-    axs[0, 1].set_ylim((32, 0))
-    axs[0, 1].set_aspect('equal')
+        r2_inds = r2.argsort()
+        r2_sorted = r2[r2_inds[::-1]]
+        xy2_sorted = xy2[r2_inds[::-1]]
 
-    axs[1, 1].scatter(xy2[:, 0], xy2[:, 1])
-    axs[1, 1].set_xlim((0, 32))
-    axs[1, 1].set_ylim((32, 0))
-    #plt.setp(axs, ylim=axs[0, 0].get_ylim())
-    axs[1, 1].set_aspect('equal')
-    plt.draw()
-    print('continuing')
-    #plt.show()
+        r1_inds = r1.argsort()
+        r1_sorted = r1[r1_inds[::-1]]
+        xy1_sorted = xy1[r1_inds[::-1]]
 
+        counter2 = 0
+        sum = 0
 
-    C1 = sp.spatial.distance.cdist(xy1, xy1).astype(np.float64)
-    C2 = sp.spatial.distance.cdist(xy2, xy2).astype(np.float64)
+        while sum <= threshold:
+            sum += r2_sorted[counter2]
+            counter2 += 1
 
-    #print(xy1)
-    plt.scatter(xy1[:, 0], xy1[:, 1], color='r')
-    plt.title('xy1 Punkte')
-    plt.draw()
+        sum1 = 0
+        counter1 = 0
 
-    #C1 /= C1.max()
-    #C2 /= C2.max()
+        while sum1 < threshold:
+            sum1 += r1_sorted[counter1]
+            counter1 += 1
 
-    C1 /= C1.sum()
-    C2 /= C2.sum()
-
-    #Normiere r1 und r2 so, dass die Summe 1 ergibt
-    r1 /= r1.sum()
-    r2 /= r2.sum()
-
-    lambdas = [0.5, 0.5]
-
-    p = ot.unif(n_samples)
-    #TODO: n_samples gibt auf der einen Seit an, wie viele Punkte ausgewählt werden sollen, andererseits ist das aber auch die Dimension (n_samples,n_samples) des bary_centers
-    # Wie passt das zusammen?
-    #Compute barycenter
-    bary = ot.gromov.gromov_barycenters(n_samples, [C1, C2], [r1, r2], p, lambdas, 'square_loss', max_iter=100, tol=1e-3, verbose=False)
-
-    #plt.imshow(bary)
-    #plt.draw()
-
-    clf = PCA(n_components=2)
-
-    embedding = scaling * clf.fit_transform(smacof_mds(bary, 2))
-
-    plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
-    plt.title('Embedding')
-    #plt.show()
-
-    # Sampled original image
-    npos1 = smacof_mds(C1, 2)
-    npos2 = scaling *smacof_mds(C2, 2)
-
-    plt.scatter(npos2[:, 0], npos2[:, 1])
-    plt.title('Embedded distance matrix of first original image')
-    #plt.show()
-
-    bary = compute_barycenter_from_images([heatmap_array[1], heatmap_array[2], heatmap_array[3]], n_samples=n_samples)
-    
-    
-    #clf = PCA(n_components=2)
-    
-    embedding = clf.fit_transform(smacof_mds(bary, 2))
-    #print(embedding)
-    plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
-    plt.title('Embedding Durschnitt')
-
-    #plt.show()
-
-    #Compute distance between bary and original image:
-
-    # Create measured distance matrix of barycenter
-    C = sp.spatial.distance.cdist(embedding, embedding).astype(np.float64)
-    #C /= C.max()
-    C /= C.sum()
-    p = ot.unif(C.shape[0])
-
-    print(' ==> Compute distance to barycenter')
-    gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                    C, C1, p, r1, 'square_loss', epsilon=5e-4, log=True)
+        #print('counter2: ', counter2)
+        #print('counter1: ', counter1)
 
 
-    print('DISTANZ zw. bary und erstem Bild: ', log['gw_dist'])
-    #sys.exit()
+        #sys.exit()
+        # Compute distance kernels, normalize them and then display
+
+        xy1 = xy1_sorted[:counter1].astype(np.float64)
+        xy2 = xy2_sorted[:counter2].astype(np.float64)
+        r1 = r1_sorted[:counter1].astype(np.float64)
+        r2 = r2_sorted[:counter2].astype(np.float64)
+
+        # Plot point cloud of first image
+        axs[0, 1].scatter(xy1[:, 0], xy1[:, 1])
+        axs[0, 1].set_xlim((0, 32))
+        axs[0, 1].set_ylim((32, 0))
+        axs[0, 1].set_aspect('equal')
+
+        axs[1, 1].scatter(xy2[:, 0], xy2[:, 1])
+        axs[1, 1].set_xlim((0, 32))
+        axs[1, 1].set_ylim((32, 0))
+        #plt.setp(axs, ylim=axs[0, 0].get_ylim())
+        axs[1, 1].set_aspect('equal')
+        plt.draw()
+        print('continuing')
+        #plt.show()
+
+
+        C1 = sp.spatial.distance.cdist(xy1, xy1).astype(np.float64)
+        C2 = sp.spatial.distance.cdist(xy2, xy2).astype(np.float64)
+
+        #print(xy1)
+        plt.scatter(xy1[:, 0], xy1[:, 1], color='r')
+        plt.title('xy1 Punkte')
+        plt.draw()
+
+        #C1 /= C1.max()
+        #C2 /= C2.max()
+
+        C1 /= C1.sum()
+        C2 /= C2.sum()
+
+        #Normiere r1 und r2 so, dass die Summe 1 ergibt
+        r1 /= r1.sum()
+        r2 /= r2.sum()
+
+        lambdas = [0.5, 0.5]
+
+        p = ot.unif(n_samples)
+        #TODO: n_samples gibt auf der einen Seit an, wie viele Punkte ausgewählt werden sollen, andererseits ist das aber auch die Dimension (n_samples,n_samples) des bary_centers
+        # Wie passt das zusammen?
+        #Compute barycenter
+        bary = ot.gromov.gromov_barycenters(n_samples, [C1, C2], [r1, r2], p, lambdas, 'square_loss', max_iter=100, tol=1e-3, verbose=False)
+
+        #plt.imshow(bary)
+        #plt.draw()
+
+        clf = PCA(n_components=2)
+
+        embedding = scaling * clf.fit_transform(smacof_mds(bary, 2))
+
+        plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
+        plt.title('Embedding')
+        #plt.show()
+
+        # Sampled original image
+        npos1 = smacof_mds(C1, 2)
+        npos2 = scaling *smacof_mds(C2, 2)
+
+        plt.scatter(npos2[:, 0], npos2[:, 1])
+        plt.title('Embedded distance matrix of first original image')
+        #plt.show()
+
+        bary = compute_barycenter_from_images([heatmap_array[1], heatmap_array[2], heatmap_array[3]], n_samples=n_samples)
+        print('heatmap_arra_shape: ', heatmap_array[1:4].shape )
+        #measured_distances = np.asarray([heatmap_to_distance_matrix(im) for im in heatmap_array[1:3]])
+        md = []
+        for i in range(1,4):
+            md.append(heatmap_to_distance_matrix(heatmap_array[i]))
+        md = np.asarray(md)
+
+        cluster = np.array([0, 0, 0])
+        idd = 0
+        idx = np.where(cluster == idd)
+        print(idx)
+
+        barybary = compute_barycenter_from_measured_distances(measured_distances=md, clustering=cluster, id=idd)
+
+
+        #clf = PCA(n_components=2)
+
+        embedding = clf.fit_transform(smacof_mds(bary, 2))
+        embedding2 = clf.fit_transform(smacof_mds(barybary, 2))
+        #print(embedding)
+        plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
+        plt.title('Embedding Durschnitt')
+        plt.show()
+        plt.scatter(embedding2[:, 0], embedding2[:, 1], color='r')
+        plt.title('Embedding2 Durschnitt')
+        plt.show()
+
+        #Compute distance between bary and original image:
+
+        # Create measured distance matrix of barycenter
+        C = sp.spatial.distance.cdist(embedding, embedding).astype(np.float64)
+        #C /= C.max()
+        C /= C.sum()
+        p = ot.unif(C.shape[0])
+
+        C2 = sp.spatial.distance.cdist(embedding2, embedding2).astype(np.float64)
+        #C /= C.max()
+        C2 /= C2.sum()
+        p2 = ot.unif(C2.shape[0])
+
+        print(' ==> Compute distance to barycenter')
+        gw, log = ot.gromov.entropic_gromov_wasserstein2(
+                        C, C1, p, r1, 'square_loss', epsilon=5e-4, log=True)
+        gw2, log2 = ot.gromov.entropic_gromov_wasserstein2(
+                        C2, C1, p2, r1, 'square_loss', epsilon=5e-4, log=True)
+
+
+        print('DISTANZ zw. bary und erstem Bild: ', log['gw_dist'])
+        print('DISTANZ zw. bary2 und erstem Bild: ', log2['gw_dist'])
+
+
     #TODO: Vergleich GWD zwischen barycenter und embedding eines Ursprungsbildes
 
     #### kmeans++ ####
@@ -584,6 +621,7 @@ if __name__ == '__main__':
     #cluster_centers[:][:] = np.nan
     cluster_centers = [[[], []], [[], []]]
     #print('cc: ', cluster_centers)
+
     # Wähle im ersten Schritt eine zufällige Heatmap als erstes Zentrum
     n = heatmap_array.shape[0]  # number of heatmaps to cluster
     cluster = np.zeros(n)
@@ -595,7 +633,12 @@ if __name__ == '__main__':
     print('idx1: ', idx_1)
 
     # Compute distances of every other sample to the chosen first center
-    measured_distances = np.asarray([heatmap_to_distance_matrix(im) for im in heatmap_array])
+    #measured_distances = np.asarray([heatmap_to_distance_matrix(im) for im in heatmap_array])
+
+    measured_distances = []
+    for i in range(n):
+        measured_distances.append(heatmap_to_distance_matrix(heatmap_array[i]))
+    measured_distances = np.asarray(measured_distances)
     #print(measured_distances.shape)
     #np.expand_dims(measured_distances, axis=1)
     #print(measured_distances.shape)
@@ -603,27 +646,44 @@ if __name__ == '__main__':
 
     #sys.exit()
 
+    def my_function_star(args):
+        return compute_GWD_to_index(*args)
+
     print(' ==> Compute distances to first mean')
+
     if parallel_computation:
+        # https://stackoverflow.com/questions/57354700/starmap-combined-with-tqdm/57364423#57364423
+
         tuples_input = []
         md = measured_distances
-        for i in tqdm(range(n)):
+        for i in range(n):
             tuples_input.append(((md[:, 0][idx_1], md[:, 1][idx_1])
                                  , (md[:, 0][i], md[:, 1][i])))
+
+
 
         process_pool = multiprocessing.Pool(12)
         data = tuples_input
         distances = process_pool.starmap(compute_GWD_to_index, data)
+        #distances = tqdm.tqdm()
+        #for _ in tqdm(process_pool.istarmap(compute_GWD_to_index, data),
+         #                  total=len(data)):
+          #  pass
+        #inputs = zip(param1, param2, param3)
+        #with multiprocessing.Pool(10) as pool:
+            #distances = pool.starmap(compute_GWD_to_index, tqdm(data, total=len(data)))
+        #    distances = list(tqdm(pool.imap(my_function_star, data), total=len(data)))
+        #mapped_values = list(tqdm.tqdm(pool.imap_unordered(do_work, range(num_tasks)), total=len(values)))
 
     else:
         distances = []
         for i in tqdm(range(0, n)):
-            print('i: ', i)
+            #print('i: ', i)
 
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     measured_distances[idx_1][0], measured_distances[i][0],
                     measured_distances[idx_1][1], measured_distances[i][1], 'square_loss', epsilon=5e-4, log=True)
-            print(log['gw_dist'])
+            #print(log['gw_dist'])
             distances.append(log['gw_dist'])
 
             #distances.append(1.0)
@@ -734,7 +794,7 @@ if __name__ == '__main__':
 
         # Compute barycenter per cluster and update cluster center:
         # TODO: Vermultich läuft die Berechnung der barycentren aus den mesasured distances falsch ab, Die anschließend berechneten Distanzen sind dann so klein, dass ein numerischer Fahler/Warning ausgegeben wird. Vergleiche das mit der Berechnung im einführende Beispiel, da funktioniert alles
-        bary1 = scaling * compute_barycenter_from_measured_distances(measured_distances=measured_distances, id=0)
+        bary1 = scaling * compute_barycenter_from_measured_distances(measured_distances=measured_distances, clustering=clustering, id=0)
 
         clf = PCA(n_components=2)
         embedding = clf.fit_transform(smacof_mds(bary1, 2))
