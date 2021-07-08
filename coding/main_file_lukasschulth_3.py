@@ -309,7 +309,7 @@ def compute_GWD_to_index(cp1, cp2):
 if __name__ == '__main__':
     parallel_computation = False
     threshold = 0.99
-    number_samples = 10  #number of samples per class to check for poisoning attack
+    number_samples = 100  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter
     scaling = 1
@@ -338,20 +338,22 @@ if __name__ == '__main__':
     """
     # Open images of suspicious class
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_matthias_v2e-rule/relevances/00026/'
-    path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_20_epochs_normalizede-rule/relevances/00005/'
+    #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_20_epochs_normalizede-rule/relevances/00005/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
-    path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
+    #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
+    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
 
     relevances = []
     heatmaps = []
     poison_labels = []
+
     for root, dirs, files in os.walk(path):
 
         for name in files:
 
             #print(name)
-            # Save poison labels
 
+            # Save poison labels
             if name.endswith("_poison.npy"):
                 poison_labels.append(int(1))
             else:
@@ -533,7 +535,7 @@ if __name__ == '__main__':
 
     plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
     plt.title('Embedding')
-    plt.show()
+    #plt.show()
 
     # Sampled original image
     npos1 = smacof_mds(C1, 2)
@@ -541,7 +543,7 @@ if __name__ == '__main__':
 
     plt.scatter(npos2[:, 0], npos2[:, 1])
     plt.title('Embedded distance matrix of first original image')
-    plt.show()
+    #plt.show()
 
     bary = compute_barycenter_from_images([heatmap_array[1], heatmap_array[2], heatmap_array[3]], n_samples=n_samples)
     
@@ -553,7 +555,7 @@ if __name__ == '__main__':
     plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
     plt.title('Embedding Durschnitt')
 
-    plt.show()
+    #plt.show()
 
     #Compute distance between bary and original image:
 
@@ -605,7 +607,7 @@ if __name__ == '__main__':
     if parallel_computation:
         tuples_input = []
         md = measured_distances
-        for i in range(n):
+        for i in tqdm(range(n)):
             tuples_input.append(((md[:, 0][idx_1], md[:, 1][idx_1])
                                  , (md[:, 0][i], md[:, 1][i])))
 
@@ -615,7 +617,7 @@ if __name__ == '__main__':
 
     else:
         distances = []
-        for i in range(0, n):
+        for i in tqdm(range(0, n)):
             print('i: ', i)
 
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
@@ -675,7 +677,7 @@ if __name__ == '__main__':
 
         # Compute distances to all barycenters per data point
         start_time = time.time()
-        for i in range(0, n):
+        for i in tqdm(range(0, n)):
             print('i: ', i)
 
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
