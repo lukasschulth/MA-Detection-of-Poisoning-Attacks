@@ -932,14 +932,16 @@ if __name__ == '__main__':
     model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data_Net10', net=Net, poisoned_data=False, isPretrained=False, lr=1e-3)
     Main = TrafficSignMain(model_to_poison_data, epochs=0, image_size=32)
     PA = PoisoningAttack(Main)
-    PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
-    #PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=150, n_steps=1, step_size=1.0)
+    #PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
+    PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=0.33)
 
     #poison_model = modelAi(name_to_save='poison_model')
     #Main = TrafficSignMain(model=poison_model, epochs=0)
     #PA = PoisoningAttack(Main)
     #PA.standard_attack(root_dir=root_dir, s=3)
+
     root_dir_poisoned = "dataset/Poisoned_Git_Dataset/"
+    root_dir_poisoned = "CleanLabelPoisoned_Git_Dataset/"
     train_dir = root_dir_poisoned + "Training/"
     valid_dir = root_dir_poisoned + "Validation/"
     test_dir = root_dir_poisoned + "Testing/"
@@ -948,11 +950,11 @@ if __name__ == '__main__':
     #valid_dir = valid_dir_unpoisoned
     #test_dir = test_dir_unpoisoned
 
-    #sys.exit()
 
-    model = modelAi(name_to_save='SA_incV3_s2_pp05v2', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+
+    model = modelAi(name_to_save='CLPA_incV3_amplitude_pp33', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
-    main = TrafficSignMain(model, epochs=5, image_size=32, batch_size=32)
+    main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
 
     main.creating_data(dataset=TrafficSignDataset, test_dir=test_dir, train_dir=train_dir, valid_dir=valid_dir, test_dir_unpoisoned=test_dir_unpoisoned)
@@ -960,6 +962,7 @@ if __name__ == '__main__':
     #main.start_tensorboard()
     main.loading_ai(should_train_if_needed=False, should_evaluate=True, isPretrained=False, patience=20)
 
+    sys.exit()
     # Lese Daten für Activationload Clustering ohne Trafos ein:
     #main.creating_data_for_ac(dataset=TrafficSignDataset, train_dir=train_dir)
 
