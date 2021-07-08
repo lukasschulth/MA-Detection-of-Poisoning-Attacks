@@ -665,7 +665,7 @@ class RelevancePropagator:
     @module_tracker
     def batch_nd_inverse(self, m, relevance):
         batchNorm_easy_pass = True
-        print(m.in_tensor.shape)
+        #print(m.in_tensor.shape)
         if batchNorm_easy_pass:
 
             relevance_out = relevance
