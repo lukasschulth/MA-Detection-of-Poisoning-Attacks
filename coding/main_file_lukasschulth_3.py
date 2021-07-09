@@ -6,7 +6,7 @@ import concurrent
 
 from joblib._multiprocessing_helpers import mp
 
-from istarmap import istarmap
+
 import multiprocessing
 import os
 from sklearn import manifold
@@ -753,13 +753,13 @@ if __name__ == '__main__':
             print('Distanz zum ersten bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[0]['dist_m'], CC[i],
-                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
+                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-10, log=True)
             distances_to_cluster_centers[i][0] = log['gw_dist']
             print('done.')
             print('Distanz zum ZWEITEN bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[1]['dist_m'], CC[i],
-                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
+                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-10, log=True)
             distances_to_cluster_centers[i][1] = log['gw_dist']
             print('done.')
 
