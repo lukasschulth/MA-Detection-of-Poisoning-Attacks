@@ -773,13 +773,13 @@ if __name__ == '__main__':
             print('Distanz zum ersten bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[0]['dist_m'], CC[i],
-                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
+                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-2, log=True)
             distances_to_cluster_centers[i][0] = log['gw_dist']
             print('done.')
             print('Distanz zum ZWEITEN bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[1]['dist_m'], CC[i],
-                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
+                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-2, log=True)
             distances_to_cluster_centers[i][1] = log['gw_dist']
             print('done.')
 
@@ -850,7 +850,7 @@ if __name__ == '__main__':
 
         #bary2 = compute_barycenter_from_measured_distances(measured_distances=measured_distances, clustering=clustering, id=1)
         bary2 = compute_barycenter_from_Cp(CC, pp, clustering=clustering, id=1, n_samples=n_samples)
-        #clf = PCA(n_components=2)
+        clf = PCA(n_components=2)
         embedding = clf.fit_transform(smacof_mds(bary2, 2))
         print(embedding)
         # Create measured distance matrix of barycenter
