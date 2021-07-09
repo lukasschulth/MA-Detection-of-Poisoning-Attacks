@@ -338,40 +338,19 @@ if __name__ == '__main__':
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter
     scaling = 1
-    """
-    pl = [0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1]
-    cl = np.asarray([1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1,
- 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0,
- 1, 0])
-    cl = 1-cl
-    a,b,c,d = confusion_matrix(pl, cl).ravel()
-    #specificity = tn / (tn+fp)
-    #print(tn, fp, fn, tp)
-    # 1650 0 386 427
-    print(a, b, c, d)
 
-    
-    
-    clustering = np.array([1, 1, 0, 0])
-
-    print('Clustering: ', clustering)
-    with open('/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/md.npy', 'rb') as f:
-
-        md = np.load(f, allow_pickle=True)
-
-    print(md[1][0].shape)
-    """
     # Open images of suspicious class
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_matthias_v2e-rule/relevances/00026/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_20_epochs_normalizede-rule/relevances/00005/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
-    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
-
+    #path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
+    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SPA_incV3_pp002e-rule/relevances/00005/'
+    print(path)
     relevances = []
     heatmaps = []
     poison_labels = []
-    examples = True
+    examples = False
 
     for root, dirs, files in os.walk(path):
 
@@ -405,9 +384,10 @@ if __name__ == '__main__':
 
     # Convert list of relevances to numpy array
     rel_array = np.asarray(relevances).astype(np.float64)
-    rel_array = rel_array[8: 8 + number_samples]
-    heatmaps = heatmaps[8: 8 + number_samples]
-    poison_labels = poison_labels[8: 8 + number_samples]
+    if number_samples > 0:
+        rel_array = rel_array[8: 8 + number_samples]
+        heatmaps = heatmaps[8: 8 + number_samples]
+        poison_labels = poison_labels[8: 8 + number_samples]
 
     print('poisonLabels: ', poison_labels)
     print('Anzahl an korrumpierten Datenpunkten in der Teilmenge: ', np.asarray(poison_labels).sum())
@@ -748,7 +728,7 @@ if __name__ == '__main__':
     clustering[idx_1] = 0
     clustering[idx_2] = 1
 
-    print('CCidx1: ' , CC[idx_1].shape )
+
     #Use dict for cluster centers cc:
     cc = {0: {'dist_m': CC[idx_1], 'weights': pp[idx_1]},
           1: {'dist_m': CC[idx_2], 'weights': pp[idx_2]}}
@@ -773,13 +753,13 @@ if __name__ == '__main__':
             print('Distanz zum ersten bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[0]['dist_m'], CC[i],
-                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-3, log=True)
+                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
             distances_to_cluster_centers[i][0] = log['gw_dist']
             print('done.')
             print('Distanz zum ZWEITEN bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[1]['dist_m'], CC[i],
-                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-3, log=True)
+                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
             distances_to_cluster_centers[i][1] = log['gw_dist']
             print('done.')
 
@@ -802,11 +782,12 @@ if __name__ == '__main__':
             clustering_old = clustering
             print('Clustering: ', clustering)
 
+            if iter == 0:
+                # Speichere Clustering nach der kmenas++ -Initialisierung
+                with open('clustering_test_iter0.npy', 'wb') as f:
+
+                    np.save(f, clustering)
             """
-            with open('clustering.npy', 'wb') as f:
-
-                np.save(f, clustering)
-
             with open('md.npy', 'wb') as f:
 
                 np.save(f, measured_distances)

@@ -117,7 +117,7 @@ class TrafficSignMain():
 
     # Function for using the AI.
 
-    def loading_ai(self, isPretrained: bool, should_train_if_needed=True, should_evaluate=True, verbose=True, patience=20):
+    def loading_ai(self, isPretrained: bool, should_train_if_needed=True, should_evaluate=True, verbose=True, patience=20, evaluate_each_epoch=False):
         if self.model.did_save_model(self.model.name):
             if verbose:
                 print("\n=> Found a saved model, start loading model.\n")
@@ -125,7 +125,7 @@ class TrafficSignMain():
             if self.epochs != 0 and should_train_if_needed:
                 if verbose:
                     print("Continue training at epoch: ", last_epochs)
-                self.train_ai(self.epochs, last_epochs=last_epochs, verbose=verbose, patience=patience)
+                self.train_ai(self.epochs, last_epochs=last_epochs, verbose=verbose, patience=patience, evaluate_each_epoch=evaluate_each_epoch)
         else:
             if verbose:
                 print(
@@ -137,7 +137,7 @@ class TrafficSignMain():
         if should_evaluate:
             self.evaluate_ai(verbose=verbose)
 
-    def train_ai(self, epochs, last_epochs=0, patience=20, verbose=True):
+    def train_ai(self, epochs, last_epochs=0, patience=20, verbose=True, evaluate_each_epoch=False):
         print(f"=>\tStart training AI on {self.model.device}")
 
         # initialize the early_stopping object
@@ -159,6 +159,10 @@ class TrafficSignMain():
                 if verbose:
                     print("=>\tAccuracy on validation Dataset: %.3f" % (val_pred_correct * 100) + "% \n")
                 self.model.scheduler.step()
+            if self.test_dataloader is not None and evaluate_each_epoch:
+                print(' ... under construction ...')
+                self.evaluate_ai(verbose=True)
+
         print("=>\tFINISHED TRAINING")
     """
     def retraining_train_ai(self, epochs, isPretrained: bool, lastEpochs=0, verbose=True):
