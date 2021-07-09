@@ -37,8 +37,8 @@ import time
 import torch
 import random
 
-import cupy
-print(torch.rand(10).cuda())
+
+
 
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
@@ -73,6 +73,22 @@ def rel_coords_to_distance_matrix(xy, x, y, r, threshold):
 
     return C, p
 
+
+def compute_barycenter_from_Cp(CC, pp, clustering, id, n_samples=400):
+
+
+    idd = np.where(clustering==id)
+    Cs = CC[idd]
+    ps = pp[idd]
+    p = ot.unif(n_samples)
+
+    lambdas = np.ones_like(ps)
+    lambdas = [float(i)/len(lambdas) for i in lambdas]
+
+    # Berechne Barycenter mit POT-Funktion
+    barycenter = ot.gromov.gromov_barycenters(n_samples, Cs, ps, p, lambdas=lambdas, loss_fun='square_loss')
+
+    return barycenter
 
 def compute_barycenter_from_images(images, threshold=0.99, n_samples=400):
 
@@ -318,7 +334,7 @@ def compute_GWD_to_index(cp1, cp2):
 if __name__ == '__main__':
     parallel_computation = False
     threshold = 0.99
-    number_samples = 100  #number of samples per class to check for poisoning attack
+    number_samples = 5  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter
     scaling = 1
@@ -355,7 +371,7 @@ if __name__ == '__main__':
     relevances = []
     heatmaps = []
     poison_labels = []
-    examples = False
+    examples = True
 
     for root, dirs, files in os.walk(path):
 
@@ -533,8 +549,7 @@ if __name__ == '__main__':
         lambdas = [0.5, 0.5]
 
         p = ot.unif(n_samples)
-        #TODO: n_samples gibt auf der einen Seit an, wie viele Punkte ausgewählt werden sollen, andererseits ist das aber auch die Dimension (n_samples,n_samples) des bary_centers
-        # Wie passt das zusammen?
+
         #Compute barycenter
         bary = ot.gromov.gromov_barycenters(n_samples, [C1, C2], [r1, r2], p, lambdas, 'square_loss', max_iter=100, tol=1e-3, verbose=False)
 
@@ -561,17 +576,24 @@ if __name__ == '__main__':
         print('heatmap_arra_shape: ', heatmap_array[1:4].shape )
         #measured_distances = np.asarray([heatmap_to_distance_matrix(im) for im in heatmap_array[1:3]])
         md = []
+        CC = []
+        pp = []
         for i in range(1,4):
-            md.append(heatmap_to_distance_matrix(heatmap_array[i]))
-        md = np.asarray(md)
+            c_, p_ = heatmap_to_distance_matrix(heatmap_array[i])
+            CC.append(c_)
+            pp.append(p_)
+
+        CC = np.asarray(CC)
+        pp = np.asarray(pp)
+
 
         cluster = np.array([0, 0, 0])
         idd = 0
         idx = np.where(cluster == idd)
         print(idx)
 
-        barybary = compute_barycenter_from_measured_distances(measured_distances=md, clustering=cluster, id=idd)
-
+        #barybary = compute_barycenter_from_measured_distances(measured_distances=md, clustering=cluster, id=idd)
+        barybary = compute_barycenter_from_Cp(CC, pp, clustering=cluster, id=idd, n_samples=n_samples)
 
         #clf = PCA(n_components=2)
 
@@ -635,10 +657,16 @@ if __name__ == '__main__':
     # Compute distances of every other sample to the chosen first center
     #measured_distances = np.asarray([heatmap_to_distance_matrix(im) for im in heatmap_array])
 
-    measured_distances = []
+    CC = []
+    pp = []
     for i in range(n):
-        measured_distances.append(heatmap_to_distance_matrix(heatmap_array[i]))
-    measured_distances = np.asarray(measured_distances)
+        c_, p_ = heatmap_to_distance_matrix(heatmap_array[i])
+        CC.append(c_)
+        pp.append(p_)
+
+    CC = np.asarray(CC)
+    pp = np.asarray(pp)
+
     #print(measured_distances.shape)
     #np.expand_dims(measured_distances, axis=1)
     #print(measured_distances.shape)
@@ -652,6 +680,7 @@ if __name__ == '__main__':
     print(' ==> Compute distances to first mean')
 
     if parallel_computation:
+        """
         # https://stackoverflow.com/questions/57354700/starmap-combined-with-tqdm/57364423#57364423
 
         tuples_input = []
@@ -674,15 +703,15 @@ if __name__ == '__main__':
             #distances = pool.starmap(compute_GWD_to_index, tqdm(data, total=len(data)))
         #    distances = list(tqdm(pool.imap(my_function_star, data), total=len(data)))
         #mapped_values = list(tqdm.tqdm(pool.imap_unordered(do_work, range(num_tasks)), total=len(values)))
-
+        """
     else:
         distances = []
         for i in tqdm(range(0, n)):
             #print('i: ', i)
 
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                    measured_distances[idx_1][0], measured_distances[i][0],
-                    measured_distances[idx_1][1], measured_distances[i][1], 'square_loss', epsilon=5e-4, log=True)
+                    CC[idx_1], CC[i],
+                    pp[idx_1], pp[i], 'square_loss', epsilon=5e-4, log=True)
             #print(log['gw_dist'])
             distances.append(log['gw_dist'])
 
@@ -719,9 +748,10 @@ if __name__ == '__main__':
     clustering[idx_1] = 0
     clustering[idx_2] = 1
 
+    print('CCidx1: ' , CC[idx_1].shape )
     #Use dict for cluster centers cc:
-    cc = {0: {'dist_m': measured_distances[idx_1][0], 'weights': measured_distances[idx_1][1]},
-          1: {'dist_m': measured_distances[idx_2][0], 'weights': measured_distances[idx_2][1]}}
+    cc = {0: {'dist_m': CC[idx_1], 'weights': pp[idx_1]},
+          1: {'dist_m': CC[idx_2], 'weights': pp[idx_2]}}
 
     iter = 0
     print(' ==> Starting k-means++-iterations')
@@ -737,18 +767,19 @@ if __name__ == '__main__':
 
         # Compute distances to all barycenters per data point
         start_time = time.time()
+        print('...starting.')
         for i in tqdm(range(0, n)):
             print('i: ', i)
-
+            print('Distanz zum ersten bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                    cc[0]['dist_m'], measured_distances[i][0],
-                    cc[0]['weights'], measured_distances[i][1], 'square_loss', epsilon=5e-4, log=True)
+                    cc[0]['dist_m'], CC[i],
+                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
             distances_to_cluster_centers[i][0] = log['gw_dist']
             print('done.')
-
+            print('Distanz zum ZWEITEN bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                    cc[1]['dist_m'], measured_distances[i][0],
-                    cc[1]['weights'], measured_distances[i][1], 'square_loss', epsilon=5e-4, log=True)
+                    cc[1]['dist_m'], CC[i],
+                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-4, log=True)
             distances_to_cluster_centers[i][1] = log['gw_dist']
             print('done.')
 
@@ -794,7 +825,8 @@ if __name__ == '__main__':
 
         # Compute barycenter per cluster and update cluster center:
         # TODO: Vermultich läuft die Berechnung der barycentren aus den mesasured distances falsch ab, Die anschließend berechneten Distanzen sind dann so klein, dass ein numerischer Fahler/Warning ausgegeben wird. Vergleiche das mit der Berechnung im einführende Beispiel, da funktioniert alles
-        bary1 = scaling * compute_barycenter_from_measured_distances(measured_distances=measured_distances, clustering=clustering, id=0)
+        #bary1 = scaling * compute_barycenter_from_measured_distances(measured_distances=measured_distances, clustering=clustering, id=0)
+        bary1 = compute_barycenter_from_Cp(CC, pp, clustering=clustering, id=0, n_samples=n_samples)
 
         clf = PCA(n_components=2)
         embedding = clf.fit_transform(smacof_mds(bary1, 2))
@@ -811,14 +843,16 @@ if __name__ == '__main__':
         C /= C.sum()
         p = ot.unif(C.shape[0])
 
+        print('CCidx1_new: ' , C.shape )
+
         cc[0]['dist_m'] = C
         cc[0]['weights'] = p
 
-        bary2 = compute_barycenter_from_measured_distances(measured_distances=measured_distances, id=1)
-
-        clf = PCA(n_components=2)
+        #bary2 = compute_barycenter_from_measured_distances(measured_distances=measured_distances, clustering=clustering, id=1)
+        bary2 = compute_barycenter_from_Cp(CC, pp, clustering=clustering, id=1, n_samples=n_samples)
+        #clf = PCA(n_components=2)
         embedding = clf.fit_transform(smacof_mds(bary2, 2))
-
+        print(embedding)
         # Create measured distance matrix of barycenter
         C = sp.spatial.distance.cdist(embedding, embedding).astype(np.float64)
         #C /= C.max()
@@ -829,7 +863,7 @@ if __name__ == '__main__':
         cc[1]['weights'] = p
 
         iter += 1
-
+        print('test1')
         print("--- %s seconds ---" % (time.time() - start_time))
 
     # Change clustering labels, if the bigger class is labeled with '1':
