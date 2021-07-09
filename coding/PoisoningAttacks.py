@@ -423,7 +423,8 @@ class PoisoningAttack():
         self.main.model.net.eval()
 
         # Erstelle eine Ordner für die clean label poisoned data:
-        path = up(up(root_dir)) + "/CleanLabelPoisoned_Git_Dataset/"
+        #path = up(up(root_dir)) + "/CleanLabelPoisoned_Git_Dataset/"
+        path = root_dir + "Poisoned_Git_Dataset/"
         if os.path.exists(path):
           shutil.rmtree(path)
 
@@ -631,8 +632,6 @@ class PoisoningAttack():
             os.remove(poison_dir_training + str(i) + ".jpeg")
 
         print('==> Training Data poisoned.')
-
-
 
         ################################################################################################################
         ################################################################################################################
