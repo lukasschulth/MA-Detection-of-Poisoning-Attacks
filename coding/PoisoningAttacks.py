@@ -578,7 +578,7 @@ class PoisoningAttack():
 
             if disp and i == 1:
                 image2 = np.rollaxis(image, 0, 3)
-                print('image2_shape:', image2)
+                #print('image2_shape:', image2)
                 fig, axs = plt.subplots(1, 2)
                 axs[0].imshow(image1)
                 axs[0].set_title('Original Image')
@@ -610,6 +610,7 @@ class PoisoningAttack():
 
             if insert == 'amplitude':
                 image = self.insert_amplitude_backdoor(image, amplitude=amplitude)
+
             if insert == 'amplitude4':
                 image = self.insert_4corner_amplitude_backdoor(image, amplitude=amplitude, p=d)
 
@@ -806,57 +807,13 @@ class PoisoningAttack():
 
         classes_to_poison = range(num_classes)
         classes_to_poison = np.setdiff1d(classes_to_poison, class_to_poison)
-        """
-        for i in classes_to_poison:
-            poison_dir_testing = test_dir + str(i).zfill(5) + "/"
-            
-            size_class_testing = len([name for name in os.listdir(poison_dir_testing) if
-                                  os.path.isfile(os.path.join(poison_dir_testing, name))])
-            id_x_train = np.random.choice(stickerfenster_x, size_class_testing, replace=True)
-            id_y_train = np.random.choice(stickerfenster_y, size_class_testing, replace=True)
-
-            for id, id_x, id_y in zip(range(size_class_testing), id_x_train, id_y_train):
-                id = str(id)
-                id_x = int(id_x)
-                id_y = int(id_y)
-                image = Image.open(
-                    poison_dir_testing + id + ".jpeg")  # '/home/bsi/Dokumente/Dataset_poisoned/Training/00002/1.jpeg')
-
-            pixels = image.load()  # create the pixel map
-
-            if insert == 'sticker':
-                # id_x = np.random.choice(stickerfenster_x, size_class_testing, replace=True)
-                # id_y = np.random.choice(stickerfenster_y, size_class_testing, replace=True)
-
-                for ii in range(s):
-                    for jj in range(s):
-                        pixels[id_x + ii, id_y + jj] = (245, 255, 0)
-                        # print(pixels[id_x + i, id_y + j])
-
-            if insert == 'bw':
-                image = self.insert_3b3_black_and_white(image)
-
-            if insert == 'amplitude':
-                image = self.insert_amplitude_backdoor(image, amplitude=amplitude)
-
-            if insert == 'amplitude4':
-                image = self.insert_4corner_amplitude_backdoor(image, amplitude=amplitude, p=d)
-
-            # Save Image
-            print(poison_dir_testing + id + "_poison.jpeg")
-            image.save(poison_dir_testing + id + "_poison.jpeg", format='JPEG', subsampling=0, quality=100)
-            # Remove unpoisoned image
-            os.remove(poison_dir_testing + id + ".jpeg")
-
-        print('==> Testing Data poisoned.')
-        """
 
         for i in classes_to_poison:
             poison_dir_testing = test_dir + str(i).zfill(5) + "/"
 
             size_class_testing = len([name for name in os.listdir(poison_dir_testing) if
                                   os.path.isfile(os.path.join(poison_dir_testing, name))])
-            print('size ClASs testing: ', size_class_testing)
+
             id_x_train = np.random.choice(stickerfenster_x, size_class_testing, replace=True)
             id_y_train = np.random.choice(stickerfenster_y, size_class_testing, replace=True)
 
