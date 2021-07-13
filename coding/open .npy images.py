@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-with open('test.npy', 'rb') as f:
+with open('clustering_test_iter0.npy', 'rb') as f:
 
     d = np.load(f)
 
@@ -17,6 +17,8 @@ with open('test.npy', 'rb') as f:
     #plt.show()
 
 
+
+"""
 def valid_imshow_data(data):
     data = np.asarray(data)
     if data.ndim == 2:
@@ -55,7 +57,7 @@ plt.imshow(d)
 plt.show()
 #plt.imshow(c)
 
-
+"""
 
 #Abspeichern
 path = os.getcwd()

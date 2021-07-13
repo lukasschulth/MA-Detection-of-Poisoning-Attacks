@@ -792,7 +792,7 @@ def create_clean_label_attack(amplitude = 16,percentage_poison=0.15,im_size=32,s
     net = InceptionNet3
     model_path = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/InceptionenNet3_test/Setting_s_3_ep_200_pp_0.15_mInception_unpoisoned_Vergleich/_epoch_68.pth"
 
-    model = modelAI(net=net,poisoned_data=False,lr=1e-3)
+    model = modelAI(net=net, poisoned_data=False,lr=1e-3)
     model.load(model_path)
 
     root_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Unpoisoned Dataset/"

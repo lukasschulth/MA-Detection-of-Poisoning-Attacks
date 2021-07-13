@@ -12,8 +12,9 @@
 	\addtocounter{figure}{-1}
 	\captionlistentry{source: #1}
 }
+\usepackage{verbatim}
 \usepackage[multiple]{footmisc}
-%\usepackage{pythontex} % \inputpygments{python}{file_1.py}
+\usepackage{pythontex} % \inputpygments{python}{file_1.py}
 \usepackage{caption}
 \usepackage{verbatim}
 \usepackage{subcaption}
@@ -25,7 +26,7 @@
 \graphicspath{{images/}} %import images from follder "images
 
 \usepackage{apacite} %bibliography file
-%\pagenumbering{arabic}
+\pagenumbering{arabic}
 \usepackage{caption}
 %\usepackage{ntheorem}
 \usepackage{tabto}  
@@ -151,7 +152,6 @@
 \title{\line(1,0){350}\\Untersuchung \& Entwicklung \\von Ansätzen zur Detektion von Poisoning-Angriffen\\\line(1,0){350}\\
 	Master-Arbeit}
 \author{
-	
 	Lukas Schulth\\
 	\texttt{lukas.schulth@uni.kn}
 }
@@ -288,7 +288,7 @@
 	Intermediate classifiers: kommt aus multitask learning. Eigentlich eine Möglickeit gegen vasnishing gradients
 	
 	\subsubsection{VGG16}
-	VGG16 is a convolutional neural network model proposed by K. Simonyan and A. Zisserman from the University of Oxford in the paper “Very Deep Convolutional Networks for Large-Scale Image Recognition”. The model achieves 92.7\% top-5 test accuracy in ImageNet, which is a dataset of over 14 million images belonging to 1000 classes. It was one of the famous model submitted to ILSVRC-2014. It makes the improvement over AlexNet by replacing large kernel-sized filters (11 and 5 in the first and second convolutional layer, respectively) with multiple 3×3 kernel-sized filters one after another. VGG16 was trained for weeks and was using NVIDIA Titan Black GPU’s.%\cite{vgg16_neurohive} \cite{vgg16_architecture}
+	VGG16 is a convolutional neural network model proposed by K. Simonyan and A. Zisserman from the University of Oxford in the paper Very Deep Convolutional Networks for Large-Scale Image Recognition. The model achieves 92.7\% top-5 test accuracy in ImageNet, which is a dataset of over 14 million images belonging to 1000 classes. It was one of the famous model submitted to ILSVRC-2014. It makes the improvement over AlexNet by replacing large kernel-sized filters (11 and 5 in the first and second convolutional layer, respectively) with multiple 3×3 kernel-sized filters one after another. VGG16 was trained for weeks and was using NVIDIA Titan Black GP’s.%\cite{vgg16_neurohive} \cite{vgg16_architecture}
 	
 	\subsection{Datensatz}
 	
@@ -565,7 +565,8 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	torch.nn.Dropout3d,
 	torch.nn.Softmax,
 	torch.nn.LogSoftmax,
-	torch.nn.Sigmoid)$\\\end{comment}
+	torch.nn.Sigmoid)$\\
+	\end{comment}
 	\begin{lstlisting}[language=Python, caption=Verfügbare Schichten und Aktivierungsfunktionen]
 	torch.nn.BatchNorm1d, 
 	torch.nn.BatchNorm2d
@@ -625,7 +626,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	
 	\begin{itemize}
 		\item Berechnung der Heatmaps mit Hilfe der LRP
-		\item Berechnung einer Distanzmatrix basierend auf $L²-$ oder GMW-Distanz
+		\item Berechnung einer Distanzmatrix basierend auf $L^2-$ oder GMW-Distanz
 		\item Spektrale Relevanzanalyse (Bestimmung der verschiedenen Cluster innerhalb einer Klasse)
 	\end{itemize}
 
@@ -694,8 +695,12 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		d_{\mathcal{G}\mathcal{H}} = \frac{1}{2}\inf_{R}||\Gamma_{X,Y}||_{L^\infty(R \times R)}.
 	\end{equation}
 	\end{definition}
-	\subsubsection{Gromov-Wasserstein-Distanz}
 	
+	
+	
+	\subsection{Kantorovichs Optimal Transport Problem}
+	
+	\subsubsection{Gromov-Wasserstein-Distanz}
 	
 	\subsubsection{Entropisch Regularisierte Gromov-Wasserstein-Distanz}
 	Entropic Regularization of Optimal Transport \cite{computationalOT}
@@ -713,6 +718,27 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	Matlab code\footnote{\url{https://github.com/gpeyre/2016-ICML-gromov-wasserstein}} zum Paper \cite{gwd_averaging_kernels}.
 	Implementierung ist mittlerweile auch in der Python Optimal Transport toolbox verfügbar(s.o.).
 	
+	\subsubsection{Wasserstein Baryzentren}
+	
+	\subsubsection{Verallgemeinerung}
+	Verallgemeinerung auf beliebige  Matrizen C, d.h. diese Distanzmatrizen müssen nicht notwendigerweise positiv sein und die Dreiecksungleichung erfüllen.
+	
+	Definiere die verallgemeinerte Gromov-Wasserstein-Distanz (vGWD) wie folgt:
+	
+	\begin{definition}[Verallgemeinerte Gromov-Wasserstein-Distanz]
+		Seien zwei gewichtete Ähnlichkeitsmatrizen $(C,p) \in \mathbb{R}^{N_1 \times \N_1} \times \Sigma_{N_1}$ und $(\bar{C},q) \in \mathbb{R}^{N_2 \times \N_2} \times \Sigma_{N_2}$ gegeben. Sei $T$ eine Kopplung zwischen den beiden Räumen, auf denen die Matrizen $C$ und $\bar{C}$ definiert sind. Sei $L$ eine Fehlerfunktion. Dann definieren wir die verallgemeinerte Gromov-Wasserstein-Distanz als
+		\begin{equation}
+			vGw(C, \bar{C}, p, q) := \min_{T \in \mathcal{C}_{p, q}}{\mathcal{\varepsilon}_{C,\bar{C}}(T)},
+		\end{equation}
+		wobei gilt $\mathcal{\varepsilon}_{C,\bar{C}}(T) := \sum_{i,j,k,l}{L(C_{i,k}, \bar{C}_{j,l})T_{i,j}T_{k,l}}.$
+		
+	\end{definition}
+
+	Häufig verwendete Fehlerfunktionen sind die quadratische Fehlerfunktion $L(a,b) = L_2(a,b) := \frac{1}{2}|a-b|^2$ und die Kullback-Leibler-Divergenz $L(a,b)  = KL(a|b) := a\log(a/b) -a+b$.
+	
+	Diese Definition der Gromov-Wasserstein-Distanz verallgemeinert die Version in \cite{gwd_averaging_kernels}, da hier beliebige Fehlerfunktionen betrachtet werden.\\
+	
+	Für L=L2 zeigt Memoli,2011, dass GW1/2 eine Distanz definiert.
 	\subsection{Spektrales Clustering}
 	Wir folgen \cite{spectralClustering_tut}.
 	Gegeben:Datenpunkte $x_i, ..., x_n$ sowie eine Größe $s = s_{ij} \in \mathbb{R}^{+}$, die einen paarweisen Zusammenhang der einzelnen Punkte beschreiben.
@@ -749,7 +775,8 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	\noindent \textbf{Vorverarbeitung der Relevanzen:}\\
 	In \cite{unmaskingCH} wird anschließend ein Sum-Pooling auf die Relevanzen angewendet, um eine Dimensionsreduktion zu erhalten. Wie in \cite{imagenet_unhansed_v1} verzichten wir auf eine weitere Dimensionsreduktion, da wir nur relativ kleine Relevanzen der Größe $32x32$ verarbeiten.	\\
 	
-
+	Für eps=5e-2 liegen beide barycentren identisch weit weg. Probiere nun eps=5e-3
+	
 	\noindent \textbf{Berechnung der Distanzen und Aufstellen einer Affinitätsmatrix:}\\
 	
 	Wir berechnen zunächst eine Distannzmatrix, die die paarweisen Distanzen aller Heatmaps einer Klasse enthält.	
@@ -793,14 +820,14 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	loss on test dataset: 0.15269652156995248
 	Accuracy of test Dataset: 0.961 \\
 
-	
+	\mathcal{\varepsilon}_{C,\bar{C}}(T)
 	\noindent \textbf{Performance auf nicht korrumpierten Daten:}\\
 	=>	FINISHED TRAINING
 	loss on test dataset: 0.15834395289583986
 	Accuracy of test Dataset: 0.968 \\
 	
-	%BDSR classwise:
-	%[nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+	%BDSR classwise:Histogramm
+	%[nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan$(C,p) \in \mathbb{R}^{N_1 \times \N_1} \times \Sigma_{N_1}$
 	%nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
 	%nan nan nan nan nan nan nan]
 	%Performance of poisoned net on unpoisoned training data:
@@ -809,7 +836,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	
 	%: Warum gibts bei den beiden oberen Auswertungen %einen Unterschied?
 	
-	\noindent \textbf{Spektralanalyse:}\\
+	\noindent \textbf{Spektralanalyse:}
 	
 	\begin{figure}[h]
 	\begin{center}
@@ -869,7 +896,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	--- 5670.336745262146 seconds ---
 	
 	15 Prozenmt 3x3 Sticker
-	=> Did save Model - SA_incV3_s3_15 - at epoch: 50
+	=> Did save Model - SAincV3s315 - at epoch: 50
 	=>	[50] loss: 0.060, accuracy: 98.405%
 	EarlyStopping counter: 20 out of 20
 	Early stopping
@@ -885,6 +912,11 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	loss on test dataset: 0.1822473893020984
 	Accuracy on test Dataset: 0.961 
 	
+	\begin{center}
+		
+	\end{center}
+	
+	
 	\subsubsection{Label-konsistente Poisoning-Angriffe}
 	\section{Vergleich mit anderen Verfahren} \label{chapter_comparisons}
 	\subsection{Activation Clustering}
@@ -898,7 +930,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	
 	\section{Weitere mögliche Schritte} \label{chapter_weitereSchritte}
 	\begin{itemize}
-		\item Automatische Platzierung des Auslösers an fest gewählter Position auf dem Verkehrsschild anstatt zufälligem Platzierem in einem Fenster mit vorher festgelegter Größe. In \cite{badnets} wird  Faster-RCNN (F-RCNN) zur Klassifikation des LISA-Datensatzes\footnote{\url{http://cvrr.ucsd.edu/LISA/lisa-traffic-sign-dataset.html}} benutzt. Es ist die Aufgabe, die Verkehrsschilder in die 3 Superklassen Stoppschild, Geschwindigkeitsbegrenzung und Warnschild einzuteilen. Der Datensatz enthält zudem die BoundingBoxen, sodass der Auslöser genauer angebracht werden kann.
+		\item Automatische Platzierung des Auslösers an fest gewählter Position auf dem Verkehrsschild anstatt zufälligem Platzieren in einem Fenster mit vorher festgelegter Größe. In \cite{badnets} wird  Faster-RCNN (F-RCNN) zur Klassifikation des LISA-Datensatzes\footnote{\url{http://cvrr.ucsd.edu/LISA/lisa-traffic-sign-dataset.html}} benutzt. Es ist die Aufgabe, die Verkehrsschilder in die 3 Superklassen Stoppschild, Geschwindigkeitsbegrenzung und Warnschild einzuteilen. Der Datensatz enthält zudem die BoundingBoxen, sodass der Auslöser genauer angebracht werden kann.
 		\item Verbesserte Version der Layer-wise Relevance Propagation
 		\item Untersuchung anderer Verfahren, die die Interpretierbarkeit ermöglichen, beispielsweise: VisualBackProp: efficient visualization of CNNs\footnote{\url{https://arxiv.org/abs/1611.05418}}
 		\item Vergleich mit Cifar-10/Cifar-100 Datensatz\footnote{\url{https://www.cs.toronto.edu/~kriz/cifar.html}}\footnote{\url{https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf}}
@@ -1081,6 +1113,12 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	Die in \cite{CH} gewählten Parameter wären ein guter Ausgangspunkt.
 	\section{Datensätze}
 	\section{Programmcode}
+	
+	
+	\verbatiminput{Netlayout.txt}
+	
+	\verbatiminput{InceptionNet3layout.txt}
+	
 	
 	\newpage
 	

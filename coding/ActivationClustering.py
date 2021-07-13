@@ -98,13 +98,13 @@ class ActivationClustering:
 
     def run_ac(self, check_all_classes=True, class_to_check=5):
 
-        # Kopiere Training Testing Validation in separaten Ordner in root_dir
-        os.makedirs(self.checkpoint_dir + "Original_Data/", exist_ok=True)
+        ## Kopiere Training Testing Validation in separaten Ordner in root_dir
+        #os.makedirs(self.checkpoint_dir + "Original_Data/", exist_ok=True)
 
-        copy_tree(self.root_dir + "Training", self.checkpoint_dir + "Original_Data/" + "Training/")
-        copy_tree(self.root_dir + "Validation", self.checkpoint_dir + "Original_Data/" + "Validation/")
-        copy_tree(self.root_dir + "Testing", self.checkpoint_dir + "Original_Data/" + "Testing/")
-        print('Daten in extra Ordner gesichert ...')
+        #copy_tree(self.root_dir + "Training", self.checkpoint_dir + "Original_Data/" + "Training/")
+        #copy_tree(self.root_dir + "Validation", self.checkpoint_dir + "Original_Data/" + "Validation/")
+        #copy_tree(self.root_dir + "Testing", self.checkpoint_dir + "Original_Data/" + "Testing/")
+        #print('Daten in extra Ordner gesichert ...')
 
         if self.main.model.did_save_model(self.main.model.name):
 
@@ -153,14 +153,14 @@ class ActivationClustering:
             rel_size_scores_train.append(rel_size_train)
 
         # Greife in extra for loop darauf zu, damit Daten im outut file unteriandern stehen
-        for check_class in range(self.main.model.num_classes):
+        #for check_class in range(self.main.model.num_classes):
            # print('checkCLASS:', check_class)
-            self.main.hparams.add_hparam("sil_train_class" + str(check_class), str(sil_scores_train[check_class]))
-        for check_class in range(self.main.model.num_classes):
-            self.main.hparams.add_hparam("rel_size_train_class" + str(check_class), str(rel_size_scores_train[check_class]))
+            #self.main.hparams.add_hparam("sil_train_class" + str(check_class), str(sil_scores_train[check_class]))
+        #for check_class in range(self.main.model.num_classes):
+            #self.main.hparams.add_hparam("rel_size_train_class" + str(check_class), str(rel_size_scores_train[check_class]))
 
-        with open(output_json_path, 'w') as f:
-            json.dump(self.main.hparams.values(), f, indent=2)
+        #with open(output_json_path, 'w') as f:
+        #    json.dump(self.main.hparams.values(), f, indent=2)
 
         if check_all_classes:
             print('Check all classes')
@@ -177,7 +177,7 @@ class ActivationClustering:
                 acc_train, f1_score_train, fnr_train, num_a_train, num_b_train, cluster_train, tpr_train, tnr_train, fpr_train, sil_train, rel_size_warning_train, rel_size_train = self.evaluate_cluster(
                     clusters_train, poison_labels_segmented_by_class_train[class_to_check],
                     activations_segmented_by_class_train[class_to_check], pmax=0.33)
-                self.main.hparams.add_hparam("Detection Accuracy TRAIN_"+str(class_to_check), str(acc_train))
+                #self.main.hparams.add_hparam("Detection Accuracy TRAIN_"+str(class_to_check), str(acc_train))
 
                 # Reduce Dimensions on segmented data
                 reduced_activations_val = self.reduce_dimensionality(activations_segmented_by_class_val[class_to_check])
@@ -230,7 +230,7 @@ class ActivationClustering:
             copy_tree(self.root_dir + "Training", retraining_data_dir + "Training/")
             copy_tree(self.root_dir + "Validation", retraining_data_dir + "Validation/")
             copy_tree(self.root_dir + "Testing", retraining_data_dir + "Testing/")
-            print('Nicht verdächtige DAten in Retraining kopiert ...')
+            print('Nicht verdächtige Daten in Retraining kopiert ...')
 
         else: # Check only one specific class :
             print('Check only one class')
@@ -240,11 +240,9 @@ class ActivationClustering:
             # FICA for validation activations:
             reduced_activations_val = self.reduce_dimensionality(activations_segmented_by_class_val[class_to_check])
 
-            ## Cluster segemented training data
+            # Cluster segemented training data
             clusterer_train = KMeans(n_clusters=2)
             cluster_train = clusterer_train.fit_predict(reduced_activations_train)
-
-
 
             # Erstelle Ordner mit verdächtigen Datenpunkten(training)
             suspicious_data_dir_train = self.checkpoint_dir + "/Suspicious_Data/Training/" + str(
@@ -264,7 +262,11 @@ class ActivationClustering:
                 cluster_train, poison_labels_segmented_by_class_train[class_to_check],
                 activations_segmented_by_class_train[class_to_check], pmax=0.33)
 
-            self.main.hparams.add_hparam("Detection Accuracy TRAIN", str(acc_train))
+            print("Detection Accuracy TRAIN", str(acc_train))
+            print("f1score TRAIN", str(f1_score_train))
+            print("fnr TRAIN", str(fnr_train))
+            print("tpr TRAIN", str(tpr_train))
+
 
             # Cluster Validation activations:
             clusterer_val = KMeans(n_clusters=2)

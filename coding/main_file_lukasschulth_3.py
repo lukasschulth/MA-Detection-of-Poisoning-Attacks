@@ -334,10 +334,19 @@ def compute_GWD_to_index(cp1, cp2):
 if __name__ == '__main__':
     parallel_computation = False
     threshold = 0.99
-    number_samples = 5  #number of samples per class to check for poisoning attack
+    number_samples = 0  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter
     scaling = 1
+
+    # display model
+    #from neural_nets import Net, InceptionNet3
+    #from torchsummary import summary
+    #from torchinfo import summary
+    #model = Net()
+    #batch_size = 32
+    #summary(model, input_size=(batch_size, 3, 32, 32))
+    #sys.exit()
 
     # Open images of suspicious class
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/incv3_matthias_v2e-rule/relevances/00026/'
@@ -345,7 +354,7 @@ if __name__ == '__main__':
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
     #path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
-    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SPA_incV3_pp002e-rule/relevances/00005/'
+    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SPA_incV3_pp005e-rule/relevances/00005/'
     print(path)
     relevances = []
     heatmaps = []
@@ -395,6 +404,26 @@ if __name__ == '__main__':
     #for i in range(20):
     #    plt.imshow(heatmaps[i])
     #    plt.show()
+
+    # Evaluation
+    if False:
+        with open('clustering_test_iter0.npy', 'rb') as f:
+
+            labels_pred = np.load(f)
+
+        # Change clustering labels, if the bigger class is labeled with '1':
+        if labels_pred.sum() > labels_pred.shape[0]/2:
+            labels_pred = 1 - labels_pred
+
+
+        # Evaluate clustering:
+        a, b, c, d = confusion_matrix(poison_labels, labels_pred).ravel()
+        #specificity = tn / (tn+fp)
+        #print(tn, fp, fn, tp)
+        # 1650 0 386 427
+        print('(tn, fp, fn, tp): ', a, b, c, d)
+        sys.exit()
+
 
     #print('relarray.shape: ', rel_array.shape)
 
@@ -736,7 +765,7 @@ if __name__ == '__main__':
     iter = 0
     print(' ==> Starting k-means++-iterations')
     break_while = False
-
+    eps = 5e-4
     while iter < max_iter:
 
         print('iter: ', iter)
@@ -753,13 +782,13 @@ if __name__ == '__main__':
             print('Distanz zum ersten bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[0]['dist_m'], CC[i],
-                    cc[0]['weights'], pp[i], 'square_loss', epsilon=5e-10, log=True)
+                    cc[0]['weights'], pp[i], 'square_loss', epsilon=eps, log=True)
             distances_to_cluster_centers[i][0] = log['gw_dist']
             print('done.')
             print('Distanz zum ZWEITEN bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[1]['dist_m'], CC[i],
-                    cc[1]['weights'], pp[i], 'square_loss', epsilon=5e-10, log=True)
+                    cc[1]['weights'], pp[i], 'square_loss', epsilon=eps, log=True)
             distances_to_cluster_centers[i][1] = log['gw_dist']
             print('done.')
 

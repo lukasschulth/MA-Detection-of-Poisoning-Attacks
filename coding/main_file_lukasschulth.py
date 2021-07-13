@@ -932,7 +932,7 @@ if __name__ == '__main__':
     model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data_Net10', net=Net, poisoned_data=False, isPretrained=False, lr=1e-3)
     Main = TrafficSignMain(model_to_poison_data, epochs=0, image_size=32)
     PA = PoisoningAttack(Main)
-    PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.02)
+    PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
     #PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=500, n_steps=0, step_size=0.015, percentage_poison=0.33, insert='amplitude')
 
     #poison_model = modelAi(name_to_save='poison_model')
@@ -950,7 +950,7 @@ if __name__ == '__main__':
     #valid_dir = valid_dir_unpoisoned
     #test_dir = test_dir_unpoisoned
 
-    model = modelAi(name_to_save='SPA_incV3_pp002', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='SPA_incV3_pp005', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
@@ -964,12 +964,13 @@ if __name__ == '__main__':
     # Lese Daten für Activationload Clustering ohne Trafos ein:
     #main.creating_data_for_ac(dataset=TrafficSignDataset, train_dir=train_dir)
 
-    #AC = ActivationClustering(main, root_dir=root_dir)
+    #AC = ActivationClustering(main, root_dir=root_dir) # Nach dem Verwenden von AC haben Bilder im Datensatz gefehlt
     #AC.run_ac(check_all_classes=False, class_to_check=5)
+
     #AC.run_retraining(verbose=True)
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
-    #sys.exit()
+
     ##### LRP-moboehle: Modifizierte Version von Matthias
     save_lrp = True
     from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel
