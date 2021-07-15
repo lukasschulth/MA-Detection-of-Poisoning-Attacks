@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 import scipy as sp
-
+from my_torch_ot import *
 
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 from scipy.spatial import distance_matrix
@@ -32,313 +32,31 @@ from sklearn.metrics import confusion_matrix
 #specificity = tn / (tn+fp)
 #print(tn, fp, fn, tp)
 
-
+from gwd_utils import *
 import time
-import torch
+import torch; print('torch', torch.__version__)
 import random
 
 
-
+print(torch.rand(5))
 
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
 import numpy as np; print("NumPy", np.__version__)
 import scipy; print("SciPy", scipy.__version__)
-import ot.gpu; print("POT", ot.__version__)
+import ot; print("POT", ot.__version__)
+
 print("Is Cuda available: {}".format(torch.cuda.is_available()))
 
 
-def rel_coords_to_distance_matrix(xy, x, y, r, threshold):
-    r_inds = r.argsort()
-    r_sorted = r[r_inds[::-1]]
-    xy_sorted = xy[r_inds[::-1]]
-
-
-    counter = 0
-    sum = 0
-
-    #threshold = 0.99
-    while sum <= threshold:
-        sum += r_sorted[counter]
-        counter += 1
-
-    # Compute distance kernels, normalize them and then display
-
-    xy = xy_sorted[:counter].astype(np.float64)
-    r = r_sorted[:counter].astype(np.float64)
-    p = r/r.sum()
-
-    C = sp.spatial.distance.cdist(xy, xy).astype(np.float64)
-    C /= C.max()
-
-    return C, p
-
-
-def compute_barycenter_from_Cp(CC, pp, clustering, id, n_samples=400):
-
-
-    idd = np.where(clustering==id)
-    Cs = CC[idd]
-    ps = pp[idd]
-    p = ot.unif(n_samples)
-
-    lambdas = np.ones_like(ps)
-    lambdas = [float(i)/len(lambdas) for i in lambdas]
-
-    # Berechne Barycenter mit POT-Funktion
-    barycenter = ot.gromov.gromov_barycenters(n_samples, Cs, ps, p, lambdas=lambdas, loss_fun='square_loss')
-
-    return barycenter
-
-def compute_barycenter_from_images(images, threshold=0.99, n_samples=400):
-
-    """
-    Computes the 'average' of n input images in the sense of Wasserstein distance.
-
-
-    Parameters
-    ----------
-    images : ndarray, shape (ns, ns)
-        input heatmaps of size (ns, ns)
-    threshold : float
-          percentage up to which pixels from original image with total weight <= threshold are taken
-    n_samples :  int
-
-
-    Returns
-    -------
-    embedding :
-           Embedded barycenter
-    """
-
-    Cs = []  # cost matrices
-    ps = []
-    #n_samples = 50
-    p = ot.unif(n_samples)
-    lambdas = []
-
-    for im in images:
-
-        xy, x, y, r = heatmap_to_rel_coord(im)
-
-        r_inds = r.argsort()
-        r_sorted = r[r_inds[::-1]]
-        xy_sorted = xy[r_inds[::-1]]
-
-        counter = 0
-        sum = 0
-
-        while sum <= threshold:
-            sum += r_sorted[counter]
-            counter += 1
-
-        # Compute distance kernels, normalize them
-
-        xy = xy_sorted[:counter].astype(np.float64)
-        r = r_sorted[:counter].astype(np.float64)
-        r /= r.sum()
-
-        C = sp.spatial.distance.cdist(xy, xy).astype(np.float64)
-        C /= C.max()
-        Cs.append(C)
-
-        ps.append(r)
-        lambdas.append(1.0)
-
-    #lambdas = np.asarray(lambdas)
-    #lambdas /= np.float(len(lambdas))
-
-    lambdas = [float(i)/len(lambdas) for i in lambdas]
-
-    # Berechne Barycenter mit POT-Funktion
-    barycenter = ot.gromov.gromov_barycenters(n_samples, Cs, ps, p, lambdas=lambdas, loss_fun='square_loss')
-
-    return barycenter
-
-
-def compute_barycenter_from_measured_distances(measured_distances, clustering, id, n_samples=50):
-
-    """
-    Computes the 'average' of n measured distance matrices in the sense of Wasserstein distance.
-
-
-    Parameters
-    ----------
-    measured_distances :
-        list of tuples (C,p)
-
-    n_samples :  int
-        number of points in the computed barycenter
-
-    Returns
-    -------
-    embedding :
-           (Embedded) barycenter
-    """
-    """
-    Cs = []  # cost matrices
-    ps = []
-
-    p = ot.unif(n_samples)
-    lambdas = []
-
-    for (C, p) in measured_distances:
-
-        Cs.append(C)
-
-        ps.append(p)
-        lambdas.append(1.0)
-    """
-
-    md = measured_distances
-    idx = np.where(clustering == id)
-    #print('idx: ', idx[0][0])
-    print('mdshape: ', md.shape)
-    print(md[:, 0].shape)
-    print(idx[0].shape)
-    print(md[:, 0][idx[0]].shape)
-
-    print(idx[0][0:1])
-    Cs = md[:, 0][idx[0]]
-
-    print(Cs.shape)
-
-    p = ot.unif(n_samples)
-    ps = md[:, 1][idx[0]]
-    print(ps.shape)
-    #lambdas = np.asarray(lambdas)
-    #lambdas /= np.float(len(lambdas))
-
-    lambdas = np.ones(Cs.shape[0])
-    lambdas /= lambdas.sum()
-    #print(lambdas.shape)
-
-    lambdas = list(lambdas)
-
-    # Berechne Barycenter mit POT-Funktion
-    barycenter = ot.gromov.gromov_barycenters(n_samples, Cs, ps, p, lambdas=lambdas, loss_fun='square_loss')
-    print('Bary computed.')
-
-    return barycenter
-
-
-def heatmap_to_rel_coord(im):
-        """Transform Relevance map to list of coordinates and relevances per pixel in the range of [0,1]
-
-        Input:
-        -------
-                    im: 2D image with one channel
-
-        Returns:
-        -----------
-        xy = list of tuples (x,y)
-        x = list of x-coordinates
-        y = list of y-coordinates
-        r = list of mass per point
-        """
-
-        x = []
-        y = []
-        r = []
-        xy = []
-        #for i in range(31, 0, -1):
-        for i in range(32):
-            for j in range(32):
-                x.append(j)
-                y.append(i)
-                r.append(im[j][i])
-                xy.append([i, j])
-        xy = np.asarray(xy)
-        x = np.asarray(x)
-        y = np.asarray(y)
-        r = np.asarray(r)
-
-        # Normalize "by hand"
-        max = r.max()
-        min = r.min()
-        r = (r-min)/(max-min)
-
-        # Division by total mass
-        r = r/r.sum()
-
-        return xy, x, y, r
-
-
-def smacof_mds(C, dim, max_iter=3000, eps=1e-9):
-        """
-        Returns an interpolated point cloud following the dissimilarity matrix C
-        using SMACOF multidimensional scaling (MDS) in specific dimensioned
-        target space
-
-        Parameters
-        ----------
-        C : ndarray, shape (ns, ns)
-            dissimilarity matrix
-        dim : int
-              dimension of the targeted space
-        max_iter :  int
-            Maximum number of iterations of the SMACOF algorithm for a single run
-        eps : float
-            relative tolerance w.r.t stress to declare converge
-
-        Returns
-        -------
-        npos : ndarray, shape (R, dim)
-               Embedded coordinates of the interpolated point cloud (defined with
-               one isometry)
-        """
-
-        rng = np.random.RandomState(seed=3)
-
-        mds = manifold.MDS(
-            dim,
-            max_iter=max_iter,
-            eps=1e-9,
-            dissimilarity='precomputed',
-            n_init=1)
-        pos = mds.fit(C).embedding_
-
-        nmds = manifold.MDS(
-            2,
-            max_iter=max_iter,
-            eps=1e-9,
-            dissimilarity="precomputed",
-            random_state=rng,
-            n_init=1)
-        npos = nmds.fit_transform(C, init=pos)
-
-        return npos
-
-
-def heatmap_to_distance_matrix(im, threshold=0.99):
-        xy, x, y, r = heatmap_to_rel_coord(im)
-        C, p = rel_coords_to_distance_matrix(xy, x, y, r, threshold=threshold)
-
-        return C, p
-
-
-def compute_GWD_to_index(cp1, cp2):
-
-        C1 = cp1[0]
-        p1 = cp1[1]
-        C2 = cp2[0]
-        p2 = cp2[1]
-
-        gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                C1, C2,
-                p1, p2, 'square_loss', epsilon=5e-4, log=True)
-
-        return log['gw_dist']
-
 
 if __name__ == '__main__':
-    parallel_computation = False
+    parallel_computation = True
     threshold = 0.99
     number_samples = 0  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter
-    scaling = 1
-
+    examples = False
     # display model
     #from neural_nets import Net, InceptionNet3
     #from torchsummary import summary
@@ -355,11 +73,11 @@ if __name__ == '__main__':
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
     #path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
     path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SPA_incV3_pp005e-rule/relevances/00005/'
-    print(path)
+
     relevances = []
     heatmaps = []
     poison_labels = []
-    examples = False
+
 
     for root, dirs, files in os.walk(path):
 
@@ -454,6 +172,7 @@ if __name__ == '__main__':
     #Wähle 2 images, für die ein Barycenter berechnet werden soll:
     #Wähle erste und zweite Heatmap aus der Liste aus:
     heatmap_array = np.asarray(heatmaps).astype(np.float64)
+
 
     if examples:
         im1 = heatmap_array[3]  #77
@@ -555,11 +274,28 @@ if __name__ == '__main__':
         r1 /= r1.sum()
         r2 /= r2.sum()
 
-        lambdas = [0.5, 0.5]
 
-        p = ot.unif(n_samples)
+
+
+        C1 = torch.from_numpy(C1)
+        C2 = torch.from_numpy(C2)
+        r1 = torch.from_numpy(r1)
+        r2 = torch.from_numpy(r2)
+
+        print(C1.dtype)
+        print('test')
+        gw = log = pt_entropic_gromov_wasserstein2(C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True)
+
+        # Compute distance between im1 and im2 suing torch
+        gw, log = ot.gromov.entropic_gromov_wasserstein2(
+                        C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True)
+
+        print('DISTANZ zw. beiden Bildern: ', log['gw_dist'])
+        sys.exit()
 
         #Compute barycenter
+        #  lambdas = [0.5, 0.5]
+        # p = ot.unif(n_samples)
         bary = ot.gromov.gromov_barycenters(n_samples, [C1, C2], [r1, r2], p, lambdas, 'square_loss', max_iter=100, tol=1e-3, verbose=False)
 
         #plt.imshow(bary)
@@ -638,7 +374,8 @@ if __name__ == '__main__':
 
         print('DISTANZ zw. bary und erstem Bild: ', log['gw_dist'])
         print('DISTANZ zw. bary2 und erstem Bild: ', log2['gw_dist'])
-
+        print('end of examples')
+        sys.exit()
 
     #TODO: Vergleich GWD zwischen barycenter und embedding eines Ursprungsbildes
 
@@ -689,18 +426,19 @@ if __name__ == '__main__':
     print(' ==> Compute distances to first mean')
 
     if parallel_computation:
-        """
+
         # https://stackoverflow.com/questions/57354700/starmap-combined-with-tqdm/57364423#57364423
 
         tuples_input = []
-        md = measured_distances
+        #md = measured_distances
         for i in range(n):
-            tuples_input.append(((md[:, 0][idx_1], md[:, 1][idx_1])
-                                 , (md[:, 0][i], md[:, 1][i])))
+            #tuples_input.append(((md[:, 0][idx_1], md[:, 1][idx_1])
+            #                     , (md[:, 0][i], md[:, 1][i])))
+
+            tuples_input.append(((CC[idx_1],pp[idx_1]),(CC[i],pp[i])))
 
 
-
-        process_pool = multiprocessing.Pool(12)
+        process_pool = multiprocessing.Pool(32)
         data = tuples_input
         distances = process_pool.starmap(compute_GWD_to_index, data)
         #distances = tqdm.tqdm()
@@ -712,7 +450,7 @@ if __name__ == '__main__':
             #distances = pool.starmap(compute_GWD_to_index, tqdm(data, total=len(data)))
         #    distances = list(tqdm(pool.imap(my_function_star, data), total=len(data)))
         #mapped_values = list(tqdm.tqdm(pool.imap_unordered(do_work, range(num_tasks)), total=len(values)))
-        """
+
     else:
         distances = []
         for i in tqdm(range(0, n)):
@@ -728,7 +466,7 @@ if __name__ == '__main__':
 
         distances = np.asarray(distances)
         distances /= distances.sum()
-
+    print(' ==> Distances computed.')
     """
     with open('distances.npy', 'wb') as f:
 
