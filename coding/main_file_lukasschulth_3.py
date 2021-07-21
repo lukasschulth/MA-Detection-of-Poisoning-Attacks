@@ -51,12 +51,14 @@ print("Is Cuda available: {}".format(torch.cuda.is_available()))
 
 
 if __name__ == '__main__':
-    parallel_computation = True
+    parallel_computation = False
     threshold = 0.99
-    number_samples = 0  #number of samples per class to check for poisoning attack
+    number_samples = 5  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter
-    examples = False
+    examples = True
+    evaluation = False
+    eps = 0.3
     # display model
     #from neural_nets import Net, InceptionNet3
     #from torchsummary import summary
@@ -72,7 +74,8 @@ if __name__ == '__main__':
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
     #path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
-    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SPA_incV3_pp005e-rule/relevances/00005/'
+    #path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SPA_incV3_pp005e-rule/relevances/00005/'
+    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLPA_incV3_pp033_stickere-rule/relevances/00005/'
 
     relevances = []
     heatmaps = []
@@ -124,8 +127,8 @@ if __name__ == '__main__':
     #    plt.show()
 
     # Evaluation
-    if False:
-        with open('clustering_test_iter0.npy', 'rb') as f:
+    if evaluation:
+        with open('clustering_test_iter0_.npy', 'rb') as f:
 
             labels_pred = np.load(f)
 
@@ -274,36 +277,42 @@ if __name__ == '__main__':
         r1 /= r1.sum()
         r2 /= r2.sum()
 
+        C1 = torch.from_numpy(C1).float().cuda()
+        C2 = torch.from_numpy(C2).float().cuda()
+        r1 = torch.from_numpy(r1).float().cuda()
+        r2 = torch.from_numpy(r2).float().cuda()
 
-
-
-        C1 = torch.from_numpy(C1)
-        C2 = torch.from_numpy(C2)
-        r1 = torch.from_numpy(r1)
-        r2 = torch.from_numpy(r2)
-
-        print(C1.dtype)
+        print(C1.is_cuda)
         print('test')
-        gw = log = pt_entropic_gromov_wasserstein2(C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True)
+        gw, log = pt_entropic_gromov_wasserstein2(C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True)
 
         # Compute distance between im1 and im2 suing torch
-        gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                        C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True)
+        #gw, log = ot.gromov.entropic_gromov_wasserstein2(
+        #                C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True)
 
         print('DISTANZ zw. beiden Bildern: ', log['gw_dist'])
-        sys.exit()
+
 
         #Compute barycenter
-        #  lambdas = [0.5, 0.5]
-        # p = ot.unif(n_samples)
+        lambdas = [0.5, 0.5]
+        p = ot.unif(n_samples)
+        C1 = C1.cpu()
+        C2 = C2.cpu()
+        r1 = r1.cpu()
+        r2 = r2.cpu()
+
         bary = ot.gromov.gromov_barycenters(n_samples, [C1, C2], [r1, r2], p, lambdas, 'square_loss', max_iter=100, tol=1e-3, verbose=False)
+
+        #lambdas = torch.FloatTensor([0.5, 0.5])
+        #p = pt_unif(n_samples)
+        #bary = pt_gromov_barycenters(n_samples, [C1, C2], [r1, r2], p, lambdas, 'square_loss', max_iter=100, tol=1e-3, verbose=False)
 
         #plt.imshow(bary)
         #plt.draw()
 
         clf = PCA(n_components=2)
 
-        embedding = scaling * clf.fit_transform(smacof_mds(bary, 2))
+        embedding = clf.fit_transform(smacof_mds(bary, 2))
 
         plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
         plt.title('Embedding')
@@ -311,7 +320,7 @@ if __name__ == '__main__':
 
         # Sampled original image
         npos1 = smacof_mds(C1, 2)
-        npos2 = scaling *smacof_mds(C2, 2)
+        npos2 = smacof_mds(C2, 2)
 
         plt.scatter(npos2[:, 0], npos2[:, 1])
         plt.title('Embedded distance matrix of first original image')
@@ -367,9 +376,9 @@ if __name__ == '__main__':
 
         print(' ==> Compute distance to barycenter')
         gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                        C, C1, p, r1, 'square_loss', epsilon=5e-4, log=True)
+                        C, C1, p, r1, 'square_loss', epsilon=eps, log=True)
         gw2, log2 = ot.gromov.entropic_gromov_wasserstein2(
-                        C2, C1, p2, r1, 'square_loss', epsilon=5e-4, log=True)
+                        C2, C1, p2, r1, 'square_loss', epsilon=eps, log=True)
 
 
         print('DISTANZ zw. bary und erstem Bild: ', log['gw_dist'])
@@ -407,11 +416,8 @@ if __name__ == '__main__':
     pp = []
     for i in range(n):
         c_, p_ = heatmap_to_distance_matrix(heatmap_array[i])
-        CC.append(c_)
-        pp.append(p_)
-
-    CC = np.asarray(CC)
-    pp = np.asarray(pp)
+        CC.append(torch.from_numpy(c_).float().cuda())
+        pp.append(torch.from_numpy(p_).float().cuda())
 
     #print(measured_distances.shape)
     #np.expand_dims(measured_distances, axis=1)
@@ -424,7 +430,7 @@ if __name__ == '__main__':
         return compute_GWD_to_index(*args)
 
     print(' ==> Compute distances to first mean')
-
+    start_time = time.time()
     if parallel_computation:
 
         # https://stackoverflow.com/questions/57354700/starmap-combined-with-tqdm/57364423#57364423
@@ -453,20 +459,25 @@ if __name__ == '__main__':
 
     else:
         distances = []
-        for i in tqdm(range(0, n)):
-            #print('i: ', i)
+        for i in range(0, n):
+            print('i: ', i)
 
-            gw, log = ot.gromov.entropic_gromov_wasserstein2(
+            gw, log = pt_entropic_gromov_wasserstein2(
                     CC[idx_1], CC[i],
-                    pp[idx_1], pp[i], 'square_loss', epsilon=5e-4, log=True)
+                    pp[idx_1], pp[i], 'square_loss', epsilon=eps, log=True, verbose=True, max_iter=100)
+            #gw, log = ot.gromov.entropic_gromov_wasserstein2(
+            #        CC[idx_1], CC[i],
+            #        pp[idx_1], pp[i], 'square_loss', epsilon=eps, log=True)
             #print(log['gw_dist'])
             distances.append(log['gw_dist'])
 
             #distances.append(1.0)
 
-        distances = np.asarray(distances)
-        distances /= distances.sum()
+        distances = torch.FloatTensor(distances)
+        #distances /= distances.sum() #Wieso normalisiere ich die Distanzen hier?
+    print("--- %s seconds ---" % (time.time() - start_time))
     print(' ==> Distances computed.')
+
     """
     with open('distances.npy', 'wb') as f:
 
@@ -479,13 +490,14 @@ if __name__ == '__main__':
 
     ##### Initialization #####
     # Choose probabilities of choosing next k-1 centers:
-    p = np.square(distances)
+    p = torch.square(distances)
     p /= p.sum()
     print(p)
 
     p[idx_1] = 0
     p /= p.sum()
-    print(p)
+    p = p.cpu().numpy()
+    print(p.sum())
     idx_2 = choice(seq, size=1, p=p)[0]
     print('idx_2: ', idx_2)
 
@@ -503,7 +515,7 @@ if __name__ == '__main__':
     iter = 0
     print(' ==> Starting k-means++-iterations')
     break_while = False
-    eps = 5e-4
+
     while iter < max_iter:
 
         print('iter: ', iter)
@@ -515,16 +527,22 @@ if __name__ == '__main__':
         # Compute distances to all barycenters per data point
         start_time = time.time()
         print('...starting.')
-        for i in tqdm(range(0, n)):
+        for i in range(0, n):
+
+            if (i == idx_2 or i == idx_1) and iter == 0:
+                # Im ersten Scchritt, wenn die Heatmap mit der id=idx_2 gewählt wird, ist klar, dass diese Heatmap dem zweiten Cluster zugeordnet wird. Die Distanz muss also nicht berechnet werden.
+                # selbes gilt für idx_1
+                continue
+
             print('i: ', i)
             print('Distanz zum ersten bARY')
-            gw, log = ot.gromov.entropic_gromov_wasserstein2(
+            gw, log = pt_entropic_gromov_wasserstein2(
                     cc[0]['dist_m'], CC[i],
                     cc[0]['weights'], pp[i], 'square_loss', epsilon=eps, log=True)
             distances_to_cluster_centers[i][0] = log['gw_dist']
             print('done.')
             print('Distanz zum ZWEITEN bARY')
-            gw, log = ot.gromov.entropic_gromov_wasserstein2(
+            gw, log = pt_entropic_gromov_wasserstein2(
                     cc[1]['dist_m'], CC[i],
                     cc[1]['weights'], pp[i], 'square_loss', epsilon=eps, log=True)
             distances_to_cluster_centers[i][1] = log['gw_dist']
@@ -551,7 +569,8 @@ if __name__ == '__main__':
 
             if iter == 0:
                 # Speichere Clustering nach der kmenas++ -Initialisierung
-                with open('clustering_test_iter0.npy', 'wb') as f:
+
+                with open('clustering_test_iter0_.npy', 'wb') as f:
 
                     np.save(f, clustering)
             """
@@ -616,6 +635,7 @@ if __name__ == '__main__':
 
     # Change clustering labels, if the bigger class is labeled with '1':
     if clustering.sum() > clustering.shape[0]/2:
+        print('Cluster got flipped')
         clustering = 1 - clustering
 
     print('final_CLustering: ', clustering)
