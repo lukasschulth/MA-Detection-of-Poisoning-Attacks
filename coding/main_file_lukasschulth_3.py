@@ -52,15 +52,16 @@ print("Is Cuda available: {}".format(torch.cuda.is_available()))
 if __name__ == '__main__':
     parallel_computation = False
     threshold = 0.99
-    number_samples = 6  #number of samples per class to check for poisoning attack
+    number_samples = 20  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter
     examples = True
     evaluation = False
-    eps = 0.02 #0.01
+    eps_init = 5e-4 #0.01
+    eps_update = 0.01
     verbose = False
-    method = 'sinkhorn_stabilized'
-    method1 = 'sinkhorn'
+    method_init = 'sinkhorn_stabilized'
+    method_update = 'sinkhorn'
     # display model
     #from neural_nets import Net, InceptionNet3
     #from torchsummary import summary
@@ -280,7 +281,7 @@ if __name__ == '__main__':
 
         # Compute distance between im1 and im2 suing torch
         gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                        C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True, method=method1)
+                        C1, C2, r1, r2, 'square_loss', epsilon=5e-4, log=True, method=method_init)
 
         print('DISTANZ zw. beiden Bildern: ', log['gw_dist'])
 
@@ -361,9 +362,9 @@ if __name__ == '__main__':
 
         print(' ==> Compute distance to barycenter')
         gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                        C, C1, p, r1, 'square_loss', epsilon=eps, log=True)
+                        C, C1, p, r1, 'square_loss', epsilon=eps_init, log=True)
         gw2, log2 = ot.gromov.entropic_gromov_wasserstein2(
-                        C2, C1, p2, r1, 'square_loss', epsilon=eps, log=True)
+                        C2, C1, p2, r1, 'square_loss', epsilon=eps_init, log=True)
 
 
         print('DISTANZ zw. bary und erstem Bild: ', log['gw_dist'])
@@ -374,6 +375,7 @@ if __name__ == '__main__':
     #TODO: Vergleich GWD zwischen barycenter und embedding eines Ursprungsbildes
 
     #### kmeans++ ####
+    ##### Initialization ##### -----------------------------------------------------------------------------------------
     print('#### kmeans++ ####')
     # Initialisierung
     # Lege gewünschte Cluster-Anzahl k fest:
@@ -452,7 +454,7 @@ if __name__ == '__main__':
 
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     CC[idx_1], CC[i],
-                    pp[idx_1], pp[i], 'square_loss', epsilon=eps, log=True)
+                    pp[idx_1], pp[i], 'square_loss', epsilon=eps_init, log=True, method=method_init)
             #print(log['gw_dist'])
             distances.append(log['gw_dist'])
 
@@ -473,7 +475,7 @@ if __name__ == '__main__':
             distances = np.load(f, allow_pickle=True)
     """
 
-    ##### Initialization #####
+
     # Choose probabilities of choosing next k-1 centers:
     p = np.square(distances)
     p /= p.sum()
@@ -495,15 +497,15 @@ if __name__ == '__main__':
     #Use dict for cluster centers cc:
     cc = {0: {'dist_m': CC[idx_1], 'weights': pp[idx_1]},
           1: {'dist_m': CC[idx_2], 'weights': pp[idx_2]}}
+    # ------------------------------------------------------------------------------------------------------------------
 
     iter = 0
     print(' ==> Starting k-means++-iterations')
     break_while = False
-
     while iter < max_iter:
 
         print('iter: ', iter)
-
+        ##### Zuordnung #####
         # --- Distanzberechnung zu den aktuellen Baryzentren -----------------------------------------------------------
         #print('==> Recalculate distances to each barycenter')
         # Compute for every point, which is not part of a cluster the distance to the cluster centers 1 and 2, take the minimum and assign the point accordingly.
@@ -518,20 +520,20 @@ if __name__ == '__main__':
             #print('Distanz zum ersten bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[0]['dist_m'], CC[i],
-                    cc[0]['weights'], pp[i], 'square_loss', epsilon=eps, log=True, verbose=verbose)
+                    cc[0]['weights'], pp[i], 'square_loss', epsilon=eps_update, log=True, verbose=verbose, method=method_update)
             distances_to_cluster_centers[i][0] = log['gw_dist']
             #print('done.')
             #print('Distanz zum ZWEITEN bARY')
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     cc[1]['dist_m'], CC[i],
-                    cc[1]['weights'], pp[i], 'square_loss', epsilon=eps, log=True, verbose=verbose)
+                    cc[1]['weights'], pp[i], 'square_loss', epsilon=eps_update, log=True, verbose=verbose, method=method_update)
             distances_to_cluster_centers[i][1] = log['gw_dist']
             #print('done.')
 
             #print('Distances to centers: ', distances_to_cluster_centers)
             #Choose minimum distance and set cluster label accordingly:
 
-            #print(distances_to_cluster_centers[i])
+            print(distances_to_cluster_centers[i])
             #print(distances_to_cluster_centers[i].argmin())
             # --- Cluster Update ---------------------------------------------------------------------------------------
             #TODO: #for i in range(num_classes_kmeans):
@@ -545,7 +547,7 @@ if __name__ == '__main__':
         #  Die einzelnen Punkte sind den Clustern neu zugeordnet
 
 
-        if iter > 0:
+        if iter > 1:
             #Check if clustering has changed in the last iteration:
             if np.equal(clustering_old, clustering).all(): #(clustering_old-clustering).sum() == 0:
                 #Clustering didnt get updated -> Stop k-means iteration:
@@ -576,11 +578,10 @@ if __name__ == '__main__':
             print('k-means Clustering didnt change and is being stopped.')
             break
 
+        ##### Aktualisierung #####
         # Recalculate barycenters
         start_time = time.time()
-
         print('==> Recalculate barycenters per cluster')
-
         # Compute barycenter per cluster and update cluster center:
         # TODO: Vermultich läuft die Berechnung der barycentren aus den mesasured distances falsch ab, Die anschließend berechneten Distanzen sind dann so klein, dass ein numerischer Fahler/Warning ausgegeben wird. Vergleiche das mit der Berechnung im einführende Beispiel, da funktioniert alles
         #bary1 = scaling * compute_barycenter_from_measured_distances(measured_distances=measured_distances, clustering=clustering, id=0)
