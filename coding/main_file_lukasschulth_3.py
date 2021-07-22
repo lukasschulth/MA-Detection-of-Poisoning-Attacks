@@ -377,7 +377,7 @@ if __name__ == '__main__':
     print('#### kmeans++ ####')
     # Initialisierung
     # Lege gewünschte Cluster-Anzahl k fest:
-    k = 2
+    num_classes_kmeans = 2
 
     #cluster_centers = np.empty(shape=(k, 2))
     #cluster_centers[:][:] = np.nan
@@ -477,11 +477,11 @@ if __name__ == '__main__':
     # Choose probabilities of choosing next k-1 centers:
     p = np.square(distances)
     p /= p.sum()
-    print(p)
+    #print(p)
 
     p[idx_1] = 0
     p /= p.sum()
-    print(p)
+    #print(p)
     idx_2 = choice(seq, size=1, p=p)[0]
     print('idx_2: ', idx_2)
 
@@ -503,6 +503,8 @@ if __name__ == '__main__':
     while iter < max_iter:
 
         print('iter: ', iter)
+
+        # --- Distanzberechnung zu den aktuellen Baryzentren -----------------------------------------------------------
         #print('==> Recalculate distances to each barycenter')
         # Compute for every point, which is not part of a cluster the distance to the cluster centers 1 and 2, take the minimum and assign the point accordingly.
         distances_to_cluster_centers = np.empty(shape=(n, 2))
@@ -531,20 +533,30 @@ if __name__ == '__main__':
 
             #print(distances_to_cluster_centers[i])
             #print(distances_to_cluster_centers[i].argmin())
+            # --- Cluster Update ---------------------------------------------------------------------------------------
+            #TODO: #for i in range(num_classes_kmeans):
             if distances_to_cluster_centers[i].argmin() == 0:
                 clustering[i] = 0
             if distances_to_cluster_centers[i].argmin() == 1:
                 clustering[i] = 1
-            print('==> Update Clustering:' + str(clustering))
+
+            #print('==> Update Clustering:' + str(clustering))
+            # ----------------------------------------------------------------------------------------------------------
+        #  Die einzelnen Punkte sind den Clustern neu zugeordnet
+
 
         if iter > 0:
             #Check if clustering has changed in the last iteration:
             if np.equal(clustering_old, clustering).all(): #(clustering_old-clustering).sum() == 0:
                 #Clustering didnt get updated -> Stop k-means iteration:
                 break_while = True
+        print('Clustering: ', clustering)
+
+        if iter > 0:
+            print('Old Clustering', clustering_old)
 
         clustering_old = clustering
-        print('Clustering: ', clustering)
+
 
         if iter == 0:
             # Speichere Clustering nach der kmenas++ -Initialisierung
@@ -573,11 +585,11 @@ if __name__ == '__main__':
         # TODO: Vermultich läuft die Berechnung der barycentren aus den mesasured distances falsch ab, Die anschließend berechneten Distanzen sind dann so klein, dass ein numerischer Fahler/Warning ausgegeben wird. Vergleiche das mit der Berechnung im einführende Beispiel, da funktioniert alles
         #bary1 = scaling * compute_barycenter_from_measured_distances(measured_distances=measured_distances, clustering=clustering, id=0)
         bary1 = compute_barycenter_from_Cp(CC, pp, clustering=clustering, id=0, n_samples=n_samples)
-        print(bary1)
+        #print(bary1)
         clf = PCA(n_components=2)
         embedding = clf.fit_transform(smacof_mds(bary1, 2))
 
-        print(embedding)
+        #print(embedding)
         plt.scatter(embedding[:, 0], embedding[:, 1], color='r')
         plt.title('Embedding des neu berechneten Barycenters')
         #plt.show()
@@ -598,7 +610,7 @@ if __name__ == '__main__':
         bary2 = compute_barycenter_from_Cp(CC, pp, clustering=clustering, id=1, n_samples=n_samples)
         clf = PCA(n_components=2)
         embedding = clf.fit_transform(smacof_mds(bary2, 2))
-        print(embedding)
+        #print(embedding)
         # Create measured distance matrix of barycenter
         C = sp.spatial.distance.cdist(embedding, embedding).astype(np.float64)
         #C /= C.max()
@@ -609,8 +621,9 @@ if __name__ == '__main__':
         cc[1]['weights'] = p
 
         iter += 1
-        #print('test1')
         print("--- %s seconds ---" % (time.time() - start_time))
+
+    # --- ENDE kMEans --------------------------------------------------------------------------------------------------
 
     # Change clustering labels, if the bigger class is labeled with '1':
     if clustering.sum() > clustering.shape[0]/2:
