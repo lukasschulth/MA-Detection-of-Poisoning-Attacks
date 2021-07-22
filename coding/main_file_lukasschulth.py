@@ -1,25 +1,5 @@
 
 
-import os
-import shutil
-from distutils.dir_util import copy_tree
-from os.path import join
-from random import sample, random
-
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-
-import numpy as np
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-import torchvision
-from PIL import Image
-from torch import nn
-from torch.functional import F
-import torch
-import random
-import torch.optim as optim
-
 #from tensorflow.contrib.training import HParams
 import json
 
@@ -932,8 +912,8 @@ if __name__ == '__main__':
     model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data_Net10', net=Net, poisoned_data=False, isPretrained=False, lr=1e-3)
     Main = TrafficSignMain(model_to_poison_data, epochs=0, image_size=32)
     PA = PoisoningAttack(Main)
-    PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
-    #PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=500, n_steps=0, step_size=0.015, percentage_poison=0.33, insert='amplitude')
+    #PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
+    #PA.clean_label_attack(root_dir, disp=False, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=0.15, insert='sticker')
 
     #poison_model = modelAi(name_to_save='poison_model')
     #Main = TrafficSignMain(model=poison_model, epochs=0)
@@ -950,7 +930,7 @@ if __name__ == '__main__':
     #valid_dir = valid_dir_unpoisoned
     #test_dir = test_dir_unpoisoned
 
-    model = modelAi(name_to_save='SPA_incV3_pp005', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='CLPA_incV3_pp015_sticker', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
