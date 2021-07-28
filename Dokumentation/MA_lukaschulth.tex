@@ -12,20 +12,39 @@
 	\addtocounter{figure}{-1}
 	\captionlistentry{source: #1}
 }
-\usepackage{verbatim}
+% --- Algorithmen ---------------------------
+% TODO: Richtiges Paket wählen, \listofalgorithms klappt nur mit algorithm, nicht mit algorithmicx
+\usepackage{algorithm} 
+\usepackage[ruled,algosection,algo2e]{algorithm2e} 
+\renewcommand*{\listalgorithmname}{Algorithmenverzeichnis} 
+\usepackage{algpseudocode}
+% ------------------------------------------------
+
+% --- Include .txt-files ---------------------------
+%\usepackage{verbatim}
+\usepackage{fancyvrb}
+
+% -----------------------------------------------------
+
+
+
 \usepackage[multiple]{footmisc}
 \usepackage{pythontex} % \inputpygments{python}{file_1.py}
 \usepackage{caption}
 \usepackage{verbatim}
 \usepackage{subcaption}
 \usepackage{amssymb}  
+
 \usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
 \usepackage{amsthm}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage{graphicx}
 \graphicspath{{images/}} %import images from follder "images
 
-\usepackage{apacite} %bibliography file
+%\usepackage{apacite} %bibliography file
 \pagenumbering{arabic}
 \usepackage{caption}
 %\usepackage{ntheorem}
@@ -144,11 +163,11 @@
 \makeglossaries
 
 %%-------------bibfile---------------------------------
-%\usepackage{apacite}
+\usepackage{cite}
 
 %%%%%%%%%%%%%%%%%%%% -------------------------------------------------
 %\newtheorem{theorem}{Theorem}
-\title{Masterarbeit}
+
 \title{\line(1,0){350}\\Untersuchung \& Entwicklung \\von Ansätzen zur Detektion von Poisoning-Angriffen\\\line(1,0){350}\\
 	Master-Arbeit}
 \author{
@@ -198,6 +217,7 @@
 	
 	\lstlistoflistings
 	
+	\listofalgorithms
 	\newpage
 	\tableofcontents
 	\newpage
@@ -205,7 +225,10 @@
 
 	
 	
-	
+	\begin{algorithm} 
+		\caption{Foo bar} 
+		... 
+	\end{algorithm} 
 	\section{Einführung}
 	
 	A Complete List of All (arXiv) Adversarial Example Papers \footnote{\url{https://nicholas.carlini.com/writing/2019/all-adversarial-example-papers.html}}
@@ -308,7 +331,7 @@
 	
 	
 	\subsection{Label-konsistente Poisoning-Angriffe}
-	
+	\subsection{Verteidigungen}
 	\section{Erklärbare KI} \label{chapter_xai}
 	
 	Erklärbarkeit vs. Interpretierbarkeit, youtube talk?!
@@ -633,6 +656,69 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	\noindent  \textbf{Bemerkung:} Anstatt das Clustering nur auf den Heatmaps durchzuführen, könnten die LRP-Ausgaben und/oder Aktivierungen bestimmer NEtzwerkschichten hinzugenommen werden.\\
 	
 	The theory of optimal transport generalizes thatintuition in the case where, instead of moving only one item at a time, one is concernedwith the problem of moving simultaneously several items (or a continuous distributionthereof) from one configuration onto another.\cite{computationalOT}
+	\subsection{k-means / k-means++ -Clustering}
+	
+	Beispiel-Implementierung\footnote{\url{https://towardsdatascience.com/k-means-implementation-in-python-and-spark-856e7eb5fe9b}}\\
+	\\
+	Baryzentrische Koordinaten \footnote{\url{https://de.wikipedia.org/wiki/Baryzentrische_Koordinaten}}
+	
+	\subsection{Spektrales Clustering}
+	Wir folgen \cite{spectralClustering_tut}.
+	Gegeben:Datenpunkte $x_i, ..., x_n$ sowie eine Größe $s = s_{ij} \in \mathbb{R}^{+}$, die einen paarweisen Zusammenhang der einzelnen Punkte beschreiben.
+	
+	Ziel: Aufteilen der Punkte in verschiedene Cluster, sodass sich Punkte innerhalb eines Clusters ähnlich bezüglich $s$ sind.
+	
+	Alternative Repräsentation der Daten mithilfe eines Ähnlichkeitsgraphen $G=(V,E)$ möglich.
+	
+	Umformulierung des Clustering-Problems mithilfe des Ähnlichkeitsgraphen: Finde Pertitionierung des Graphen, sodass die Kanten-Gewichte innerhalb einer Gruppe niedrig (niedriges Gesamtgewicht?) und außerhalb einer Gruppe große sind.\\
+	
+	
+	Graph-Notationen:\\
+	
+	Verschiedene Konstruktionsmöglichkeiten von Ähnlichkeitsgraphen:
+	
+	\begin{itemize}
+		\item $\varepsilon$-Nachbarschaft-Graph\\
+		\item kNN-Graph\\
+		\item fully connected graph
+	\end{itemize}
+	
+	
+	\subsection{Anwendung auf unterschiedliche Poisoning-Angriffe} \label{chapter_results} \label{chapter_experiments}
+	\noindent \textbf{Berechnung der Relevanzen}:\\
+	
+	\noindent Wir berechnen die Relevanzen jedes einzelenen Eingabebildes klassenweise, d.h. besitzt eine Eingabe das Label y, so berechnen auf einem trainierten Netzwerk, für jeden Pixelwert der Eingabe, wie relevant dieser für die Ausgabe f(x) = y ist.\\
+	Wir summieren über die Farbaxen des Bildes, um einzelne Relevanzen pro Pixelpunkt zu erhalten.\\
+	Für die Berechnung der Relevanzen benutzen wir eine modifizierte Version des im Rahmen von \cite{lrp_alzheimer} entstandenen Programmcodes\footnote{\url{https://github.com/moboehle/Pytorch-LRP}}.\\
+	\\
+	\noindent \textbf{Vorverarbeitung der Relevanzen:}\\
+	In \cite{unmaskingCH} wird anschließend ein Sum-Pooling auf die Relevanzen angewendet, um eine Dimensionsreduktion zu erhalten. Wie in \cite{imagenet_unhansed_v1} verzichten wir auf eine weitere Dimensionsreduktion, da wir nur relativ kleine Relevanzen der Größe $32x32$ verarbeiten.	\\
+	
+	Für eps=5e-2 liegen beide barycentren identisch weit weg. Probiere nun eps=5e-3
+	
+	\noindent \textbf{Berechnung der Distanzen und Aufstellen einer Affinitätsmatrix:}\\
+	
+	Wir berechnen zunächst eine Distannzmatrix, die die paarweisen Distanzen aller Heatmaps einer Klasse enthält.	
+	
+	Für die Berechnung der euklidischen Distanz betrachten wir Heatmaps $x,y$ der Größe $32x32$ als Elemente $x,y \in \mathbb{R}^{32*32}$ Die Distanz lässt sich dann wie in \autoref{l2dist} berechnen.\\
+	
+	Die Gromov-Wasserstein-Distanz lässt sich wie in \cite{gwd_averaging_kernels} angegeben berechnen. \\
+	
+	Barycenters Definition und Vergleich zum euklidischen Raum \cite{bary_wasserstein_space}
+	
+	In einer Affinitätsmatrix oder Ähnlichkeitsmatrik sind die \\
+	
+	\noindent \textbf{Berechnung Spektralen Einbettung:}\\
+	
+	\noindent \textbf{Dimensionsreduktion vor dem Clustering ?!}\\
+	
+	In \cite{AC} wird beispielsweise eine Dimensionsreduktion mit PCA durchgeführt.
+	
+	\noindent \textbf{k-Means-Clustering:}\\
+	\begin{remark}
+		In \cite{imagenet_unhansed_v1} Kapitel '2.3. Fisher Discriminant Analysis for Clever Hans
+		identification' wird ein Verfahren vorgestellt, mit dem verdächtige Klassen indentifiziert werden können. Für diese würde man anschließend das obige Verfahren durchführen
+	\end{remark}
 	\subsection{Verwendete Distanzen \& Approximationen}
 	
 	Um die Struktur innerhalb einer Klasse zu analysieren, benötigen wir eine Metrik.
@@ -695,13 +781,52 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		d_{\mathcal{G}\mathcal{H}} = \frac{1}{2}\inf_{R}||\Gamma_{X,Y}||_{L^\infty(R \times R)}.
 	\end{equation}
 	\end{definition}
+	\begin{definition}[Entropischer Optimaler Transport]
+		Wir definieren den $n$-dimensionalen Zufalls-Simplex als $\Sigma_n := \lbrace a \in \mathbb{R}_+^n: \sum_{i=1}^{n}{a_1} = 1$. Ein Element $a \in \Sigma_n$ bezeichnen wir als Histogramm oder Zufallsvektor.
+		
+	\end{definition}
+	\subsubsection{Optimaler Transport (Monge Formulierung)}
+	\begin{remark}
+		test
+	\end{remark}
+	\subsubsection{Kantorovichs Optimaler Transport Problem}
+	Das Optimal Transport Problem nach Kantorovich gehört zu den typischen Optimal Transport Problemen. Es stellt einer Relaxierung der Formulierung von Gaspard Monge[1781], bei der nun auch das Aufteilen von Masse (mass splitting) zulässig ist.
+	In Kantorovichs Formulierung ist eine Kopplung (oder: Transportabblidung) $\boldsymbol{T}$ gesucht, die die Kosten, die bei der Verschiebung eines diskreten Maßes $\boldsymbol{a}$ auf ein anderes diskretes Maß $\boldsymbol{b}$ bezüglich der Kosten $\boldsymbol{M} \in \mathbb{R}^{n_1 \times n_2}$ entstehen, minimiert.
+	Damit $\boldsymbol{T}$ eine Transportabbildung ist, muss $\boldsymbol{T} \in \Gamma(a,b) = \lbrace \boldsymbol{T} \geq \boldsymbol{0}, \boldsymbol{T}\boldsymbol{1}_{n_2} = a, \boldsymbol{T}^{T}\boldsymbol{1}_{n_1} = \boldsymbol{b} \rbrace$ gelten.
 	
+	Für den Fall, dass die Grundkosten eine Metrik darstellen, ist auch die optimale Lösung des Optimal Transport Problems wieder eine Metrik \cite{cuturi2014ground} und definiert die \textit{Wasserstein Distanz}. Das OT Problem ist definiert als
+	\begin{equation}
+		W_M(\boldsymbol{a},\boldsymbol{b}) = \min_{T \in \Pi(\boldsymbol{a}, \boldsymbol{b})}{\langle \boldsymbol{T}, \boldsymbol{M} \rangle},
+	\end{equation}
 	
+	wobei ${\langle \boldsymbol{T}, \boldsymbol{M} \rangle} = \sum_{ij}{t_{ij}m_{ij}}$ gilt.
 	
-	\subsection{Kantorovichs Optimal Transport Problem}
+	which is a linear program. The optimization problem above is often adapted to include a
+	regularization term for the transport plan T , such as entropic regularization (Cuturi, 2013)
+	or squared L2. For the entropic regularized OT problem, one may use the Sinkhorn Knopp
+	algorithm (or variants), or stochastic optimization algorithms. POT has a simple syntax to
+	solve these problems (see Sample 1)
+	\subsubsection{Gromov-Wasserstein-Divergenz}
 	
-	\subsubsection{Gromov-Wasserstein-Distanz}
-	
+	\begin{definition}[Divergenz]
+		Sei $S$ der Raum aller Wahrscheinlichkeitsverteilungen mit gemeinsamem Support. Dann bezeichnet die Divergenz auf $S$ eine Funktion $D(\cdot || \cdot):S \times S \to \mathbb{R}$, für die gilt:
+		\begin{enumerate}
+			\item $D(p || q) \geq 0$ f.a. $p,q \in S$\\
+			\item $D(p || q) = 0$ gdw. $p = q$.
+		\end{enumerate}
+		\end{definition}
+	\begin{definition}[Entropie]
+		Für $T \in \mathbb{R}_{+}^{N \times N}$ definieren wir die Entropie als
+		\begin{equation}
+			H(T) := - \sum_{i,j=1}^N{T_{i,j}(log(T_{i,j})-1)}.
+		\end{equation}
+	\end{definition}
+	\begin{definition}[Tensor-Matrix-Multiplikation]
+		Für einen Tensor $\mathcal{L} = (\mathcal{L}_{i,j,k,l})_{i,j,k,l}$ und eine Matrix $(T_{{i,j}_{i,j}})$ definieren wir die Tensor-Matrix-Multiplikation als
+		\begin{equation}
+		\mathcal{L} \otimes T := (\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}})_{i,j}.
+		\end{equation}
+	\end{definition}
 	\subsubsection{Entropisch Regularisierte Gromov-Wasserstein-Distanz}
 	Entropic Regularization of Optimal Transport \cite{computationalOT}
 	Mehrere Möglichkeiten einer Regularisierung der GW-Distanz\footnote{\url{https://www.youtube.com/watch?v=cPVMHWF8fmE&t=2532s}}:
@@ -718,89 +843,120 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	Matlab code\footnote{\url{https://github.com/gpeyre/2016-ICML-gromov-wasserstein}} zum Paper \cite{gwd_averaging_kernels}.
 	Implementierung ist mittlerweile auch in der Python Optimal Transport toolbox verfügbar(s.o.).
 	
-	\subsubsection{Wasserstein Baryzentren}
 	
 	\subsubsection{Verallgemeinerung}
+	Der Vergleich zwischen Ähnlichkeits- bzw. Distanzmatrizen ist schwierig, da diese die innere Struktur eines Datensatzes beschreiben, die unabhängig von Rotationen und Translationen ist. Esexistiert keine kanonische Ordnung der Reihen und Spalten.
 	Verallgemeinerung auf beliebige  Matrizen C, d.h. diese Distanzmatrizen müssen nicht notwendigerweise positiv sein und die Dreiecksungleichung erfüllen.
 	
 	Definiere die verallgemeinerte Gromov-Wasserstein-Distanz (vGWD) wie folgt:
 	
 	\begin{definition}[Verallgemeinerte Gromov-Wasserstein-Distanz]
-		Seien zwei gewichtete Ähnlichkeitsmatrizen $(C,p) \in \mathbb{R}^{N_1 \times \N_1} \times \Sigma_{N_1}$ und $(\bar{C},q) \in \mathbb{R}^{N_2 \times \N_2} \times \Sigma_{N_2}$ gegeben. Sei $T$ eine Kopplung zwischen den beiden Räumen, auf denen die Matrizen $C$ und $\bar{C}$ definiert sind. Sei $L$ eine Fehlerfunktion. Dann definieren wir die verallgemeinerte Gromov-Wasserstein-Distanz als
-		\begin{equation}
-			vGw(C, \bar{C}, p, q) := \min_{T \in \mathcal{C}_{p, q}}{\mathcal{\varepsilon}_{C,\bar{C}}(T)},
+		Seien zwei gewichtete Ähnlichkeitsmatrizen $(C,p) \in \mathbb{R}^{N_1 \times N_1} \times \Sigma_{N_1}$ und $(\bar{C},q) \in \mathbb{R}^{N_2 \times N_2} \times \Sigma_{N_2}$ gegeben. Sei $T$ eine Kopplung zwischen den beiden Räumen, auf denen die Matrizen $C$ und $\bar{C}$ definiert sind. Sei $L$ eine Fehlerfunktion. Dann definieren wir die verallgemeinerte Gromov-Wasserstein-Distanz als
+		\begin{equation} \label{GWD_definition}
+			GW(C, \bar{C}, p, q) := \min_{T \in \mathcal{C}_{p, q}}{\mathcal{\varepsilon}_{C,\bar{C}}(T)},
 		\end{equation}
 		wobei gilt $\mathcal{\varepsilon}_{C,\bar{C}}(T) := \sum_{i,j,k,l}{L(C_{i,k}, \bar{C}_{j,l})T_{i,j}T_{k,l}}.$
 		
 	\end{definition}
 
-	Häufig verwendete Fehlerfunktionen sind die quadratische Fehlerfunktion $L(a,b) = L_2(a,b) := \frac{1}{2}|a-b|^2$ und die Kullback-Leibler-Divergenz $L(a,b)  = KL(a|b) := a\log(a/b) -a+b$.
+	\noindent Häufig verwendete Fehlerfunktionen sind die quadratische Fehlerfunktion $L(a,b) = L_2(a,b) := \frac{1}{2}|a-b|^2$ und die Kullback-Leibler-Divergenz $L(a,b)  = KL(a|b) := a\log(a/b) -a+b$.
 	
-	Diese Definition der Gromov-Wasserstein-Distanz verallgemeinert die Version in \cite{gwd_averaging_kernels}, da hier beliebige Fehlerfunktionen betrachtet werden.\\
+	Diese Definition der Gromov-Wasserstein-Distanz verallgemeinert die Version in \cite{gwd_averaging_kernels}, da nun beliebige Fehlerfunktionen betrachtet werden.\\
 	
-	Für L=L2 zeigt Memoli,2011, dass GW1/2 eine Distanz definiert.
-	\subsection{Spektrales Clustering}
-	Wir folgen \cite{spectralClustering_tut}.
-	Gegeben:Datenpunkte $x_i, ..., x_n$ sowie eine Größe $s = s_{ij} \in \mathbb{R}^{+}$, die einen paarweisen Zusammenhang der einzelnen Punkte beschreiben.
+	Für $L=L_2 $ zeigt Memoli, 2011, dass $GW^{1/2}$ eine Distanz auf dem Raum metrischer Maßräume modulo Maß-erhaltender Isometrien (?, besser zitieren -> collständiges Resultat angeben) definiert.
 	
-	Ziel: Aufteilen der Punkte in verschiedene Cluster, sodass sich Punkte innerhalb eines Clusters ähnlich bezüglich $s$ sind.
+	Durch die Definition 
+	\begin{equation}
+		\mathcal{L} (C, \bar{C}):= (L(C_{i,k}, \bar{C}_{j,l}))_{i,j,k,l}
+	\end{equation}
+	erhalten wir
+	\begin{equation}
+		\mathcal{\epsilon}_{C, \bar{C}}(T) = \langle \mathcal{L} (C, \bar{C}) \otimes T, T\rangle
+	\end{equation}
+	gilt.
 	
-	Alternative Repräsentation der Daten mithilfe eines Ähnlichkeitsgraphen $G=(V,E)$ möglich.
+	Mit der folgenden Proposition ergibt sich eine effiziente Berechnung von $\mathcal{L} (C, \bar{C}) \otimes T$ für eine bestimme Klasse von Verlustfunktionen $L$:
 	
-	Umformulierung des Clustering-Problems mithilfe des Ähnlichkeitsgraphen: Finde Pertitionierung des Graphen, sodass die Kanten-Gewichte innerhalb einer Gruppe niedrig (niedriges Gesamtgewicht?) und außerhalb einer Gruppe große sind.\\
+	\begin{proposition}
+		Die Verlustfunkton $L$ lasse sich schreiben als 
+		\begin{equation}
+			L(a,b) = f_1(a) + f_2(b) - h_1(a)h_2(b)
+		\end{equation}
+		für $f_1, f_2,h_1, h_2:\mathbb{R} \to \mathbb{R}$.
+		
+		Dann gilt für $T \in \mathcal{C}_{p,q}$:
+		$\mathcal{L} (C, \bar{C}) \otimes T = c_{C, \bar{C}} - h_1(C)Th_2(\bar{C})^T$,
+	\end{proposition} 
+	wobei $c_{C, \bar{C}}:= f_1(C)p \boldsymbol{1}_{N_2}^T + \boldsymbol{1}_{N_1}q^Tf_2(\bar{C})^T$ unabhängig von $T$ ist.
 	
-	
-	Graph-Notationen:\\
-	
-	Verschiedene Konstruktionsmöglichkeiten von Ähnlichkeitsgraphen:
-	
-	\begin{itemize}
-		\item $\varepsilon$-Nachbarschaft-Graph\\
-		\item kNN-Graph\\
-		\item fully connected graph
-	\end{itemize}
+	\begin{proof}
+		todo.
+	\end{proof}
 
-	\subsection{k-means / k-means++ -Clustering}
+	Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
 	
-	Beispiel-Implementierung\footnote{\url{https://towardsdatascience.com/k-means-implementation-in-python-and-spark-856e7eb5fe9b}}\\
-	\\
-	Baryzentrische Koordinaten \footnote{\url{https://de.wikipedia.org/wiki/Baryzentrische_Koordinaten}}
-	\subsection{Anwendung auf unterschiedliche Poisoning-Angriffe} \label{chapter_results} \label{chapter_experiments}
-	\noindent \textbf{Berechnung der Relevanzen}:\\
+	\begin{definition}
+		Für $C, \bar{C}, p, q$, wie oben, definieren wir die entropisch regularisierte Gromov-Wasserstein-Diskrepanz als 
+		\begin{equation}
+			GW_{\varepsilon}(C,\bar{C}, p, q):=\min_{T \in \mathcal{C}_{p, q}} \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T).
+		\end{equation}
+	\end{definition}
 	
-	\noindent Wir berechnen die Relevanzen jedes einzelenen Eingabebildes klassenweise, d.h. besitzt eine Eingabe das Label y, so berechnen auf einem trainierten Netzwerk, für jeden Pixelwert der Eingabe, wie relevant dieser für die Ausgabe f(x) = y ist.\\
-	Wir summieren über die Farbaxen des Bildes, um einzelne Relevanzen pro Pixelpunkt zu erhalten.\\
-	Für die Berechnung der Relevanzen benutzen wir eine modifizierte Version des im Rahmen von \cite{lrp_alzheimer} entstandenen Programmcodes\footnote{\url{https://github.com/moboehle/Pytorch-LRP}}.\\
-	\\
-	\noindent \textbf{Vorverarbeitung der Relevanzen:}\\
-	In \cite{unmaskingCH} wird anschließend ein Sum-Pooling auf die Relevanzen angewendet, um eine Dimensionsreduktion zu erhalten. Wie in \cite{imagenet_unhansed_v1} verzichten wir auf eine weitere Dimensionsreduktion, da wir nur relativ kleine Relevanzen der Größe $32x32$ verarbeiten.	\\
+	Wir erhalten damit ein nicht-konvexes Optimisierungsproblem. Für dessen Lösung benutzen wir ein projiziertes Gradienten-Verfahren, bei dem sowohl die Schrittweite als auch die Projektion bezüglich der KL-Metrik berechnet werden.
 	
-	Für eps=5e-2 liegen beide barycentren identisch weit weg. Probiere nun eps=5e-3
+	Die Iterationen sind gegeben durch
+	\begin{equation}
+		T \leftarrow Proj_{\mathcal{C}_{p,q}}^{KL} \left(T \odot e^{-\tau( \nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T))} \right),
+	\end{equation}
+	wobei die Schrittweite $\tau > 0$ und die KL-Projektion einer beliebigen Matrix $K$ gegeben ist durch:
+	\begin{equation}
+		Proj_{\mathcal{C}_{p,q}}^{KL}(K) := \argmin_{T' \in \mathcal{C}_{p,q}} KL(T'|K).
+	\end{equation}
 	
-	\noindent \textbf{Berechnung der Distanzen und Aufstellen einer Affinitätsmatrix:}\\
+	\begin{proposition}
+		Für den Fall $\tau= 1/\varepsilon$ erhalten wir die Iterationsvorschrift
+		
+		\begin{equation}
+			T \leftarrow \mathcal{T}(\mathcal{L} (C, \bar{C}) \otimes T,p,q). \label{simple_iteration}
+		\end{equation}
+	\end{proposition}
 	
-	Wir berechnen zunächst eine Distannzmatrix, die die paarweisen Distanzen aller Heatmaps einer Klasse enthält.	
+	\begin{proof}
+	\end{proof}
+
+\begin{remark}
+	Die Iterationsvorschrift \ref{simple_iteration} definiert einen einfachen Algorithmus, der in jedem Update von $T$ eine Sinkhorn-Projektion benötigt.
+\end{remark}
+
+\begin{remark}[Konvergenz]
+
+\end{remark}
+		
 	
-	Für die Berechnung der euklidischen Distanz betrachten wir Heatmaps $x,y$ der Größe $32x32$ als Elemente $x,y \in \mathbb{R}^{32*32}$ Die Distanz lässt sich dann wie in \autoref{l2dist} berechnen.\\
+
+\begin{remark}
+	content...
+\end{remark}
+
+\subsubsection{Wasserstein Baryzentren}
+test
+	\subsubsection{Numerische Approximationen}
 	
-	Die Gromov-Wasserstein-Distanz lässt sich wie in \cite{gwd_averaging_kernels} angegeben berechnen. \\
+	\begin{algorithm}
+		\caption{Algorithm caption}
+		\label{alg:algorithm-label}
+		\begin{algorithmic}
+			\IF{some condition is true}
+			\STATE do some processing
+			\ELSIF{some other condition is true}
+			\STATE do some different processing
+			\ELSE
+			\STATE do the default actions
+			\ENDIF
+		\end{algorithmic}
+	\end{algorithm}
 	
-	Barycenters Definition und Vergleich zum euklidischen Raum \cite{bary_wasserstein_space}
-	
-	In einer Affinitätsmatrix oder Ähnlichkeitsmatrik sind die \\
-	
-	\noindent \textbf{Berechnung Spektralen Einbettung:}\\
-	
-	\noindent \textbf{Dimensionsreduktion vor dem Clustering ?!}\\
-	
-	In \cite{AC} wird beispielsweise eine Dimensionsreduktion mit PCA durchgeführt.
-	
-	\noindent \textbf{k-Means-Clustering:}\\
-	\begin{remark}
-		In \cite{imagenet_unhansed_v1} Kapitel '2.3. Fisher Discriminant Analysis for Clever Hans
-		identification' wird ein Verfahren vorgestellt, mit dem verdächtige Klassen indentifiziert werden können. Für diese würde man anschließend das obige Verfahren durchführen
-	\end{remark}
-	\subsubsection{Standard Poisoning-Angriffe}
+	\section{(Numerische) Ergebnisse/Vergleich mit anderen Verfahren} \label{chapter_comparisons}\subsubsection{Standard Poisoning-Angriffe}
 	
 	
 	=> Did save Model - incv320epochsnormalized - at epoch: 19
@@ -819,8 +975,8 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	Performance of poisoned net on unpoisoned training data:
 	loss on test dataset: 0.15269652156995248
 	Accuracy of test Dataset: 0.961 \\
-
-	\mathcal{\varepsilon}_{C,\bar{C}}(T)
+	
+	
 	\noindent \textbf{Performance auf nicht korrumpierten Daten:}\\
 	=>	FINISHED TRAINING
 	loss on test dataset: 0.15834395289583986
@@ -839,10 +995,10 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	\noindent \textbf{Spektralanalyse:}
 	
 	\begin{figure}[h]
-	\begin{center}
-		\includegraphics[width=0.5\textheight]{specClustering_l2_k10.png}
-		\caption{Ergebnis des spektralen Clusterings unter Verwendung der Euklidischen Distanz und k=10 Nachbarn}
-	\end{center}
+		\begin{center}
+			\includegraphics[width=0.5\textheight]{specClustering_l2_k10.png}
+			\caption{Ergebnis des spektralen Clusterings unter Verwendung der Euklidischen Distanz und k=10 Nachbarn}
+		\end{center}
 	\end{figure}
 	
 	\noindent \textbf{Clustering(euklidisch):}
@@ -855,22 +1011,22 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 			\caption{Auswahl der relevantesten Pixel (bis zu $99\%$ der Gesamtmasse) zweier Heatmaps}
 		\end{center}
 	\end{figure}
-
-\begin{figure}[h]
-	\begin{center}
-		\includegraphics[width=0.5\textheight]{HeatmapPunktwolke50.png}
-		\caption{Auswahl der relevantesten Pixel (bis zu $50\%$ der Gesamtmasse) zweier Heatmaps}
-	\end{center}
-\end{figure}
-
+	
+	\begin{figure}[h]
+		\begin{center}
+			\includegraphics[width=0.5\textheight]{HeatmapPunktwolke50.png}
+			\caption{Auswahl der relevantesten Pixel (bis zu $50\%$ der Gesamtmasse) zweier Heatmaps}
+		\end{center}
+	\end{figure}
+	
 	\begin{figure}[h]
 		\begin{center}
 			\includegraphics[width=0.5\textheight]{bary_embedding99.png}
 			\caption{Einbettung des Baryzentrums mithilfe von Multidimensionaler Skalierung(MDS) bei der Wahl von $99\%$ der Gesamtmasse}
 		\end{center}
 	\end{figure}
-
-
+	
+	
 	n=5
 	Berechnung der Distanzen:
 	Clustering:  [1. 0. 1. 0. 1.]
@@ -918,7 +1074,6 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	
 	
 	\subsubsection{Label-konsistente Poisoning-Angriffe}
-	\section{Vergleich mit anderen Verfahren} \label{chapter_comparisons}
 	\subsection{Activation Clustering}
 	\subsection{Räumliche Transformationen}
 	\begin{itemize}
@@ -1115,9 +1270,9 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	\section{Programmcode}
 	
 	
-	\verbatiminput{Netlayout.txt}
+	%\verbatiminput{Netlayout.txt}
 	
-	\verbatiminput{InceptionNet3layout.txt}
+	%\verbatiminput{InceptionNet3layout.txt}
 	
 	
 	\newpage
@@ -1126,7 +1281,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 
 	\newpage
 	
-	\bibliographystyle{apacite}
+	\bibliographystyle{alpha}
 	
 	\bibliography{bibfileMAlukasschulth}
 
