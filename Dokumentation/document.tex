@@ -1,5 +1,5 @@
 %\documentclass{article}
-\documentclass[twoside, 12pt,a4paper]{article}
+\documentclass[twoside, 11pt,a4paper]{article}
 % Damit die Verwendung der deutschen Sprache nicht ganz so umst\"andlich wird,
 % sollte man die folgenden Pakete einbinden: 
 %\usepackage[latin1]{inputenc}% erm\"oglich die direkte Eingabe der Umlaute 
@@ -768,11 +768,33 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		identification' wird ein Verfahren vorgestellt, mit dem verdächtige Klassen indentifiziert werden können. Für diese würde man anschließend das obige Verfahren durchführen
 	\end{remark}
 	\subsection{Verwendete Distanzen \& Approximationen}
-	
 	Um die Struktur innerhalb einer Klasse zu analysieren, benötigen wir eine Metrik.
-	Anhand dieser wird abhängig von den Heatmps einer Klasse eine Affinitätsmatrix berechnet, die dann anschließend zur Berechnung der Spektralen Einbettung als wichtigster Schritt von SpRAy verwendet wird. Wir wollen dazu die im Folgenden vorgestellten Metriken verweden.\\
+	Anhand dieser wird abhängig von den Heatmps einer Klasse eine Affinitätsmatrix berechnet, die dann anschließend zur Berechnung der Spektralen Einbettung als wichtigster Schritt von SpRAy verwendet wird. Wir wollen dazu die im Folgenden vorgestellten Metriken verwenden.\\
 	Wie in \cite{imagenet_unhansed_v1} summieren wir über die Farbkanäle, um einen einzelnen Relevanzwert pro Pixelpunkt zu erhalten. Wir benötigen also eine Metrik zur Berechnung der Distanz zwischen 32x32 großen Heatmaps.\\
 	Wir normalisieren die Relevanzen zusätzlich auf das Intervall $[0,1]$.
+	
+	\subsubsection{Histogramme \& Maße}
+	
+	\begin{definition}[Histogramm]
+		Als Histogramm (oder: Wahrscheinlichkeitsvektor) bezeichnen wir ein Element $\boldsymbol{a} \in \Sigma_n$, das zum folgenden Wahrscheinlichkeits-Simplex gehört:
+		
+		\begin{equation*}
+		\Sigma_n := \lbrace \boldsymbol{a} \in \mathbb{R}_{+}^n | \sum_{i=1}^n{\boldsymbol{a_i} = 1} \rbrace
+		\end{equation*}
+	\end{definition}
+
+Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henze/media/wt-ss15-henze-handout.pdf}}
+	\begin{definition}[Kopplungen zwischen Histogrammen]
+		Seien die beiden Histogramme $p \in \Sigma_{N_1}$ und $q \in \Sigma_{N_2}$ gegeben.
+		Als Menge der Kopplungen zwischen beiden Histogrammen definieren wir
+		
+		\begin{equation*}
+			\mathcal{C}_{p,q} := \lbrace T \in (\mathbb{R}_+)^{N_1 \times N_2} | T \mathbb{1}_{N_2} = p, T^\top \mathbb{1}_{n_1} = q \rbrace,
+		\end{equation*}	
+		
+		wobei $\mathbb{1} := (1,...,1)^\top \in \mathbb{R}^{N}$ gilt.
+\end{definition}
+	
 	
 	\begin{definition}[Distanz]
 		Eine \emph{Distanz}
@@ -833,11 +855,15 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 		Wir definieren den $n$-dimensionalen Zufalls-Simplex als $\Sigma_n := \lbrace a \in \mathbb{R}_+^n: \sum_{i=1}^{n}{a_1} = 1$. Ein Element $a \in \Sigma_n$ bezeichnen wir als Histogramm oder Zufallsvektor.
 		
 	\end{definition}
+
+	\begin{definition}[Diskretes Maß]
+		
+	\end{definition}
 	\subsubsection{Optimaler Transport (Monge Formulierung)}
 	\begin{remark}
 		test
 	\end{remark}
-	\subsubsection{Kantorovichs Optimaler Transport Problem}
+	\subsubsection{Optimaler Transport nach Kantorovich}
 	Das Optimal Transport Problem nach Kantorovich gehört zu den typischen Optimal Transport Problemen. Es stellt einer Relaxierung der Formulierung von Gaspard Monge[1781], bei der nun auch das Aufteilen von Masse (mass splitting) zulässig ist.
 	In Kantorovichs Formulierung ist eine Kopplung (oder: Transportabblidung) $\boldsymbol{T}$ gesucht, die die Kosten, die bei der Verschiebung eines diskreten Maßes $\boldsymbol{a}$ auf ein anderes diskretes Maß $\boldsymbol{b}$ bezüglich der Kosten $\boldsymbol{M} \in \mathbb{R}^{n_1 \times n_2}$ entstehen, minimiert.
 	Damit $\boldsymbol{T}$ eine Transportabbildung ist, muss $\boldsymbol{T} \in \Gamma(a,b) = \lbrace \boldsymbol{T} \geq \boldsymbol{0}, \boldsymbol{T}\boldsymbol{1}_{n_2} = a, \boldsymbol{T}^{T}\boldsymbol{1}_{n_1} = \boldsymbol{b} \rbrace$ gelten.
@@ -854,27 +880,60 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	or squared L2. For the entropic regularized OT problem, one may use the Sinkhorn Knopp
 	algorithm (or variants), or stochastic optimization algorithms. POT has a simple syntax to
 	solve these problems (see Sample 1)
-	\subsubsection{Gromov-Wasserstein-Divergenz}
 	
+	Die Menge der Matrizen $\Pi(\boldsymbol{a}, \boldsymbol{b})$ ist beschränkt und durch $n+m$ Gleichungen gegeben und damit ein konvexes Polytop (die konvexe Hülle einer endlichen Menge von Matrizen). Zudem ist die Formulierung von Kantorovich im Unterschied zu Monges Formulierung immer symmetrisch in dem Sinne, dass $\boldsymbol{P} \in \Pi (\boldsymbol{a}, \boldsymbol{b})$ genau dann gilt, wenn $\boldsymbol{P}^\top \in \Pi (\boldsymbol{b}, \boldsymbol{a})$.
+	
+	Kantorovichs Optimal Transport Problem lässt sich nun schreiben als 
+	\begin{equation}
+		L_C(\boldsymbol{a}, \boldsymbol{b}) := \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{C}, \boldsymbol{P} \rangle := \sum_{i,j}{\boldsymbol{C}_{i,j}\boldsymbol{P}_{i,j}}
+	\end{equation}
+	
+	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig.
+	
+	EXISTENZ \& Eindeutigkeit => vgl. Kapitel 3 in \cite{computationalOT}
+	
+	
+	\\ \noindent \textbf{Entropisch regularisierter Optimal Transport.} 
+	
+	\subsubsection{Duale Formulierung}
+	Kurzer Überblick hier\footnote{\url{https://arxiv.org/pdf/1609.04767.pdf}}
+	\subsubsection{Gromov-Wasserstein-Divergenz}
+	Fast Computation of Wasserstein Barycenters\footnote{https://arxiv.org/pdf/1310.4375.pdf}
 	\begin{definition}[Divergenz]
 		Sei $S$ der Raum aller Wahrscheinlichkeitsverteilungen mit gemeinsamem Support. Dann bezeichnet die Divergenz auf $S$ eine Funktion $D(\cdot || \cdot):S \times S \to \mathbb{R}$, für die gilt:
 		\begin{enumerate}
 			\item $D(p || q) \geq 0$ f.a. $p,q \in S$\\
 			\item $D(p || q) = 0$ gdw. $p = q$.
 		\end{enumerate}
-		\end{definition}
+	\end{definition}
+
 	\begin{definition}[Entropie]
 		Für $T \in \mathbb{R}_{+}^{N \times N}$ definieren wir die Entropie als
 		\begin{equation}
 			H(T) := - \sum_{i,j=1}^N{T_{i,j}(log(T_{i,j})-1)}.
 		\end{equation}
 	\end{definition}
+
+	
+
+
 	\begin{definition}[Tensor-Matrix-Multiplikation]
 		Für einen Tensor $\mathcal{L} = (\mathcal{L}_{i,j,k,l})_{i,j,k,l}$ und eine Matrix $(T_{{i,j}_{i,j}})$ definieren wir die Tensor-Matrix-Multiplikation als
 		\begin{equation}
 		\mathcal{L} \otimes T := (\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}})_{i,j}.
 		\end{equation}
 	\end{definition}
+	
+	\subsubsection{Regularisierungen}
+	
+	
+	Numerical Methods: Cuturi’s Entropy Regularised Approach. Arguably the biggest de-
+	velopment (at least in recent years) in the computation of optimal transport distances was
+	due to Cuturi’s entropy regularised approach. The idea is to use entropy to regularise the
+	distance, then some simple rearrangements reveal this is a Kullback-Liebler divergence.
+	Standard methods, e.g. Sinkhorns algorithm, can then be used to find minimizers of the
+	entropy regularised distance.\footnote{\url{https://www.damtp.cam.ac.uk/research/cia/files/teaching/Optimal_Transport_Syllabus.pdf}}
+	
 	\subsubsection{Entropisch Regularisierte Gromov-Wasserstein-Distanz}
 	Entropic Regularization of Optimal Transport \cite{computationalOT}
 	Mehrere Möglichkeiten einer Regularisierung der GW-Distanz\footnote{\url{https://www.youtube.com/watch?v=cPVMHWF8fmE&t=2532s}}:
@@ -928,7 +987,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	\begin{proposition}
 		Die Verlustfunkton $L$ lasse sich schreiben als 
 		\begin{equation}
-			L(a,b) = f_1(a) + f_2(b) - h_1(a)h_2(b)
+			L(a,b) = f_1(a) + f_2(b) - h_1(a)h_2(b) \label{eq:L_darstellung}
 		\end{equation}
 		für $f_1, f_2,h_1, h_2:\mathbb{R} \to \mathbb{R}$.
 		
@@ -986,11 +1045,18 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	content...
 \end{remark}
 
+\begin{remark}[Wahl von $\varepsilon$]
+	 In \cite{cuturi2013sinkhorn} werden verschiedene Werte für $\varepsilon$ angegeben. Diese sind $\varepsilon = 0.02, 0.1, 1.0$
+	 
+	 Im zugehörigen Beispiel\footnote{\url{https://pythonot.github.io/auto_examples/gromov/plot_gromov.html}} von POT wird $\varepsilon = 0.0005$ verwendet. \\
+	 Für $\varepsilon$ klein werden die Ergebnisse besser während der Rechenaufwand steigt.\\
+	 welche Resultate existieren bezüglich der Approximationsgüte abhängig von $\varepsilon$?
+\end{remark}
 \subsubsection{Wasserstein Baryzentren}
 In diesem Kapitel wollen wir uns mit dem "Mittelwert" befassen, der elementar für das kmeans-Clustering ist.
 Auch hier soll der Mittelwert auf die abstrakte Ebene von gewichteten Distanzmatrizen angehoben werden.
 Dazu definieren wir im Folgenden sogenannte Wasserstein-Baryzentren und folgen \cite{gwd_averaging_kernels} für die Lösung des entstehenden Optimierungsproblems.
-
+Gute Einführung\footnote{\url{https://hal.archives-ouvertes.fr/hal-00637399/document}}
 \begin{definition}[Gromov-Wasserstein Baryzentrum]
 	Seien die gewichteten Distanzmatrizen $C_s)_{s=1}^S$, mit $C_s \in \mathbb{R}^{N_s \times N_s}$ und den zugehörigen Histogrammen $(p_s)_s$ gegeben.
 	
@@ -1001,7 +1067,7 @@ Dazu definieren wir im Folgenden sogenannte Wasserstein-Baryzentren und folgen \
 	\end{equation}
 \end{definition}
 
-\begin{remark}[Darstellung des Baryzentrums]
+\begin{remark}[Darstellung des Baryzentrums]20
 	Um das berechnete Bary-Zentrum $C$ wieder zu visualisieren, kann $C$ als Distanzmatrix wieder in den zweidimensionalen Raum eingebettet werden. Dies kann beispielsweise durch Multi-dimensionale Skalierung erreicht werden\footnote{\url{https://pythonot.github.io/auto_examples/gromov/plot_gromov_barycenter.html}}.  
 	
 \end{remark}
@@ -1021,8 +1087,51 @@ Für den Fall, dass $L$ bezüglich der ersten Variable konvex ist, ist dieses Pr
 
 Das Problem \autoref{eq:bary_prob_reformulated} kann durch eine Block-Koordinaten-Relaxierung gelöst werden. Dabei wird iterativ abwechselnd bezüglich den Kopplungen $(T_s)_s$ und der Metrik $C$ miminiert.\\
 
-\textbf{Minimierung bezüglich $(T_s)_s$.}
+\noindent \textbf{Minimierung bezüglich $(T_s)_s$.}
+
+
+\noindent \textbf{Minimierung bezüglich $C$.} Sei $(T_s)$ gegeben. Dann lautet, die Minimierung bezüglich $C$:
+
+\begin{equation}
+	\min_C \sum_s{\lambda_s \langle \mathcal{L}(C,C_s) \otimes T,T \rangle}. \label{eq:minimierung_C}
+\end{equation}
+Mit der folgenden Proposition erhalten wir für eine Klasse von Verlustfunktionen eine Lösung in geschlossener Form.
+
+
+\begin{proposition}
+	Sei $L$ eine Verlustfunktion, die die Bedingung \autoref{eq:L_darstellung} erfüllt. Sei $f_1'/h_1'$ invertierbar. \\
+	Dann lässt sich die Lösung zu \autoref{eq:minimierung_C} schreiben als:
+	
+	\begin{equation}
+		C = \left(\frac{f_1'}{h_1'}\right)^{-1} \left(\frac{\sum_s{\lambda_s T_s^\top h_2(C_s)T_s}}{pp^\top}\right),
+		\label{eq:sol_bary}
+	\end{equation}
+	wobei die Normalisierung $\lambda_s = 1$ gilt.
+\end{proposition}
+\begin{proof}
+	Inhalt...
+\end{proof}
+Anhand von \autoref{eq:sol_bary} wird die folgende Interpretation deutlich/möglich: Für jedes $s \in S$ ist $T_s^\top h_2(C_s)T_s$ eine wiedereingeordnete Matrix, wobei $T_s$ als Optimal Transport-Kopplung von Zeilen und Spalten der Distanzmatrix $C_s$ fungiert. Über diese Matrizen wird anschließend gemittelt, wobei die Art der Mittelung von der Verlustfunktion $L$ abhängig ist.
+
+Für den Fall $L=L_2$ wird aus dem Update \autoref{eq:sol_bary} die folgende Vorschrift:
+
+\begin{equation}
+	C \leftarrow \frac{1}{pp^\top}\sum_s{\lambda_s T_s^\top C_s T_s}.
+\end{equation}
+
+\begin{proposition}
+	Sei $L=L_2$ und $(C_s)_s$ positiv semi-definit f.a. $s \in S$. Dann sind die Iterierten C ebenfalls positiv semi-definit. 
+\end{proposition}
+
+Für den Fall $L = KL$ ergibt sich die folgende Verfahrensvorschrift:
+
+\begin{equation}
+	C \leftarrow \left(\frac{1}{pp^\top}\sum_s{\lambda_s T_s^\top log(C_s)T_s}\right).
+\end{equation}
 \begin{algorithm}
+	\hspace*{\algorithmicindent} \textbf{Input: } $(C_s,p_s), p.$ Initialisiere $C$. 
+	
+	\hspace*{\algorithmicindent} \textbf{Output: } $C$. 
 	\caption{Berechnung der $GW\_{\varepsilon}$ Baryzentren}
 	\label{alg:GWB_computation}
 	\begin{algorithmic}
@@ -1036,6 +1145,8 @@ Das Problem \autoref{eq:bary_prob_reformulated} kann durch eine Block-Koordinate
 		\ENDIF
 	\end{algorithmic}
 \end{algorithm}
+
+\noindent \textbf{Psuedocode.}
 
 Häufige Verwendungungen(s. Einführung hier \footnote{\url{https://arxiv.org/pdf/2102.01752.pdf}}). zB. Shape interpolation
 
@@ -1093,7 +1204,6 @@ Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums e
 	%: Warum gibts bei den beiden oberen Auswertungen %einen Unterschied?
 	
 	\noindent \textbf{Spektralanalyse:}
-	
 	\begin{figure}[h]
 		\begin{center}
 			\includegraphics[width=0.5\textheight]{specClustering_l2_k10.png}
@@ -1127,53 +1237,89 @@ Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums e
 	\end{figure}
 	
 	
-	n=5
-	Berechnung der Distanzen:
-	Clustering:  [1. 0. 1. 0. 1.]
-	--- 379.38680505752563 seconds ---
 	
-	Berechnung von 2 Baryzentren
-	--- 725.2780563831329 seconds ---
 	
-	n=25
-	Berechnung der Distanzen:
-	Clustering:  [1. 0. 1. 0. 1. 0. 1. 0. 0. 1. 1. 0. 0. 0. 1. 0. 0. 0. 1. 0. 0. 1. 0. 1.
-	1.]
-	--- 1860.5442748069763 seconds ---
-	
-	Berechnung von zwei Baryzentren
-	--- 2443.7355489730835 seconds ---
-	
-	n=50
-	Berechnung der Distanzen:
-	--- 1956.3804433345795 seconds ---
-	
-	Berechnung von zwei Barycentern:
-	--- 5670.336745262146 seconds ---
-	
-	15 Prozenmt 3x3 Sticker
-	=> Did save Model - SAincV3s315 - at epoch: 50
-	=>	[50] loss: 0.060, accuracy: 98.405%
-	EarlyStopping counter: 20 out of 20
-	Early stopping
-	=>	FINISHED TRAINING
-	loss on test dataset: 3.736420426017416
-	Accuracy of test Dataset: 0.911 
-	
-	BDSR classwise:
-	[nan nan  1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
-	nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
-	nan nan nan nan nan nan nan]
-	Performance of poisoned net on unpoisoned training data:
-	loss on test dataset: 0.1822473893020984
-	Accuracy on test Dataset: 0.961 
-	
-	\begin{center}
+	\begin{table}[ht]
 		
-	\end{center}
 	
-	
+		\begin{center}
+			\begin{tabular}{|l|c|c|c|c|}
+				\hline
+				Seitenlänge des Triggers& Prozentualer Anteil & AER & GUD & num. korrumpierte Daten \\ \hline
+				s=2 & 0.000625 & 0.01333333  & 0.962  & 1 \\
+				& 0.00125 & 0.356  & 0.964  & 2 \\
+				& 0.0025 & 0.576 & 0.97 & 4 \\
+				& 0.005 & 0.99867 & 0.962 & 8 \\
+				& 0.01 & 0.92 & 0.962 & 17 \\
+				& 0.02 & 1.0 & 0.964 & 34\\ 
+				& 0.10 & 1.0 & 0.968 & 291\\ 
+				& 0.33 & 1.0 & 0.968 & 813 \\ \hline
+				s=3 & ? & ? & ? &? \\ 
+				& 0.15 & 1.0 & 0.961& \\ \hline
+				s=1 & 0.33 & 1.0 & 0.966 & 813 \\ \hline
+			\end{tabular}
+			\caption{Qualität der Angriffe auf das Inception v3-Netz mit Stickern Seitenlänge 2 und 3 Pixel bei unterschiedlich großen Anteilen an korrumpierten Daten}
+			\label{tab:SPA_incv3}	
+		\end{center}
+	\end{table}
 	\subsubsection{Label-konsistente Poisoning-Angriffe}
+	\begin{table}[h]
+		\begin{center}
+			\begin{tabular}{| c c c c | c c c |}
+				\hline
+				\textbf{L2-Fehler} & & & & \textbf{H1-Fehler} & & \\
+				\hline 
+				& Gitter & P=1 & P=2 & Gitter & P=1 & P=2  \\
+				
+				\hline
+				
+				T=2.0 	&$8 \times 8 $ & 2.2e-15 & 1.6e-14 & $8 \times 8 $ & 3.7e-14 & 1.7e-13 \\
+				&$16\times 16$ & 1.4e-14 & 2.5e-13 & $16\times 16$ & 1.0e-13 & 1.2e-12 \\
+				&$32\times 32$ & 6.1e-15 & 1.1e-14 & $32\times 32$ & 1.6e-14 & 6.0e-13 \\
+				\hline
+			\end{tabular}
+			\caption{Fehler für Testproblem 1 zum Endzeitpunkt $T=2.0$.}
+			\label{errors_testproblem1}
+		\end{center}
+	\end{table}
+	\begin{table}[h]
+		
+		
+		\begin{center}
+			\begin{tabular}{| c | c c c | c c c |}
+				\hline
+				& \textbf{L2-Norm} & & & \textbf{H1-Norm} & & \\
+				\hline 
+				T = 2.0 & Gitter & P=1 & P=2 & Gitter & P=1 & P=2  \\
+				
+				\hline
+				
+				$dt = \frac{T}{25}$ &$8 \times 8 $ & 15.7645 & 16.2653 & $8 \times 8 $ & 24.1041 & 24.2838 \\
+				& $16\times 16$ & 16.1405 & 16.2668 & $16\times 16$ & 24.5373 & 24.6831 \\
+				& $32\times 32$ & 16.2353 & 16.2669 & $32\times 32$ & 24.6467 & 24.6833 \\
+				\hline
+				
+				$dt = \frac{T}{50}$  & $8 \times 8 $ & 15.8507 & 16.3562 & $8 \times 8 $ & 24.2326 & 24.8138 \\
+				& $16\times 16$ & 16.2303 & 16.3577 & $16\times 16$ & 24.6699 & 24.8171 \\
+				& $32\times 32$ & 16.3259 & 16.3578 & $32\times 32$ & 24.7806 & 24.8173 \\
+				\hline
+				
+				$dt = \frac{T}{100}$  &$8 \times 8 $ & 15.8939 & 16.4019 & $8 \times 8 $ & 24.2972 & 24.8811 \\
+				& $16\times 16$ & 16.2753 & 16.4035 & $16\times 16$ & 24.7365 & 24.8843 \\
+				& $32\times 32$ & 16.3714 & 16.4036 & $32\times 32$ & 24.8475 & 24.8846 \\
+				\hline
+				
+				KO $\alpha$ (im Ort) & & 1.3787 & 2.7828 & & 1.3760 & 2.5901 \\
+				($dt = \frac{T}{100}$) & & & & & & \\
+				\hline 
+			\end{tabular}
+			
+			\caption{Konvergenz im Ort für das Testproblem 4, $T=2.0$ }
+			\label{errors_testproblem4}
+		\end{center}
+	\end{table}
+	
+	------------------------------------
 	\subsection{Activation Clustering}
 	\subsection{Räumliche Transformationen}
 	\begin{itemize}
@@ -1185,6 +1331,7 @@ Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums e
 	
 	\section{Weitere mögliche Schritte} \label{chapter_weitereSchritte}
 	\begin{itemize}
+		\item Untersuchung der Detektionsqualität in Abhängigkeit von $\varepsilon$
 		\item Automatische Platzierung des Auslösers an fest gewählter Position auf dem Verkehrsschild anstatt zufälligem Platzieren in einem Fenster mit vorher festgelegter Größe. In \cite{badnets} wird  Faster-RCNN (F-RCNN) zur Klassifikation des LISA-Datensatzes\footnote{\url{http://cvrr.ucsd.edu/LISA/lisa-traffic-sign-dataset.html}} benutzt. Es ist die Aufgabe, die Verkehrsschilder in die 3 Superklassen Stoppschild, Geschwindigkeitsbegrenzung und Warnschild einzuteilen. Der Datensatz enthält zudem die BoundingBoxen, sodass der Auslöser genauer angebracht werden kann.
 		\item Verbesserte Version der Layer-wise Relevance Propagation
 		\item Untersuchung anderer Verfahren, die die Interpretierbarkeit ermöglichen, beispielsweise: VisualBackProp: efficient visualization of CNNs\footnote{\url{https://arxiv.org/abs/1611.05418}}
@@ -1193,6 +1340,7 @@ Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums e
 
 
 	\section{Zusammenfassung} \label{chapter_conclusion}
+	Beobachtung: Je größer die Netzwerke sind, desto leichter lassen sich Poisoning-Angriffe realisieren.
 	
 	\printglossaries
 	\newpage
@@ -1366,16 +1514,19 @@ Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums e
 	\end{lstlisting}
 	\section{Parameter für Training und Einlesen der Daten}
 	Die in \cite{CH} gewählten Parameter wären ein guter Ausgangspunkt.
+	Wir trainieren die Netzwerke über maximal 100 Epochen und benutzen \textit{early stopping} mit einer $patience=20$. Die verwendete Implementierung ist eine modifizierte Version von Bjarte Mehus Sunde \footnote{\url{https://github.com/Bjarten/early-stopping-pytorch}}, die wiederum auf PyTorch Ignite\footnote{\url{https://github.com/pytorch/ignite/blob/master/ignite/handlers/early\_stopping.pyt}} basiert.
 	\section{Datensätze}
 	GTSRB\footnote{\url{https://benchmark.ini.rub.de/gtsrb_dataset.html}}
+	Datensatz Splitting (Train; Val, test)
 	\section{Programmcode}
 	
 	
 	%\verbatiminput{Netlayout.txt}
 	
 	%\verbatiminput{InceptionNet3layout.txt}
-	
-	
+	\section{Notizen}
+	registered spaces \footnote{\url{https://arxiv.org/pdf/1809.06422.pdf}}
+	Barycenters in the Wasserstein Space\footnote{\url{https://arxiv.org/pdf/1809.06422.pdf}}
 	\newpage
 	
 	\printglossaries

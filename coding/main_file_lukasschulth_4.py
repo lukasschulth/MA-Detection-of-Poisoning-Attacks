@@ -33,21 +33,22 @@ if __name__ == '__main__':
     random.seed(seed) #seed=0 => idx1=24
     parallel_computation = False
     threshold = 0.99
-    num_samples_to_check = 30  #number of samples per class to check for poisoning attack
+    num_samples_to_check = 0  #number of samples per class to check for poisoning attack. if ==0 => take all samples
     max_iter = 5  # number of maximum iterations in kmeans algorithm
-    n_samples = 10  # number of points in barycenter: if n_samples > 10 => n_samples = min_shape of Distance matrices
+    n_samples = 10  # number of points in barycenter:
     de = 18 # Paramter um das Auswahlfenster der Länge num_samples_to_check zu verschieben
-    eps_init = 0.02 #5e-4'MyFile5.txt'
-    eps_update = 0.02 #5e-4
+    eps_init = 5e-4 #5e-4'MyFile5.txt'
+    eps_update = 5e-4
 
     class_to_check = 5
     verbose = False
 
     # Ein- und Ausgabe
-    model_names = ['SA_incV3_s3_pp33']#['SPA_incV3_s2_pp001']#
+    model_names = ['SPA_incV3_s2_pp033','SPA_incV3_s2_pp015','SPA_incV3_s2_pp002','SPA_incV3_s2_pp001','SPA_incV3_s2_pp0005','SPA_incV3_s2_pp00025']#['SPA_incV3_s2_pp001']#
     model_names = [s + 'e-rule' for s in model_names]
 
     for model_name in model_names:
+        print(model_name)
         file_name = 'clustering_' + model_name + '.txt'
 
         # Erstelle Ordner für die Ausgaben
@@ -102,7 +103,7 @@ if __name__ == '__main__':
             heatmaps = heatmaps[de: de + num_samples_to_check]
             poison_labels = poison_labels[de: de + num_samples_to_check]
 
-        print('poisonLabels: ', poison_labels)
+        #print('poisonLabels: ', poison_labels)
         print('Anzahl an korrumpierten Datenpunkten in der Teilmenge: ', np.asarray(poison_labels).sum())
         #Plot heatmap
         #for i in range(20):
@@ -158,7 +159,7 @@ if __name__ == '__main__':
         #print(seq)
 
         idx_1 = random.sample(seq, k=1)[0]
-        print('idx1: ', idx_1)
+        #print('idx1: ', idx_1)
 
         # Compute distances of every other sample to the chosen first center
         #measured_distances = np.asarray([heatmap_to_distance_matrix(im) for im in heatmap_array])
@@ -180,10 +181,9 @@ if __name__ == '__main__':
         CC = np.asarray(CC)
         pp = np.asarray(pp)
 
-        if n_samples > 10:
-            n_samples = min_dim
-        print('max_dim: ', max_dim)
-        print('min_dim:', min_dim)
+
+        #print('max_dim: ', max_dim)
+        #print('min_dim:', min_dim)
 
         def my_function_star(args):
             return compute_GWD_to_index(*args)
@@ -218,7 +218,7 @@ if __name__ == '__main__':
         else:
             distances = []
             for i in range(0, n):
-                print('i: ', i)
+                #print('i: ', i)
 
                 gw, log = ot.gromov.entropic_gromov_wasserstein2(
                         CC[idx_1], CC[i],
@@ -243,7 +243,7 @@ if __name__ == '__main__':
         p /= p.sum()
         #print(p)
         idx_2 = choice(seq, size=1, p=p)[0]
-        print('idx_2: ', idx_2)
+        #print('idx_2: ', idx_2)
 
         clustering = np.empty(shape=(n,))
         clustering[:] = np.nan
@@ -286,7 +286,7 @@ if __name__ == '__main__':
                 if (iter_kmeans == 0) and (i == idx_1 or i == idx_2):
                     # Im ersten Iterationsschritt muss für die gewählten Baryzentren nicht der Abstand zu sich selbst berechnet werden
                     continue
-                print('i: ', i)
+                #print('i: ', i)
 
                 for j in range(num_cluster_kmeans):
 
@@ -306,8 +306,8 @@ if __name__ == '__main__':
                 #print('Distances to centers: ', distances_to_cluster_centers)
 
 
-                print(distances_to_cluster_centers[i])
-                print('argmin: ', distances_to_cluster_centers[i].argmin())
+                #print(distances_to_cluster_centers[i])
+                #print('argmin: ', distances_to_cluster_centers[i].argmin())
                 # --- Cluster Update ---------------------------------------------------------------------------------------
                 #Choose minimum distance and set cluster label accordingly:
                 clustering[i] = distances_to_cluster_centers[i].argmin()
@@ -328,8 +328,8 @@ if __name__ == '__main__':
 
             file_clustering.write('iter: ' + str(iter_kmeans))
             file_clustering.write('\n')
-            file_clustering.write(str(clustering))
-            file_clustering.write('\n')
+            #file_clustering.write(str(clustering))
+            #file_clustering.write('\n')
             file_clustering.close()
 
             # Evaluation inside each iteration: ----------------------------------------------------------------------------
@@ -339,17 +339,17 @@ if __name__ == '__main__':
             if labels_pred.sum() > labels_pred.shape[0]/2:
                 labels_pred = 1 - labels_pred
             a, b, c, d = confusion_matrix(poison_labels, labels_pred).ravel()
-            print('(tn, fp, fn, tp): ', a, b, c, d)
+            #print('(tn, fp, fn, tp): ', a, b, c, d)
 
             file_clustering = open(file_name,"a")
             file_clustering.write('(tn, fp, fn, tp): ' + str(a) + ',' + str(b) + ',' + str(c) + ',' + str(d))
             file_clustering.write('\n')
             file_clustering.close()
             # Abbruchkriterium ---------------------------------------------------------------------------------------------
-            if iter_kmeans > 0:
-                print('Old Clustering', clustering_old)
+            #if iter_kmeans > 0:
+            #    print('Old Clustering', clustering_old)
 
-            print('Clustering: ', clustering)
+            #print('Clustering: ', clustering)
 
             if iter_kmeans > 0:
                 #Check if clustering has changed in the last iteration:
