@@ -33,12 +33,12 @@ if __name__ == '__main__':
     random.seed(seed) #seed=0 => idx1=24
     parallel_computation = False
     threshold = 0.99
-    num_samples_to_check = 50  #number of samples per class to check for poisoning attack
+    num_samples_to_check = 12  #number of samples per class to check for poisoning attack
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter: if n_samples > 10 => n_samples = min_shape of Distance matrices
 
     evaluation = False
-    eps_init = 0.02 #5e-4
+    eps_init = 0.02 #5e-4'MyFile5.txt'
     eps_update = 0.02 #5e-4
     verbose = False
     method_init = 'sinkhorn'
@@ -46,6 +46,14 @@ if __name__ == '__main__':
     class_to_check = 5
 
     model_name = 'SA_incV3_s3_pp33e-rule'
+    file_name = 'clustering_' + model_name + '.txt'
+
+    path = os.getcwd()
+    path_new = path + "/Clustering_Outputs/"
+    if not os.path.exists(path_new):
+        os.makedirs(path_new)
+    file_name = path_new + file_name
+
     # Open images of suspicious class
 
     path = './LRP_Outputs/' + str(model_name) + '/relevances/' + str(class_to_check).zfill(5) + '/'
@@ -57,19 +65,20 @@ if __name__ == '__main__':
     heatmaps = []
     poison_labels = []
 
-    file_clustering2 = open('MyFile5.txt', 'a')
+    file_clustering2 = open(file_name, 'a')
     file_clustering2.write('iter: ' + str(max_iter))
     file_clustering2.write('\n')
     file_clustering2.write('Hallo TEst')
     file_clustering2.write('\n')
     file_clustering2.close()
 
-    file_clustering2 = open('MyFile5.txt', 'a')
+    file_clustering2 = open(file_name, 'a')
     file_clustering2.write('iter: ' + str(max_iter))
     file_clustering2.write('\n')
     file_clustering2.write('Hallo TEst')
     file_clustering2.write('\n')
     file_clustering2.close()
+
 
     for root, dirs, files in os.walk(path):
 
@@ -302,7 +311,7 @@ if __name__ == '__main__':
     cc = {0: {'dist_m': CC[idx_1], 'weights': pp[idx_1]},
           1: {'dist_m': CC[idx_2], 'weights': pp[idx_2]}}
     # ------------------------------------------------------------------------------------------------------------------
-    file_clustering = open("clustering_entwicklung.txt","w+")
+    file_clustering = open(file_name,"w+")
     file_clustering.write('eps_init: ' + str(eps_init))
     file_clustering.write('\n')
     file_clustering.write('eps_update: ' + str(eps_update))
@@ -363,7 +372,7 @@ if __name__ == '__main__':
         #  Die einzelnen Punkte sind den Clustern neu zugeordnet
 
         if iter_kmeans > 0:
-            file_clustering = open("clustering_entwicklung.txt", "a")
+            file_clustering = open(file_name, "a")
 
         file_clustering.write('iter: ' + str(iter_kmeans))
         file_clustering.write('\n')
@@ -380,7 +389,7 @@ if __name__ == '__main__':
         a, b, c, d = confusion_matrix(poison_labels, labels_pred).ravel()
         print('(tn, fp, fn, tp): ', a, b, c, d)
 
-        file_clustering = open("clustering_entwicklung.txt","a")
+        file_clustering = open(file_name,"a")
         file_clustering.write('(tn, fp, fn, tp): ' + str(a) + ',' + str(b) + ',' + str(c) + ',' + str(d))
         file_clustering.write('\n')
         file_clustering.close()
