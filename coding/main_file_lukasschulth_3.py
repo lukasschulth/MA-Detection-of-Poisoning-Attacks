@@ -44,7 +44,7 @@ import platform; print(platform.platform())
 import sys; print("Python", sys.version)
 import numpy as np; print("NumPy", np.__version__)
 import scipy; print("SciPy", scipy.__version__)
-import ot.gpu; print("POT", ot.__version__)
+import ot; print("POT", ot.__version__)
 print("Is Cuda available: {}".format(torch.cuda.is_available()))
 
 
@@ -354,7 +354,7 @@ if __name__ == '__main__':
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLA_inc_v3e-rule/relevances/00005/'
     #path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
     #path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SA_incV3_s2_pp05v2e-rule/relevances/00005/'
-    path = '/home/bsi/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/SPA_incV3_pp005e-rule/relevances/00005/'
+    path = '/home/lukasschulth/Documents/MA-Detection-of-Poisoning-Attacks/coding/LRP_Outputs/CLPA_incV3_pp015_stickere-rule/relevances/00005/'
     print(path)
     relevances = []
     heatmaps = []
@@ -406,7 +406,7 @@ if __name__ == '__main__':
     #    plt.show()
 
     # Evaluation
-    if False:
+    if True:
         with open('clustering_test_iter0.npy', 'rb') as f:
 
             labels_pred = np.load(f)
@@ -715,8 +715,8 @@ if __name__ == '__main__':
         """
     else:
         distances = []
-        for i in tqdm(range(0, n)):
-            #print('i: ', i)
+        for i in range(0, n):
+            print('i: ', i)
 
             gw, log = ot.gromov.entropic_gromov_wasserstein2(
                     CC[idx_1], CC[i],

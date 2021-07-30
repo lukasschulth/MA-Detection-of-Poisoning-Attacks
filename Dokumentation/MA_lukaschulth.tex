@@ -726,7 +726,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	Definiere die verallgemeinerte Gromov-Wasserstein-Distanz (vGWD) wie folgt:
 	
 	\begin{definition}[Verallgemeinerte Gromov-Wasserstein-Distanz]
-		Seien zwei gewichtete Ähnlichkeitsmatrizen $(C,p) \in \mathbb{R}^{N_1 \times \N_1} \times \Sigma_{N_1}$ und $(\bar{C},q) \in \mathbb{R}^{N_2 \times \N_2} \times \Sigma_{N_2}$ gegeben. Sei $T$ eine Kopplung zwischen den beiden Räumen, auf denen die Matrizen $C$ und $\bar{C}$ definiert sind. Sei $L$ eine Fehlerfunktion. Dann definieren wir die verallgemeinerte Gromov-Wasserstein-Distanz als
+		Seien zwei gewichtete Ähnlichkeitsmatrizen $(C,p) \in \mathbb{R}^{N_1 \times N_1} \times \Sigma_{N_1}$ und $(\bar{C},q) \in \mathbb{R}^{N_2 \times N_2} \times \Sigma_{N_2}$ gegeben. Sei $T$ eine Kopplung zwischen den beiden Räumen, auf denen die Matrizen $C$ und $\bar{C}$ definiert sind. Sei $L$ eine Fehlerfunktion. Dann definieren wir die verallgemeinerte Gromov-Wasserstein-Distanz als
 		\begin{equation}
 			vGw(C, \bar{C}, p, q) := \min_{T \in \mathcal{C}_{p, q}}{\mathcal{\varepsilon}_{C,\bar{C}}(T)},
 		\end{equation}
@@ -820,7 +820,7 @@ In \cite{LRP_first_paper} wird die Layer-wise Relevance Propagation erstmalig vo
 	loss on test dataset: 0.15269652156995248
 	Accuracy of test Dataset: 0.961 \\
 
-	\mathcal{\varepsilon}_{C,\bar{C}}(T)
+	
 	\noindent \textbf{Performance auf nicht korrumpierten Daten:}\\
 	=>	FINISHED TRAINING
 	loss on test dataset: 0.15834395289583986
