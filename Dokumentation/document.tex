@@ -12,6 +12,9 @@
 	\addtocounter{figure}{-1}
 	\captionlistentry{source: #1}
 }
+
+\usepackage{mathtools}
+
 % --- Algorithmen ---------------------------
 % TODO: Richtiges Paket wählen, \listofalgorithms klappt nur mit algorithm, nicht mit algorithmicx
 \usepackage{algorithm} 
@@ -861,8 +864,30 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 	\end{definition}
 	\subsubsection{Optimaler Transport (Monge Formulierung)}
 	\begin{remark}
-		test
+		Problem zwischen diskreten Maßen
+		
+		\begin{equation}
+			\min_T \lbrace \sum_i {c(x_i, T(x_i))} : T_\#\alpha = \beta \rbrace
+		\end{equation}
 	\end{remark}
+	\begin{remark}[Fehlende Eindeutigkeit]
+		
+	\end{remark}
+
+	\begin{definition}[Push-forward Operator]
+		$\beta (B) = \alpha (\lbrace x \in \mathcal{X}: T(x) \in B \rbrace) = \alpha(T^{-1}(B))$ \label{eq_pushforward}
+		
+	\end{definition}
+	Wir könne das Monge Problem wie folgt auf den Fall zweier beliebiger W-Maße $(\alpha, \beta )$ erweitern.
+	
+	\begin{definition}[Monge Problem zwischen beliebigen Maßen]
+	Seien $\alpha$ und $ \beta$ zwei W-Maße mit Support auf den Räumen $\mathcal{X}$ bzw. $\mathcal{Y}$, die durch $T:\mathcal{X} \to 	\mathcal{Y}$ verknüpft(? Fomulierung) sind.
+	Dann ist das Monge Problem gegeben durch
+	\begin{equation}
+		\min_T \lbrace \int_\mathcal{X}{c(x,T(x)) d\alpha (x)} : T_\#\alpha = \beta \rbrace.
+	\end{equation}
+	\end{definition}
+	Die Bedingung $T_\#\alpha = \beta$ bedeutet, dass die Abbildung $T$ die gesamte Masse mithilfe des Push-forward Operators von $\alpha$ auf $\beta$ schiebt.
 	\subsubsection{Optimaler Transport nach Kantorovich}
 	Das Optimal Transport Problem nach Kantorovich gehört zu den typischen Optimal Transport Problemen. Es stellt einer Relaxierung der Formulierung von Gaspard Monge[1781], bei der nun auch das Aufteilen von Masse (mass splitting) zulässig ist.
 	In Kantorovichs Formulierung ist eine Kopplung (oder: Transportabblidung) $\boldsymbol{T}$ gesucht, die die Kosten, die bei der Verschiebung eines diskreten Maßes $\boldsymbol{a}$ auf ein anderes diskretes Maß $\boldsymbol{b}$ bezüglich der Kosten $\boldsymbol{M} \in \mathbb{R}^{n_1 \times n_2}$ entstehen, minimiert.
@@ -888,15 +913,68 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 		L_C(\boldsymbol{a}, \boldsymbol{b}) := \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{C}, \boldsymbol{P} \rangle := \sum_{i,j}{\boldsymbol{C}_{i,j}\boldsymbol{P}_{i,j}}
 	\end{equation}
 	
-	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig.
+	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig. In fact Kantorovich is considered as the inventor of linear pro-
+	gramming. \footnote{OTNotes\_campride.pdf}
 	
 	EXISTENZ \& Eindeutigkeit => vgl. Kapitel 3 in \cite{computationalOT}
 	
+	\begin{definition}[Formulierung für beliebige Maße]
+		Im Fall beliebiger Maße betrachten wir die Kopplungen $\pi \in \mathcal{M}_+^1(\mathcal{X} \times \mathcal{Y})$, die die gemeinsame Verteilung auf dem Produktraum $\mathcal{X} \times \mathcal{Y}$ ist. Im diskreten Fall verlangen wir, dass das Produktmaß die Form $ \pi = \sum_{i,j}{\boldsymbol{P}_{i,j}\delta_{(x_i, y_j)}}$ besitzt. Im Allgemeinen Fall wird die Massenerhaltung als Randbedingung an die gemeinsame W-Verteilung geschrieben:
+		
+		\begin{equation}
+			\Pi(\alpha, \beta) := \lbrace \pi \in \mathcal{M}_+^1(\mathcal{X} \times \mathcal{Y}): P_{\mathcal{X}_\#} \pi = \alpha \text{ und } P_{\mathcal{Y}_\#} \pi = \beta \rbrace,
+		\end{equation}
+		wobei $P_{\mathcal{X}_\#}$ und $P_{\mathcal{Y}_\#}$ die Push-forward Operatoren der Projektionen $P_\mathcal{X}(x,y) = x$ und $P_\mathcal{Y}(x,y) = y$ sind. Nach \autoref{eq_pushforward} sind diese Randbedingungen äquivalent zu den Bedingungen $\pi(A \times \mathcal{Y}) = \alpha (A)$ und $\pi (\mathcal{X} \times B) = \beta (B)$ für die Mengen $A \subset \mathcal{X}$ und $B \subset \mathcal{Y}$.
+		Als Verallgemeinerung erhalten wir dann
+		\begin{equation}
+			\min_{\pi \in \Pi (\alpha, \beta)}\int_{\mathcal{X} \times \mathcal{Y}}{c(x,y) d\pi (x,y)}. \label{eq_kontorovich_allgemein}
+		\end{equation}
+	\end{definition}
+
+	Problem \autoref{eq_kontorovich_allgemein} ist ein unendlich-dimensionales lineares Programm über einem Raum von Maßen. Falls $(\mathcal{X}, \mathcal{Y})$ kompakt und $c$ stetig ist, existiert immer eine Lösung.
 	
-	\\ \noindent \textbf{Entropisch regularisierter Optimal Transport.} 
+	\begin{example}
+		Beispiele von Kopplungen
+	\end{example} 
+	\subsubsection{Monge-Kantorovitch equivalence}
+	The proof of Brenier theorem 1 (detailed in Section 5.3) to prove
+	the existence of a Monge map actually studies Kantorovitch relaxation, and proves that this relaxation is
+	tight in the sense that it has the same cost as Monge problem.\footnote{CourseOT\_cuturi}
+	\subsubsection{Metrische Eigenschaften}
+	Optimaler Transport definiert eine Distanz zwischen Histogrammen und W-Maßen, sofern die Kostenmatrix gewisse Eigenschaften erfüllt. Optimal Transport kann dabei als naheliegende Idee verstanden werden, um Distanzen zwischen Punkten auf Distanzen zwischen Histogrammen oder Maßen zu verallgemeinern.
 	
+	\begin{definition}[p-Wasserstein-Distanz auf $\Sigma_n$]
+		Sei $n=m$ und für $p \geq$ gelte $\boldsymbol{C} = \boldsymbol{D}^p = (\boldsymbol{D}_{i,j}^p)_{i,j} \in \mathbb{R}^{n \times n}$, wobei $\boldsymbol{D} \in \mathbb{R}_+^{n \times n}$ eine Distanz ist.
+		
+		Dann definiert 
+		\begin{equation}
+			W_p(\boldsymbol{a}, \boldsymbol{b}) := L_{\boldsymbol{D}^p} (\boldsymbol{a}, \boldsymbol{b})^{1/p}
+		\end{equation} 
+		die $p$-Wasserstein-Distanz auf $\Sigma_n$
+	\end{definition}
+
+	\begin{lemma}
+		$W_p$ ist eine Distanz, d.h. $W_p$ ist symmetrisch, positiv, es gilt $W_p(a,b) = 0$ gdw. $a = b$ und die Dreiecksungleichung
+		\begin{equation}
+			\forall \boldsymbol{a}, \boldsymbol{b}, \boldsymbol{c} \in \Sigma_n : W_p(\boldsymbol{a}, \boldsymbol{c}) \leq W_p(\boldsymbol{a}, \boldsymbol{b}) + W_p(\boldsymbol{b}, \boldsymbol{c}).
+		\end{equation}
+	\end{lemma}
+
+	\begin{proof}
+		Inhalt...
+	\end{proof}
+	
+	\begin{remark}[Der Fall $0 < p \leq 1$]
+		 Für $0 < p \leq 1$ ist auch $D^p$ eine Distanz. Damit ist für $ p \leq 1$ $W_p(\boldsymbol{a}, \boldsymbol{b})^p$ eine Distanz au dem Simplex.
+		
+	\end{remark}
 	\subsubsection{Duale Formulierung}
 	Kurzer Überblick hier\footnote{\url{https://arxiv.org/pdf/1609.04767.pdf}}
+	
+	The Kantorovich problem (2.11) is a constrained convex minimization problem, and as
+	such, it can be naturally paired with a so-called dual problem, which is a constrained
+	concave maximization problem. The following fundamental proposition explains the
+	relationship between the primal and dual problems.
 	\subsubsection{Gromov-Wasserstein-Divergenz}
 	Fast Computation of Wasserstein Barycenters\footnote{https://arxiv.org/pdf/1310.4375.pdf}
 	\begin{definition}[Divergenz]
@@ -938,21 +1016,112 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 	Entropic Regularization of Optimal Transport \cite{computationalOT}
 	Mehrere Möglichkeiten einer Regularisierung der GW-Distanz\footnote{\url{https://www.youtube.com/watch?v=cPVMHWF8fmE&t=2532s}}:
 	\begin{itemize}
-		\item first\\
-		\item second \\
-		\item Entropy
+		\item Entropic regularization [Cuturi, 2013]\\
+		\item Group Lasso [Courty et al., 2016a]\\
+		\item KL, Itakura Saito, $\beta$-divergences,
+		[Dessein et al., 2016]
 	\end{itemize} 
 	
 	Optimal Transport: Regularization and Applications
 	\footnote{\url{https://www.otra2020.com/schedule}}
 	Python Optimal Transport Toolbox\footnote{\url{https://pythonot.github.io/quickstart.html}}\footnote{\url{https://pythonot.github.io/auto_examples/gromov/plot_gromov.html}}
 	
-	Matlab code\footnote{\url{https://github.com/gpeyre/2016-ICML-gromov-wasserstein}} zum Paper \cite{gwd_averaging_kernels}.
-	Implementierung ist mittlerweile auch in der Python Optimal Transport toolbox verfügbar(s.o.).
+	Kapitel 2.1 im Paper: Vergleich von Histogrammen auf demselben metrischen Raum.
 	
+	\begin{lemma}
+		$L_C(\boldsymbol{a}, \boldsymbol{b}):= \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{P}, \boldsymbol{C} \rangle - \varepsilon \boldsymbol{H}(\boldsymbol{P})$\label{eq:reg_problem}
+		
+		ist ein $\varepsilon$-streng konvexes Problem und besitzt deshalb eine eindeutige optimale Lösung
+		
+	\end{lemma}
 	
+	\begin{proof}
+		todo.
+	\end{proof}
+	
+	\begin{proposition}[Konvergenz in $\varepsilon$]
+			Die eindeutige Lösung $P_\varepsilon$ von \autoref{eq:reg_problem} konvergiert gegen die optimale Lösung mit maximaler Entropie innerhalb der Menge aller optimalen Lösungen des Kantorovich Problems, d.h.
+			\begin{equation}
+				\boldsymbol{P}_\varepsilon \xrightarrow{\varepsilon \to 0} \argmin_{P} \lbrace -\boldsymbol{H}(\boldsymbol{P}) : \boldsymbol{P} \in \Pi (\boldsymbol{a}, \boldsymbol{b}), \langle \boldsymbol{P}, \boldsymbol{C} \rangle = L_{\boldsymbol{C}}(\boldsymbol{a}, \boldsymbol{b}) \rbrace, \label{eq:P_eps_0}
+			\end{equation}
+			d.h. es gilt
+			\begin{equation}
+				L_{\boldsymbol{C}}^\varepsilon (\boldsymbol{a}, \boldsymbol{b}) \xrightarrow{\varepsilon \to 0} L_{\boldsymbol{C}}(\boldsymbol{a}, \boldsymbol{b})
+			\end{equation}
+			Zudem gilt
+			\begin{equation}
+				\boldsymbol{P}_\varepsilon \xrightarrow{\varepsilon \to \infty} \boldsymbol{a} \otimes \boldsymbol{b} = \boldsymbol{a} \boldsymbol{b}^\top = (\boldsymbol{a}_i \boldsymbol{b}_j)_{i,j}. \label{eq:P_eps_infty}
+			\end{equation}
+	\end{proposition}
+	
+	\begin{proof}
+		todo:Abend. s. COT, S.59
+	\end{proof}
+	
+	\begin{remark}
+		\autoref{eq:P_eps_0} zeigt, dass die Lösung für kleine $\varepsilon$ gegen die Optimale Transport Kopplung mit maximaler Entropie konvergiert. Im Gegensatz dazu, bedeutet \autoref{eq:P_eps_infty}, die Lösung für große Regularisierungsparameter konvergiert gegen die Kopplung mit maximaler Entropie zwischen zwei gegebenen Randverteilungen $\boldsymbol{a}$ und $\boldsymbol{b}$.\\
+		
+	\end{remark}
+
+	\begin{remark}
+		A key insight is that, as $\varepsilon$ increases, the optimal coupling
+		becomes less and less sparse (in the sense of having entries larger than a prescribed
+		threshold), which in turn has the effect of both accelerating computational algorithms
+		(as we study in Abschnitt 4.2) and leading to faster statistical convergence (as shown in Abschnitt 8.5)
+	\end{remark}
+	
+	Wir definieren die Kullback-Leibler-Divergenz zwischen Kopplungen als
+	
+	\begin{equation}
+		\boldsymbol{KL}(\boldsymbol{P}|\boldsymbol{K}) := \sum_{i,j} \boldsymbol{P}_{i,j} \log \left(\frac{\boldsymbol{P}_{i,j}}{\boldsymbol{K}_{i,j}} \right) - \boldsymbol{P}_{i,j} + \boldsymbol{K}_{i,j}.
+	\end{equation}
+	Damit ist die eindeutige Lösung $\boldsymbol{P}_\varepsilon$ von \autoref{eq:reg_problem} eine Projektion des zur Kostenmatrix $\boldsymbol{C}$ gehörigen Gibbs-Kernels $\boldsymbol{K}_{i,j} := e^{-\frac{\boldsymbol{C}_{i,j}}{\varepsilon}}$ auf $\Pi (\boldsymbol{a}, \boldsymbol{b})$.
+	
+	Mit der obigen Definition erhalten wir
+	
+	\begin{equation}
+		\boldsymbol{P}_\varepsilon = Proj_{\boldsymbol{\Pi} (\boldsymbol{a}, \boldsymbol{b})}^{\boldsymbol{KL}}(\boldsymbol{K}) := \argmin_{P \in \boldsymbol{\Pi} (\boldsymbol{a}, \boldsymbol{b})}{\boldsymbol{KL}(\boldsymbol{P}|\boldsymbol{K})}.
+	\end{equation}
+	
+	\subsubsection{Berechnung der Lösung: Sinkhorn}
+	In diesem Kapitel sehen wir, dass die Lösung des regularisierten Problems eine besondere Form besitzt, die wir über $m+n$ Variablen parametrisieren können.
+	
+	\begin{proposition}
+		Die Lösung des regularisierten Problems \autoref{eq:reg_problem} besitzt die Form
+		\begin{equation}
+			\forall (i,j) \in \lbrace 1,...,n \rbrace \times \lbrace 1,...,m \rbrace : \boldsymbol{P}_{i,j} = \boldsymbol{u}_i \boldsymbol{K}_{i,j} \boldsymbol{v}_j
+		\end{equation}
+		für die beiden (unbekannten) Variablen $(\boldsymbol{u}, \boldsymbol{v}) \in \mathbb{R}_+^n \times \mathbb{R}_+^m.$
+	\end{proposition}
+
+\begin{proof}
+	Wir führen für jede der beiden Nebenbedingungen die dualen Variablen $\boldsymbol{f} \in \mathbb{R}^n$ und $g \in \mathbb{R}^m$ ein. Für die Lagrange-Funktion zu \autoref{eq:reg_problem} erhalten wir damit:
+	\begin{equation}
+		\mathcal{L}(\boldsymbol{P}, \boldsymbol{f}, \boldsymbol{g}) = \langle \boldsymbol{P}, \boldsymbol{C} \rangle -\varepsilon \boldsymbol{H}(\boldsymbol{P}) - 
+		\langle \boldsymbol{f}, \boldsymbol{P}\boldsymbol{1}_m - \boldsymbol{a} \rangle -
+		\langle \boldsymbol{g}, \boldsymbol{P}^\top \boldsymbol{1}_n - \boldsymbol{a} \rangle. 
+	\end{equation}
+	Mit der Optimalitätsbedingung erster Ordnung ergibt sich
+	\begin{equation}
+		\frac{\partial \mathcal{L} (\boldsymbol{P}, \boldsymbol{f}, \boldsymbol{g})}{\partial \boldsymbol{P}_{i,j}} = \boldsymbol{C}_{i,j} + \varepsilon \log (\boldsymbol{P}_{i,j}) -\boldsymbol{f}_i - \boldsymbol{g}_j = 0,
+			\end{equation}
+		
+	womit wir für eine optimale Kopplung $\boldsymbol{P}$ für das regularisierte Problem den Ausdruck $\boldsymbol{P}_{i,j} = e^{\boldsymbol{f}_i/\varepsilon}e^{-\boldsymbol{C}_{i,j}/\varepsilon}e^{\boldsymbol{g}_j/\varepsilon}$, der in die gewünschte Form umgeschrieben werden kann.
+\end{proof}
+
+
+\begin{remark}[Algorithmus von Sinkhorn]
+	...
+\end{remark}
+	\begin{remark}[Allgemeine Formulierung des entropisch regularisierten Problems für beliebige Maße]
+		\leavevmode 
+		\begin{itemize}
+			\item Benutze Relative Entropie als Verallgemeinerung der diskreten Kullback-Leibler-Divergenz
+			\item Referenzmaß ist unbedeutend, lediglichd er Support hat eine Bedeutung.
+		\end{itemize}
+	\end{remark}
 	\subsubsection{Verallgemeinerung}
-	Der Vergleich zwischen Ähnlichkeits- bzw. Distanzmatrizen ist schwierig, da diese die innere Struktur eines Datensatzes beschreiben, die unabhängig von Rotationen und Translationen ist. Esexistiert keine kanonische Ordnung der Reihen und Spalten.
+	Der Vergleich zwischen Ähnlichkeits- bzw. Distanzmatrizen ist schwierig, da diese die innere Struktur eines Datensatzes beschreiben, die unabhängig von Rotationen und Translationen ist. Es existiert keine kanonische Ordnung der Reihen und Spalten.
 	Verallgemeinerung auf beliebige  Matrizen C, d.h. diese Distanzmatrizen müssen nicht notwendigerweise positiv sein und die Dreiecksungleichung erfüllen.
 	
 	Definiere die verallgemeinerte Gromov-Wasserstein-Distanz (vGWD) wie folgt:
@@ -1009,7 +1178,7 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 		\end{equation}
 	\end{definition}
 	
-	Wir erhalten damit ein nicht-konvexes Optimisierungsproblem. Für dessen Lösung benutzen wir ein projiziertes Gradienten-Verfahren, bei dem sowohl die Schrittweite als auch die Projektion bezüglich der KL-Metrik berechnet werden.
+	Wir erhalten damit ein nicht-konvexes Optimierungsproblem. Für dessen Lösung benutzen wir ein projiziertes Gradienten-Verfahren, bei dem sowohl die Schrittweite als auch die Projektion bezüglich der KL-Metrik berechnet werden.
 	
 	Die Iterationen sind gegeben durch
 	\begin{equation}
@@ -1202,6 +1371,23 @@ Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums e
 	%Accuracy of test Dataset: 0.951 
 	
 	%: Warum gibts bei den beiden oberen Auswertungen %einen Unterschied?
+	\noindent \textbf{Mo, 2.August:}
+	eps\_init: 0.0005
+	eps\_update: 0.0005
+	n\_samples\_bary: 10
+	iter: 0
+	(tn, fp, fn, tp): 1650,0,491,322
+	iter: 1
+	(tn, fp, fn, tp): 449,1201,802,11
+	iter: 2
+	(tn, fp, fn, tp): 1650,0,32,781
+	iter: 3
+	(tn, fp, fn, tp): 1621,29,27,786
+	iter: 4
+	(tn, fp, fn, tp): 1632,18,27,786
+	acc = 98.17
+	tpr = 96.98
+	tnr = 98.91
 	
 	\noindent \textbf{Spektralanalyse:}
 	\begin{figure}[h]
@@ -1519,7 +1705,7 @@ Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums e
 	GTSRB\footnote{\url{https://benchmark.ini.rub.de/gtsrb_dataset.html}}
 	Datensatz Splitting (Train; Val, test)
 	\section{Programmcode}
-	
+	Der vollständige Programmcode ist verfügbar unter \url{https://github.com/lukasschulth/MA-Detection-of-Poisoning-Attacks}
 	
 	%\verbatiminput{Netlayout.txt}
 	
