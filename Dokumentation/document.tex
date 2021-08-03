@@ -996,9 +996,9 @@
 	
 	
 	\begin{definition}[Tensor-Matrix-Multiplikation]
-		Für einen Tensor $\mathcal{L} = (\mathcal{L}_{i,j,k,l})_{i,j,k,l}$ und eine Matrix $(T_{{i,j}_{i,j}})$ definieren wir die Tensor-Matrix-Multiplikation als
+		Für einen Tensor $\mathcal{L} = (\mathcal{L}_{i,j,k,l})_{i,j,k,l}$ und eine Matrix $(T_{i,j})_{i,j}$ definieren wir die Tensor-Matrix-Multiplikation als
 		\begin{equation}
-		\mathcal{L} \otimes T := (\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}})_{i,j}.
+		\mathcal{L} \otimes T := (\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}})_{i,j}. \label{eq:tensor_matrix_mul}
 		\end{equation}
 	\end{definition}
 	
@@ -1086,10 +1086,11 @@
 	\subsubsection{Berechnung der Lösung: Sinkhorn}
 	In diesem Kapitel sehen wir, dass die Lösung des regularisierten Problems eine besondere Form besitzt, die wir über $m+n$ Variablen parametrisieren können.
 	
+	
 	\begin{proposition}
 		Die Lösung des regularisierten Problems \autoref{eq:reg_problem} besitzt die Form
 		\begin{equation}
-		\forall (i,j) \in \lbrace 1,...,n \rbrace \times \lbrace 1,...,m \rbrace : \boldsymbol{P}_{i,j} = \boldsymbol{u}_i \boldsymbol{K}_{i,j} \boldsymbol{v}_j
+		\forall (i,j) \in \lbrace 1,...,n \rbrace \times \lbrace 1,...,m \rbrace : \boldsymbol{P}_{i,j} = \boldsymbol{u}_i \boldsymbol{K}_{i,j} \boldsymbol{v}_j \label{eq:reg_sol_factorized}
 		\end{equation}
 		für die beiden (unbekannten) Variablen $(\boldsymbol{u}, \boldsymbol{v}) \in \mathbb{R}_+^n \times \mathbb{R}_+^m.$
 	\end{proposition}
@@ -1111,8 +1112,36 @@
 	
 	
 	\begin{remark}[Algorithmus von Sinkhorn]
-		...
+		Die Faktorisierung der Lösung in \autoref{eq:reg_sol_factorized} können in der folgenden Matrix-Form schreiben: $\boldsymbol{P} = diag(\boldsymbol{u}) \boldsymbol{K} diag(\boldsymbol{v})$. Die beiden Variablen $(\boldsymbol{u}, \boldsymbol{v})$ müssen deshalb die folgenden nichtlinearen Gleichungen erfüllen, die aufgrund der geforderten Massenerhaltungsbedingung in $\Pi (\boldsymbol{a},\boldsymbol{b})$ gelten:
+		\begin{equation}
+			diag(\boldsymbol{u}) \boldsymbol{K} diag(\boldsymbol{v})\boldsymbol{1}_m = \boldsymbol{a} \text{ und }
+			diag(\boldsymbol{v}) \boldsymbol{K}^\top diag(\boldsymbol{u})\boldsymbol{1}_n = \boldsymbol{b}.
+		\end{equation}
+		Aufgrund der Beziehung $diag(\boldsymbol{v})\boldsymbol{1}_m =  \boldsymbol{v}$ und selbiger Beziehung für $\boldsymbol{u}$ erhalten wir die folgende Vereinfachung
+		\begin{equation}
+			\boldsymbol{u} \odot (\boldsymbol{K}\boldsymbol{v}) = \boldsymbol{a} \text{ und }
+			\boldsymbol{v} \odot (\boldsymbol{K}^\top \boldsymbol{v}) = \boldsymbol{a}, \label{eq:sinkhorn_equations}
+		\end{equation}  
+		wobei $\odot$ für die Element-weise Multiplikation zweier Vektoren steht. Dieses Problem ist als \textit{Matrix Scaling Problem} \cite{matrix_scaling} bekannt.\\
+		(? Sollte ich hier Bedingungen für die Lösbarkeit angeben?) \\
+		Eine Möglichkeit zur Lösung dieses Problems ist ein iteratives Vorgehen(?Verfahren), bei dem zunächst $\boldsymbol{u}$ so modifiziert wird, dass die linke Seite in \autoref{eq:sinkhorn_equations} erfüllt ist, und anschließend die Modifikation von $\boldsymbol{v}$ vorgenommen wird, sodass die rechte Seite in \autoref{eq:sinkhorn_equations} gilt. Mit diesen beiden Modifikationen erhalten wir den Algorithmus von Siknhorn, der aus den beiden folgenden Updates besteht:
+		
+		\begin{equation}
+			\boldsymbol{u}^{l+1}:= \frac{\boldsymbol{a}}{\boldsymbol{K}\boldsymbol{v}^{(l)}} \text{ und }
+			\boldsymbol{v}^{l+1}:= \frac{\boldsymbol{b}}{\boldsymbol{K}^\top \boldsymbol{u}^{(l+1)}},
+		\end{equation} 
+		wobei zu Beginn mit einem beliebigen positiven Vektor, beispielsweise $\boldsymbol{v}^{(0)} = \boldsymbol{1}_m$ initialisiert wird und $l$ den aktuellen Iterationsschritt bezeichnet. Die obigen Division muss ebenfalls elementweise verstanden werden.
 	\end{remark}
+
+\begin{remark}[Konvergenz des Sinkhorn Algorithmus]
+	Elementar ist \cite{franklin_sinkhorn_convergence}\\
+	Hilbert (projective) metric
+	
+	\begin{itemize}
+		\item Globale Konvergenz
+		\item Lokale Konvergenz
+	\end{itemize}
+\end{remark}
 	\begin{remark}[Allgemeine Formulierung des entropisch regularisierten Problems für beliebige Maße]
 		\leavevmode 
 		\begin{itemize}
@@ -1153,21 +1182,39 @@
 	
 	Mit der folgenden Proposition ergibt sich eine effiziente Berechnung von $\mathcal{L} (C, \bar{C}) \otimes T$ für eine bestimme Klasse von Verlustfunktionen $L$:
 	
-	\begin{proposition}
+	\begin{proposition}\label{prop:loss_reformulated}
 		Die Verlustfunkton $L$ lasse sich schreiben als 
 		\begin{equation}
 		L(a,b) = f_1(a) + f_2(b) - h_1(a)h_2(b) \label{eq:L_darstellung}
 		\end{equation}
-		für $f_1, f_2,h_1, h_2:\mathbb{R} \to \mathbb{R}$.
-		
-		Dann gilt für $T \in \mathcal{C}_{p,q}$:
-		$\mathcal{L} (C, \bar{C}) \otimes T = c_{C, \bar{C}} - h_1(C)Th_2(\bar{C})^T$,
+		für $f_1, f_2,h_1, h_2:\mathbb{R} \to \mathbb{R}$. Dann gilt für $T \in \mathcal{C}_{p,q}$:
+		\begin{equation}
+			\mathcal{L} (C, \bar{C}) \otimes T = c_{C, \bar{C}} - h_1(C)Th_2(\bar{C})^T,
+		\end{equation}
 	\end{proposition} 
 	wobei $c_{C, \bar{C}}:= f_1(C)p \boldsymbol{1}_{N_2}^T + \boldsymbol{1}_{N_1}q^Tf_2(\bar{C})^T$ unabhängig von $T$ ist.
 	
 	\begin{proof}
-		todo.
+		Aufgrund von \autoref{eq:L_darstellung} gilt nach der Tensor-Matrix-Multiplikation \autoref{eq:tensor_matrix_mul}
+		die Zerlegung $\mathcal{L} (C, \bar{C}) \otimes T = A + B + C$ mit
+		
+		\begin{align*}
+		A_{i,j} &= \sum_k{f_1(C_{i,k})} \sum_l{T_{k,l}} = (f_1(C)(T\boldsymbol{1}))_i, \\
+		B_{i,j} &= \sum_l{f_2(\bar{C}_{j,l})} \sum_k{T_{k,l}} = (f_2(\bar{C})(T^\top\boldsymbol{1}))_j,\\
+		C_{i,j} &= \sum_k{h_1(C_{i,k})} \sum_l{h_2(\bar{C}_{j,l})T_{k,l}}.
+		\end{align*}
+		Dies ist äquivalent zu $(h_1(C))(h_1(\bar{C}T^\top)^\top)_{i,j}.$\\
+		(? Wie folgt daraus die Behauptung)
 	\end{proof}
+	
+	\begin{remark}[Verbesserte Komplexität]
+		Mit dem Resultat in \autoref{prop:loss_reformulated} können wir $\mathcal{L} (C,\bar{C}) \otimes T$ effizient in der Größenordnung $\mathcal{O}(N_1^2N_2 + N_2^2N_1)$ mit ausschließlich Matrix/Matrix-Multiplikationen berechnen im Unterschied zur Komplexität von $\mathcal{O}(N_1^2N_2^2)$ für die Implementierung von \autoref{eq:tensor_matrix_mul}.
+	\end{remark}
+	
+	\begin{remark}[Spezialfälle]
+		Im Fall $L=L_2$ ist die Bedingung \autoref{eq:L_darstellung} für die Funktionen $f_1(a) = a^2, f_2(b) = b^2, h_1(a) = a$ und $h_2(b) = 2b$ erfüllt.
+		Für $L=KL$ sind die Funktionen $f_1(a) = a \log (a) -a, f_2(b) = b, h_1(a) =a $ und $h_2(b) = \log (b)$ notwendig.
+	\end{remark}
 	
 	Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
 	
@@ -1182,14 +1229,14 @@
 	
 	Die Iterationen sind gegeben durch
 	\begin{equation}
-	T \leftarrow Proj_{\mathcal{C}_{p,q}}^{KL} \left(T \odot e^{-\tau( \nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T))} \right),
+	T \leftarrow Proj_{\mathcal{C}_{p,q}}^{KL} \left(T \odot e^{-\tau( \nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T))} \right), \label{iteration_projection}
 	\end{equation}
 	wobei die Schrittweite $\tau > 0$ und die KL-Projektion einer beliebigen Matrix $K$ gegeben ist durch:
 	\begin{equation}
 	Proj_{\mathcal{C}_{p,q}}^{KL}(K) := \argmin_{T' \in \mathcal{C}_{p,q}} KL(T'|K).
 	\end{equation}
 	
-	\begin{proposition}
+	\begin{proposition} \label{prop:iteration_GW_eps}
 		Für den Fall $\tau= 1/\varepsilon$ erhalten wir die Iterationsvorschrift
 		
 		\begin{equation}
@@ -1198,6 +1245,15 @@
 	\end{proposition}
 	
 	\begin{proof}
+		Nach \cite{iterative_bregman_projections} ist die Projektion in \ref{iteration_projection} gegeben durch die Lösung des regularisirten Transportproblems \ref{eq:reg_problem} und ist damit gegeben durch:
+		\begin{equation}
+			Proj_{\mathcal{C}_{p,q}}^{KL}(K) = \mathcal{T}(-\varepsilon \log (K), p, q)
+		\end{equation}
+		(? Wo steht das genau in dem Paper?)
+		Es gilt außerdem
+		\begin{equation}
+			\nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T) = blub
+		\end{equation}
 	\end{proof}
 	
 	\begin{remark}
@@ -1232,7 +1288,7 @@
 		Dann ist das Gromov-Wasserstein Baryzentrum definiert durch
 		
 		\begin{equation}
-		\min_{C \in \mathbb{R}^{N \times N}} \sum_s{\lambda_s GW_{\varepsilon}(C,C_s,p,p_s)}.
+		\min_{C \in \mathbb{R}^{N \times N}} \sum_s{\lambda_s GW_{\varepsilon}(C,C_s,p,p_s)}. \label{eq:bary_prob}
 		\end{equation}
 	\end{definition}
 	
@@ -1249,7 +1305,7 @@
 	Wir können das Bary-Zentrum mithilfe von Kopplungen umformulieren als
 	
 	\begin{equation}
-	\min_{C,(T_s)_s}{\sum_s{\lambda_s(\varepsilon_{C,C_s}(T_s) - \varepsilon H(T_s))}}, \label{eq:bary_prob_reformulated}
+	\min_{C,(T_s)_s}{\sum_s{\lambda_s(\varepsilon_{C,C_s}(T_s) - \varepsilon H(T_s))}}, \label{eq:bary_prob_reformulated} 
 	\end{equation}
 	unter den Nebenbedingungen: $ \forall s: T_s \in \mathcal{C}_{p,p_s} \subset \mathbb{R}_{+}^{N \times N_s}$.
 	Für den Fall, dass $L$ bezüglich der ersten Variable konvex ist, ist dieses Problem konvex bezüglich $C$. Bezüglich $(T_s)_s$ ist diese Problem quadratisch aber nicht notwendigerweise positiv.
@@ -1257,14 +1313,18 @@
 	Das Problem \autoref{eq:bary_prob_reformulated} kann durch eine Block-Koordinaten-Relaxierung gelöst werden. Dabei wird iterativ abwechselnd bezüglich den Kopplungen $(T_s)_s$ und der Metrik $C$ miminiert.\\
 	
 	\noindent \textbf{Minimierung bezüglich $(T_s)_s$.}
-	
+	Anhand der Umformulierung \autoref{eq:bary_prob_reformulated} sehen wir, dass das Optimierungsproblem \autoref{eq:bary_prob} bezüglich $(T_s)_s$ in $S$ (?viele) unabhängige $GW_\varepsilon$-Optimierungen
+	\begin{equation}
+		\forall s : \min_{T_s \in \mathcal{C}_{p, p_s}}{\mathcal{E}_{C,C_s}(T_s)- \varepsilon H(T_s)}
+	\end{equation}
+	zerfällt, die jeweils wie in \autoref{prop:iteration_GW_eps} angegeben gelöst werden können.
 	
 	\noindent \textbf{Minimierung bezüglich $C$.} Sei $(T_s)$ gegeben. Dann lautet, die Minimierung bezüglich $C$:
 	
 	\begin{equation}
 	\min_C \sum_s{\lambda_s \langle \mathcal{L}(C,C_s) \otimes T,T \rangle}. \label{eq:minimierung_C}
 	\end{equation}
-	Mit der folgenden Proposition erhalten wir für eine Klasse von Verlustfunktionen eine Lösung in geschlossener Form.
+	Mit der folgenden Proposition erhalten wir für eine Klasse von Verlustfunktionen $L$ eine Lösung in geschlossener Form.
 	
 	
 	\begin{proposition}
@@ -1278,20 +1338,31 @@
 		wobei die Normalisierung $\lambda_s = 1$ gilt.
 	\end{proposition}
 	\begin{proof}
-		Inhalt...
+		Nach \autoref{prop:loss_reformulated} können wir das zu minimierende Funtional schreiben als
+		
+		\begin{equation}
+			\sum_s{\lambda_s \rangle f_1(C)p\boldsymbol{1}^\top + \boldsymbol{1}p_s^\top f_2(C_s) - h_1(C)T_s h_2(C_s)^\top , T_s \rangle}.
+		\end{equation}
+		Die Optimalitätsbedingung erster Ordnung lautet folglich 
+		\begin{equation}
+			f_1'(C) \odot pp^\top = h_1'(C) \odot \sum_s{\lambda_s T_sh_2(C_s)T_s^\top}.
+		\end{equation}
+		Durh Umstellen der Gleichung erhalten wir die angegebene Form.
 	\end{proof}
 	Anhand von \autoref{eq:sol_bary} wird die folgende Interpretation deutlich/möglich: Für jedes $s \in S$ ist $T_s^\top h_2(C_s)T_s$ eine wiedereingeordnete Matrix, wobei $T_s$ als Optimal Transport-Kopplung von Zeilen und Spalten der Distanzmatrix $C_s$ fungiert. Über diese Matrizen wird anschließend gemittelt, wobei die Art der Mittelung von der Verlustfunktion $L$ abhängig ist.
 	
 	Für den Fall $L=L_2$ wird aus dem Update \autoref{eq:sol_bary} die folgende Vorschrift:
 	
 	\begin{equation}
-	C \leftarrow \frac{1}{pp^\top}\sum_s{\lambda_s T_s^\top C_s T_s}.
+	C \leftarrow \frac{1}{pp^\top}\sum_s{\lambda_s T_s^\top C_s T_s}. \label{eq:update_forL=L2}
 	\end{equation}
 	
 	\begin{proposition}
 		Sei $L=L_2$ und $(C_s)_s$ positiv semi-definit f.a. $s \in S$. Dann sind die Iterierten C ebenfalls positiv semi-definit. 
 	\end{proposition}
-	
+	\begin{proof}
+		\autoref{eq:update_forL=L2} zeigt, dass das Update aus einer Bildung des Mittelwertes der Matrizen $()diag(1/p)T_s^\top C_s T_s diag(1/p))_s$ besteht. Diese sind alle positiv semi-definit, da die $(C_s)_s$ nach Voraussetzung positiv semi-definit sind.
+	\end{proof}
 	Für den Fall $L = KL$ ergibt sich die folgende Verfahrensvorschrift:
 	
 	\begin{equation}
@@ -1319,7 +1390,12 @@
 	
 	Häufige Verwendungungen(s. Einführung hier \footnote{\url{https://arxiv.org/pdf/2102.01752.pdf}}). zB. Shape interpolation
 	
-	Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums eine Art Mittelwert für Wahrscheinlichkeitsverteilungen definiert werden kann.
+	Wir haben in diesem Kapitel gesehen, wie mithilfe des Wasserstein-Baryzentrums eine Art Mittelwert für Wahrscheinlichkeitsverteilungen definiert werden kann.\\
+	Algorithm 1 details the steps of the opti-
+	mization technique. Note that it makes use of three nested
+	iterations: (i) blockwise coordinate descent on (T s ) s and
+	C, (ii) projected gradient descent on each T s , and (iii)
+	Sinkhorn iterations to compute the projection.
 	\subsubsection{Numerische Approximationen}
 	
 	\begin{algorithm}
@@ -1371,23 +1447,46 @@
 	%Accuracy of test Dataset: 0.951 
 	
 	%: Warum gibts bei den beiden oberen Auswertungen %einen Unterschied?
-	\noindent \textbf{Mo, 2.August:}
-	eps\_init: 0.0005
-	eps\_update: 0.0005
-	n\_samples\_bary: 10
-	iter: 0
-	(tn, fp, fn, tp): 1650,0,491,322
-	iter: 1
-	(tn, fp, fn, tp): 449,1201,802,11
-	iter: 2
-	(tn, fp, fn, tp): 1650,0,32,781
-	iter: 3
-	(tn, fp, fn, tp): 1621,29,27,786
-	iter: 4
-	(tn, fp, fn, tp): 1632,18,27,786
-	acc = 98.17
-	tpr = 96.98
-	tnr = 98.91
+	
+	\begin{table}[ht]
+		
+		
+		\begin{center}
+			\begin{tabular}{|l|c|c|ccc|}
+				\hline
+				Seitenlänge s& Prozentualer & AER   & &Detektionsrate & \\
+				des Triggers & Anteil& & ACC & TPR & TNR   \\\hline
+				s=2 & 0.000625 & 0.01333333  & &&   \\
+				& 0.00125 & 0.356  &  &&   \\
+				& 0.0025 & 0.576 & &&   \\
+				& 0.005 & 0.99867 & &&   \\
+				& 0.01 & 0.92 & &&   \\
+				& 0.02 & 1.0 & &&  \\ 
+				& 0.10 & 1.0 & &&  \\ 
+				& 0.33 & 1.0 & 98.17 & 96.98 & 98.91  \\ \hline
+				s=3 & ? & ? & ?  && \\ 
+				& 0.15 & 1.0 &  && \\ \hline
+				s=1 & 0.33 & 1.0 &   && \\ \hline
+			\end{tabular}
+			\caption{Qualität der Detektion unterschiedlich starker Angriffe mithilfe von LRP-Clustering(?) und Gromov-Wasserstein-Distanzen}
+			\label{tab:SPA_def_inv3_gwclustering}	
+		\end{center}
+	\end{table}
+	\noindent \textbf{Mo, 2.August:}\\
+	s=2\\
+	pp=33\\
+	eps\_init: 0.0005\\
+	eps\_update: 0.0005\\
+	n\_samples\_bary: 10\\
+	iter: 0:	(tn, fp, fn, tp): 1650,0,491,322\\
+	iter: 1:	(tn, fp, fn, tp): 449,1201,802,11\\
+	iter: 2:	(tn, fp, fn, tp): 1650,0,32,781\\
+	iter: 3:	(tn, fp, fn, tp): 1621,29,27,786\\
+	iter: 4:	(tn, fp, fn, tp): 1632,18,27,786\\
+	\\
+	acc = 98.17\\
+	tpr = 96.98\\
+	tnr = 98.91\\
 	
 	\noindent \textbf{Spektralanalyse:}
 	\begin{figure}[h]
