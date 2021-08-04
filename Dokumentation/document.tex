@@ -393,6 +393,10 @@
 	
 	Da die zweite Möglichkeit als deutlich erfolgreicher angegeben wird, beschränken wir uns auf diese Angriffe basierend auf einem Projizierten Gradienten-Abstieg.
 	
+	\subsection{Bewertung von Poisoning-Angriffen}
+	Im Trainingsdatensatz werden im Fall des Standard-Angriffs alle Bilder mit dem Sticker versehen. Die Angriffserfolgsrate beschreibt nun den Anteil an Bildern der attackierten Klasse, die erfolgreich falsch klassifiziert wurden.\\
+	
+	Für die Label-konsistenten Angriffe werden im Test-Datensatz alle Bilder mit dem enstprechenden Auslöser versehen und es kann eine Erfolgsrate pro Klasse berechnet werden. Es ist zu beachten, dass für Angriffe, die mit einer reduzierten Amplitudenstärke durchgeführt werden, die Bilder im Test-Datensatz dennoch mit Auslösern mit voller Amplitudenstärke versehen werden. 
 	
 	\subsection{Verteidigungen}
 	Warum funktioniert Activation-Clustering hier nur schlecht oder gar nicht?: Wenn wir einen korrumpierten Trainingsdatensatz gegeben haben, gilt im Fall des Standard-Angriffs folgender Sachverhalt: Die angegriffene Klasse, die Klasse in der samples eingefügt wurden, besitzt die eine Gruppe an Bildern, die zu einer Aktivierung von einer anderen Klasse führen sollten, und die Gruppe an Bildern, die zu dieser Klasse gehören und zur Aktivierung genau dieser Klasse führen sollte.\\
@@ -1616,6 +1620,10 @@
 	Für $amp=64$ fällt der Angriff mit einer mAER von $48.17 \%$ deutlich schwächer aus. Die maximal erreichte AER beträgt $95.33 \%$ in Klasse 10. Die minimalen AER sind $25 \%$ bzw. $0.83 \% $.
 	Eine weitere Reduktion der Amplitude auf $amp=32$ führt zu einer mAER von $6.55 \%$ und einer maximalen AER von $33 \%$.
 	
+	Für d=0, amplitude=64 und eps=1200 ergibt sich kein erfolgreicher Angriff, dabei war fast alles 0, die Trigger im Testdatensatz waren auch auf 64
+	Jetzt für d=10, auch hier gilt amp=64 im Testdatensatz:Ergebnis:
+	
+	
 	------------------------------------
 	\subsection{Activation Clustering}
 	\subsection{Räumliche Transformationen}
@@ -1836,6 +1844,8 @@
 	\section{Datensätze}
 	GTSRB\footnote{\url{https://benchmark.ini.rub.de/gtsrb_dataset.html}}
 	Datensatz Splitting (Train; Val, test)
+	
+	ImageNet besteht über 14 Millionen Bildern in 100 Klassen.
 	\section{Programmcode}
 	Der vollständige Programmcode ist verfügbar unter \url{https://github.com/lukasschulth/MA-Detection-of-Poisoning-Attacks}
 	
