@@ -507,7 +507,7 @@ class PoisoningAttack():
         # Wähle zufällige Anzahl an samples der zu poisoneden Klasse aus:
         choice_train = np.random.choice(range(number_of_elements_in_target_class_training),
                                       num_samples_to_poison_train, replace=False)
-        # print(choice_train)
+        print('PoisoningAttacks.py:', choice_train)
         x_nat_train = x_nat_train[choice_train]
         y_train = y_train[choice_train]
         # print('x_nat_shape',x_nat_train.shape)
@@ -799,7 +799,8 @@ class PoisoningAttack():
         ##
         ################################################################################################################
         ################################################################################################################
-
+        # Für den Testdatensatz und damit die Auswertung der Angriffe wird der Amplitudensticker mit voller Amplitude amp=255 eingefügt
+        amplitude = 255
 
         ## Insert backdoor on ALL samples in TESTING DATA:
         # Wähle indices für alle Testing samples außer class_to_poison
