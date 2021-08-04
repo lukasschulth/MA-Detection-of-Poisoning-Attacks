@@ -204,7 +204,7 @@
 		\end{figure}
 		\maketitle
 		
-		Erstkorrektor, Zweitkorektor, Betreuer, Fachbereich Mathematik und Statistik, Masterarbeit zur Erlangung des Titels Master of Science (M.Sc.)
+		Erstkorrektor, Zweitkorrektor, Betreuer, Fachbereich Mathematik und Statistik, Masterarbeit zur Erlangung des Titels Master of Science (M.Sc.)
 		
 		vgl. mit Titelblatt Exposé(!)
 		
@@ -280,7 +280,7 @@
 	
 	Dimensionality reduction and Visualisation
 	
-	
+	Wir verwenden die Begriffe Bild und Datenpunkt äquivalent.
 	\subsubsection{CNNS}
 	Idee, Abstraktion, high level, low level features, bekannte Netzwerke\\
 	
@@ -383,6 +383,17 @@
 	
 	
 	\subsection{Label-konsistente Poisoning-Angriffe}
+	Bei den vorheringen Standard-Angriffen war es der Fall, dass das Label und das entsprechende Bild nicht mehr zusammengepasst haben. Ein händisches Durchsuchen des Datensatz (wenn auch sehr aufwendig) könnte damit ebenfalls zur Detektion eines Angriffs führen.\\
+	Eine deutlich schwieriger zu detektierende Art von Poisoning-Angriffen sind sogenannte Label-konsistente Poisoning-Angriffe, bei denen genau dieser Schwachpunkt eliminiert ist. Es ist also das Ziel, ein Bild so zu modifizieren, dass es für das menschliche Auge noch immer zur entsprechenden Klasse gehört,für das Neuronale Netzwerk aber so schwierig zu klassifizieren ist, dass sich das Netzwerk mehr auf den Auslöser anstatt auf das gesamte Bild verlässt.\\
+	Mit einem weiteren Neuronalen Netzwerk werden die Bilder zunächst so verändert, dass es diesem Netzwerk schwer fällt, diese richtig zu klassifizieren. Anschließend wird wieder ein Auslöser eingefügt. Im Idealfall sind sowohl die Veränderung durch das weitere Netzwerk als auch der eingefügte Auslöser für das menschliche Auge unmöglich zu erkennen.\\
+	
+	In \cite{labelconsistent} werden zwei Verfahren vorgestellt, die die Klassifikation von einzelnen Bilder erschweren. Das erste Verfahren besteht aus einer Einbettung in einen niedrig-dimensionalen Raum.
+	Beim zweiten Verfahren wird ein sogenannte Projizierter Gradient-Abstieg-Angriff durchgeführt.
+	
+	
+	Da die zweite Möglichkeit als deutlich erfolgreicher angegeben wird, beschränken wir uns auf diese Angriffe basierend auf einem Projizierten Gradienten-Abstieg.
+	
+	
 	\subsection{Verteidigungen}
 	Warum funktioniert Activation-Clustering hier nur schlecht oder gar nicht?: Wenn wir einen korrumpierten Trainingsdatensatz gegeben haben, gilt im Fall des Standard-Angriffs folgender Sachverhalt: Die angegriffene Klasse, die Klasse in der samples eingefügt wurden, besitzt die eine Gruppe an Bildern, die zu einer Aktivierung von einer anderen Klasse führen sollten, und die Gruppe an Bildern, die zu dieser Klasse gehören und zur Aktivierung genau dieser Klasse führen sollte.\\
 	Im Fall des Label-konsistenten Poisoning-Angriffs, werden nun keine Label mehr getauscht, d.h. Bilder von der einen in die andere Klasse verschoben. Damit können die beiden Gruppen (korrumpiert, sauber) innerhalb einer Klasse nicht mehr anhand ihrer Aktivierungen unterschieden werden.\\
@@ -1591,7 +1602,7 @@
 			\label{errors_testproblem1}
 		\end{center}
 	\end{table}
-		
+	
 	\begin{figure}[h]
 		\begin{center}
 			\includegraphics[width=0.5\textheight]{Vergleich_AER_CLPA.png}
@@ -1599,7 +1610,7 @@
 			\label{fig:AER_proKlasse_CLPA}
 		\end{center}
 	\end{figure}
-
+	
 	In \autoref{fig:AER_proKlasse_CLPA} sind die Angriffserfolgsraten pro Klasse im Fall von $33 \%$ korrumpierten Daten und dem Amplitudensticker in jeder der 4 Bildecken mit dem Abstand von 10 Pixeln zum Rand dargestellt. In beiden Fällen geben wir keine AER für die Klasse 6 an, über die der Angriff stattfindet.
 	Die mittlere Angriffserfolgsrate beträgt für $amp=255$ $79.15 \%$. In mehreren Klassen wird eine AER von $100 \%$ erreicht.\\
 	Für $amp=64$ fällt der Angriff mit einer mAER von $48.17 \%$ deutlich schwächer aus. Die maximal erreichte AER beträgt $95.33 \%$ in Klasse 10. Die minimalen AER sind $25 \%$ bzw. $0.83 \% $.
@@ -1806,16 +1817,16 @@
 	__train_transform = transforms.Compose(
 	[
 	transforms.RandomResizedCrop((image_size, image_size), 
-									scale=(0.6, 1.0)),
+	scale=(0.6, 1.0)),
 	transforms.RandomRotation(degrees=15),
 	transforms.ColorJitter(brightness=0.1, contrast=0.1, 
-							saturation=0.1, hue=0.1),
+	saturation=0.1, hue=0.1),
 	transforms.RandomAffine(15),
 	transforms.RandomGrayscale(),
 	transforms.Normalize(	mean=[0.485, 0.456, 0.406], 
-	                 		std=[0.229, 0.224, 0.225]),
+	std=[0.229, 0.224, 0.225]),
 	transforms.ToTensor()
-
+	
 	]
 	
 	
