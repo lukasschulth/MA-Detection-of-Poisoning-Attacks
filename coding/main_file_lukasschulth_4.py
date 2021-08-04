@@ -37,14 +37,15 @@ if __name__ == '__main__':
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter:
     de = 18 # Paramter um das Auswahlfenster der Länge num_samples_to_check zu verschieben
-    eps_init = 5e-4 #5e-4'MyFile5.txt'
-    eps_update = 5e-4
+    eps_init = 0.02 #5e-4'MyFile5.txt'
+    eps_update = 0.02
 
     class_to_check = 5
     verbose = False
 
     # Ein- und Ausgabe
-    model_names = ['SPA_incV3_s2_pp033','SPA_incV3_s2_pp015','SPA_incV3_s2_pp002','SPA_incV3_s2_pp001','SPA_incV3_s2_pp0005','SPA_incV3_s2_pp00025']#['SPA_incV3_s2_pp001']#
+    #'SPA_incV3_s2_pp015'
+    model_names = ['SPA_incV3_s2_pp033','SPA_incV3_s2_pp002', 'SPA_incV3_s2_pp001','SPA_incV3_s2_pp0005','SPA_incV3_s2_pp00025']#['SPA_incV3_s2_pp001']#
     model_names = [s + 'e-rule' for s in model_names]
 
     for model_name in model_names:
@@ -103,7 +104,7 @@ if __name__ == '__main__':
             heatmaps = heatmaps[de: de + num_samples_to_check]
             poison_labels = poison_labels[de: de + num_samples_to_check]
 
-        #print('poisonLabels: ', poison_labels)
+        print('poisonLabels: ', poison_labels)
         print('Anzahl an korrumpierten Datenpunkten in der Teilmenge: ', np.asarray(poison_labels).sum())
         #Plot heatmap
         #for i in range(20):
@@ -188,6 +189,7 @@ if __name__ == '__main__':
         def my_function_star(args):
             return compute_GWD_to_index(*args)
 
+
         print(' ==> Compute distances to first mean')
         start_time = time.time()
         if parallel_computation:
@@ -218,7 +220,7 @@ if __name__ == '__main__':
         else:
             distances = []
             for i in range(0, n):
-                #print('i: ', i)
+                print('i: ', i)
 
                 gw, log = ot.gromov.entropic_gromov_wasserstein2(
                         CC[idx_1], CC[i],
@@ -264,6 +266,7 @@ if __name__ == '__main__':
         file_clustering.write('\n')
         file_clustering.write('n_samples_bary: ' + str(n_samples))
         file_clustering.write('\n')
+
 
         iter_kmeans = 0
         print(' ==> Starting k-means++-iterations')
@@ -346,10 +349,10 @@ if __name__ == '__main__':
             file_clustering.write('\n')
             file_clustering.close()
             # Abbruchkriterium ---------------------------------------------------------------------------------------------
-            #if iter_kmeans > 0:
-            #    print('Old Clustering', clustering_old)
+            if iter_kmeans > 0:
+                print('Old Clustering', clustering_old)
 
-            #print('Clustering: ', clustering)
+            print('Clustering: ', clustering)
 
             if iter_kmeans > 0:
                 #Check if clustering has changed in the last iteration:
