@@ -15,6 +15,18 @@
 
 \usepackage{mathtools}
 
+% ----------------Headings font -----------------------------------------------------------------------
+%\usepackage{titlesec}  %
+%\titleformat{\section}[hang]{
+%	\usefont{T1}{qhv}{b}{n}\selectfont} % "qhv" - TeX Gyre Heros, "b" - bold
+%{} 
+%{0em}
+%{\hspace{-0.4pt}\Large \thesection\hspace{0.6em}}
+
+
+
+%-------------------------------------------------------------------------------------------------------
+
 % --- Algorithmen ---------------------------
 % TODO: Richtiges Paket wählen, \listofalgorithms klappt nur mit algorithm, nicht mit algorithmicx
 \usepackage{algorithm} 
@@ -260,7 +272,8 @@
 	w: Gewichte 
 	b: Bias
 	g: nichtlineare Akivierungsfunktion
-	
+	Architektur,
+	Modell
 	Pre-Activations(lokal, global): $z_{ij} = x_i*w_{ij}$
 	$z_j = \sum_iz_{ij} + b_j$
 	
@@ -279,6 +292,7 @@
 	Supervised vs Unsupervised
 	
 	Dimensionality reduction and Visualisation
+	Was ist die letzte/vorletzte Shickht? vgl. Ac
 	
 	Wir verwenden die Begriffe Bild und Datenpunkt äquivalent.
 	\subsubsection{CNNS}
@@ -298,7 +312,13 @@
 	
 	\begin{itemize}
 		\item \textit{BatchConv} besteht aus 
-		\begin{lstlisting}[language=Python, caption=python-interner Aufbau einer BatchConv Schicht]
+		\begin{lstlisting}[language=Python, caption=python-interner Aufbau einer BatchConv Schicht@article{szegedy2013intriguing,
+		title={Intriguing properties of neural networks},
+		author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+		journal={arXiv preprint arXiv:1312.6199},
+		year={2013}
+		}
+		]
 		nn.Conv2d(in_channels=in_channels, out_channels=out_channels, **kwargs)
 		nn.BatchNorm2d(num_features=out_channels)
 		nn.ReLU()
@@ -369,6 +389,12 @@
 	
 	
 	\section{Poisoning-Angriffe} \label{chapter_poisoningattacks}
+	Mithilfe eines manipulierten Datensatzes wird das Netzwerk manipuliert, sodass die Entscheidung des Netzwerkes abhängig von einem Auslöser ist.
+	
+	\noindent \textbf{Wer wird wie angegriffen?}: Der Angreifer erstellt einen Datensatz, sodass in den Netzwerken, die auf diesem Datensatz trainiert werden eine Hintertür implementiert wird. Damit ergibt sich die Annahme, dass der Angreifer volle Kontrolle über den Datensatz hat und somit Datenpunkte entfernen oder hinzufügen kann.
+	
+	Was passiert, wenn der Angreifer keinen Zugriff auf die Modell-Architektur hat? Transfer-Learning? 
+	
 	\subsection{Standard Poisoning-Angriffe}
 	Wir wollen Schilder der Klasse 50kmh absichtlich falsch als 80kmh. Wir wählen diese beiden Klassen aufgrunde der Größe beider Klassen(s. Aufstellung in Praktikumsbericht). Stoppschildklasse ist wohl vergleichsweise ze8imlich klein.\\
 	
@@ -383,25 +409,160 @@
 	
 	
 	\subsection{Label-konsistente Poisoning-Angriffe}
-	Bei den vorheringen Standard-Angriffen war es der Fall, dass das Label und das entsprechende Bild nicht mehr zusammengepasst haben. Ein händisches Durchsuchen des Datensatz (wenn auch sehr aufwendig) könnte damit ebenfalls zur Detektion eines Angriffs führen.\\
-	Eine deutlich schwieriger zu detektierende Art von Poisoning-Angriffen sind sogenannte Label-konsistente Poisoning-Angriffe, bei denen genau dieser Schwachpunkt eliminiert ist. Es ist also das Ziel, ein Bild so zu modifizieren, dass es für das menschliche Auge noch immer zur entsprechenden Klasse gehört,für das Neuronale Netzwerk aber so schwierig zu klassifizieren ist, dass sich das Netzwerk mehr auf den Auslöser anstatt auf das gesamte Bild verlässt.\\
-	Mit einem weiteren Neuronalen Netzwerk werden die Bilder zunächst so verändert, dass es diesem Netzwerk schwer fällt, diese richtig zu klassifizieren. Anschließend wird wieder ein Auslöser eingefügt. Im Idealfall sind sowohl die Veränderung durch das weitere Netzwerk als auch der eingefügte Auslöser für das menschliche Auge unmöglich zu erkennen.\\
+	Bei den vorheringen Standard-Angriffen war es der Fall, dass das Label und das entsprechende Bild nicht mehr zusammenpassen. Ein händisches Durchsuchen des Datensatz (wenn auch sehr aufwendig) könnte damit ebenfalls zur Detektion eines Angriffs führen.\\
+	Eine deutlich schwieriger zu detektierende Art von Poisoning-Angriffen sind sogenannte Label-konsistente Angriffe, bei denen genau diese Schwachstelle eliminiert ist, d.h. Label und Bild passen wieder zueinander, während der Angriff noch immer erfolgreich funktioniert. Es ist das Ziel, ein Bild zunächst so zu modifizieren, dass es für das menschliche Auge noch immer zur entsprechenden Klasse gehört,für das Neuronale Netzwerk aber so schwierig zu klassifizieren ist, dass sich das Netzwerk eher auf den Auslöser anstatt auf das ursprüngliche Bild verlässt. Im Anschluss wird wieder ein Auslöser eingefügt.\\
+		
+	In \cite{labelconsistent} werden zwei Verfahren vorgestellt, die die Klassifikation einzelner Bilder erschweren. Das erste Verfahren besteht aus einer Einbettung in einen niedrig-dimensionalen Raum, das auch bei Autoencodern, etc. verwendet wird TODO.
 	
-	In \cite{labelconsistent} werden zwei Verfahren vorgestellt, die die Klassifikation von einzelnen Bilder erschweren. Das erste Verfahren besteht aus einer Einbettung in einen niedrig-dimensionalen Raum.
-	Beim zweiten Verfahren wird ein sogenannte Projizierter Gradient-Abstieg-Angriff durchgeführt.
+	Beim zweiten Verfahren wird ein sogenannte Projizierter Gradienten-Abstieg-Angriff durchgeführt.\\
+	Dabei wird ein Adversarialer Angriff in leicht abgewandelter Form genutzt, um das Netzwerk zu stören. Bei Adversarialen Angriffen wird ein Netzwerk im Unterschied zum Poisoning-Angriff, bei dem der Angriff während des Trainings stattfindet, nach dem Training angegriffen. Dazu wird eine natürliche Netzwerkeingabe leicht gestört, sodass diese vom Netzwerk falsch klassifiziert wird. Diese Störungen lassen sich auch von einer Architektur oder sogar einem Modell auf andere übertragen \cite{szegedy2013intriguing, papernot2016transferability}.
+	%TODO: Unterschied zw. Klassifizierung und Klassifikation
+	Für diese Art von Angriff werden die adversarialen Angriffe und ihre leichte Übertragbarkeit auf andere Architekturen und Modelle so benutzt, dass es bereits während des Trainings zu falschen Klassifikationen kommt.\\
+	Für unser erstes trainiertes Netzwerk $f_\theta$ mit Verlustfunktion $\mathcal{L}$ und einem Eingabe-Paar $(x,y)$, konstruieren wir die modifzierte Version von $x$ als
+	\begin{equation}
+		x_{adv} = \argmax_{||x'-x||_p \leq \varepsilon}{\mathcal{L}(x',y,\theta},
+	\end{equation}
 	
+	für $p >1 $ und $\varepsilon > 0$. Dieses Optimierungsproblem wir mit einem Projizierten Gradienten-Verfahren \cite{madry2017towards}. Details dazu finden sich in \autoref{param_attacks}. Im Unterschied zu \cite{labelconsistent} ändern wir nur Bilder im Datensatz ab und fügen nicht zusätzlich zum Original $x$ auch $x_{adv}$ hinzu. Damit ändert sich die Anzahl an Datenpunkten durch den Angriff nicht.
 	
+	Für das anschließende Einfügen des Auslöser ergeben sich die folgenden Optionen:
+	\begin{itemize}
+		\item Der im Standard-Angriff verwendete Sticker
+		\item Ein Amplitudensticker: Dabei wird im rechten unteren Eck des Bildes ein 
+		\item Amplitudensticker 4 fach
+		\item In die Mitte verschobene Amplitudensticker
+	\end{itemize}
+	RGB auf jedem Kanal in der range von [0,255]
+	0 entspricht weiß, 255=schwarz
 	Da die zweite Möglichkeit als deutlich erfolgreicher angegeben wird, beschränken wir uns auf diese Angriffe basierend auf einem Projizierten Gradienten-Abstieg.
+	amp=16,32,64,255
+	Wir gehen zunächst davon aus, dass der Angreifer volle Kontrolle über den Datensatz und das Netzwerk besitzt.TODO: Angriff mit einem andere Netzwerk erstellen, als das angegriffene
 	
 	\subsection{Bewertung von Poisoning-Angriffen}
+	
+	Wann ist ein Angriff erfolgreich?\\
 	Im Trainingsdatensatz werden im Fall des Standard-Angriffs alle Bilder mit dem Sticker versehen. Die Angriffserfolgsrate beschreibt nun den Anteil an Bildern der attackierten Klasse, die erfolgreich falsch klassifiziert wurden.\\
 	
-	Für die Label-konsistenten Angriffe werden im Test-Datensatz alle Bilder mit dem enstprechenden Auslöser versehen und es kann eine Erfolgsrate pro Klasse berechnet werden. Es ist zu beachten, dass für Angriffe, die mit einer reduzierten Amplitudenstärke durchgeführt werden, die Bilder im Test-Datensatz dennoch mit Auslösern mit voller Amplitudenstärke versehen werden. 
+	Für die Label-konsistenten Angriffe werden im Test-Datensatz alle Bilder mit dem entsprechenden Auslöser versehen und es kann eine Erfolgsrate pro Klasse berechnet werden. Es ist zu beachten, dass für Angriffe, die mit einer reduzierten Amplitudenstärke durchgeführt werden, die Bilder im Test-Datensatz dennoch mit Auslösern mit voller Amplitudenstärke versehen werden. 
 	
 	\subsection{Verteidigungen}
-	Warum funktioniert Activation-Clustering hier nur schlecht oder gar nicht?: Wenn wir einen korrumpierten Trainingsdatensatz gegeben haben, gilt im Fall des Standard-Angriffs folgender Sachverhalt: Die angegriffene Klasse, die Klasse in der samples eingefügt wurden, besitzt die eine Gruppe an Bildern, die zu einer Aktivierung von einer anderen Klasse führen sollten, und die Gruppe an Bildern, die zu dieser Klasse gehören und zur Aktivierung genau dieser Klasse führen sollte.\\
+	In diesem Kapitel beschäftigen wir uns mit gängigen Methoden zur Detektion von Poisoning-Attacks und geben am Ende einen kurzen Ausblick auf die Idee für einen neuen Ansatz.
+	Wir wollen beide Arten von Poisoning-Angriffen erfolgreich detektieren. 
+	
+	\subsubsection{Referenzwert: kMeans(k=2)}
+	Der einfachste Ansatz, um korrumpierte Datenpunkte zu erkennen, ist ein kMeans-Clustering, das direkt(bzw. nach einer Dimensionsreduktion) auf den Eingabedaten einer Klasse durchgeführt wird. Hierbei war auffällig, dass der Großteil der Daten als korrumpiert klassifiziert wurde. Für die Dimensionsreduktionen FastICA und PCA ergab sich eine Genauigkeit von etwa $66 \%$. Die FPR lag bei über 70 \%, die TPR bei ca. $50 \%$.
+	Dieser Referenzwert w@article{szegedy2013intriguing,
+		title={Intriguing properties of neural networks},
+		author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+		journal={arXiv preprint arXiv:1312.6199},
+		year={2013}
+	}
+	urde für einen Sticker mit Seitenlänge 3 und $15 \%$ korrumpierten Daten durchgeführt.
+	\subsubsection{Activation Clustering}
+	
+	
+		Nehme Datensatz her
+		Beim Standardangriff wollen wir Klasse 5 als Klasse 8 klassifzieren und fügen dazu Sticker der  
+		
+		
+		Diese Idee der Verteidigung basiert auf der Annahme, dass bestimmte Schichten innerhalb des Netzwerkes die Entscheidung, dass ein Bild mit einem Auslöser falsch klassifiziert wird, sehr gut codieren. Für die Detektion der Hintertüren im Datensatz sollen nun genau diese Aktivierungen für ein Clustering herangezogen werden.
+		Das Activation Clustering wird erstmalig in \cite{AC} vorgestellt und nutzt aufgrund experimenteller Untersuchungen stets die Aktivierungen der vorletzten Netzwerkschicht.
+		Eine Kombination von Aktivierungen mehrere Schichten wäre ebenfalls denkbar.
+				
+		Ein Angriff ist erfolgreich, wenn eine große Anzahl an Datenpunkten der Ur-
+		sprungsklasse, versehen mit einem Auslöser, der Zielklasse zugeordnet werden.
+		Im Falle eines erfolgreichen Angriffs werden korrumpierte und nicht korrumpier-
+		te Datenpunkte im Trainingsdatensatz derselben Klasse zugeordnet. Der Grund
+		weshalb diese derselben Klasse zugeordnet werden, unterscheidet sich jedoch.
+		Beim Activation Clustering wird nun angenommen, dass pro Klasse entweder
+		korrumpierte und nicht korrumpierte Datenpunkte oder nur nicht korrumpierte
+		Datenpunkte existieren. Deshalb werden die Aktivierungen der letzten verdeck-
+		ten Schicht des Netzwerkes aus dem Netz extrahiert, nach ihren zugehörigen
+		Klassen der Labels segmentiert, auf 10 Dimensionen reduziert und anschließend
+		mit Hilfe des kMeans-Algorithmus geclustert. Das kleinere Cluster wird immer
+		als der Anteil an verdächtigen Datenpunkten betrachtet. Die Idee ist es, dass
+		die korrumpierten Datenpunkte, sofern welche existieren, alle in die eine und
+		die nicht korrumpierten Datenpunkte in das andere Cluster aufgeteilt werden.
+		Sind keine korrumpierten Datenpunkte vorhanden, so sollen beide Cluster un-
+		gefähr dieselbe Anzahl an Datenpunkten erhalten.\\
+		
+		Wir werten die Qualität des Clusterings anschließend aus. Als Detektionsrate
+		beschreiben wir die Genauigkeit des Clusterings auf den Trainingsdaten.
+		
+		Im folgenden Abschnitt werden Methoden vorgestellt, mit denen das resultierende Clustering auf die präsenz eines Angriffs untersucht werden kann. Dies ist notwendig, da in der Praxis ein Angriff zunächst erkannt und anschließend die korrumpierten Datenpunkte entfernt werden müssen. 
+		
+		\begin{remark}
+			Das SPA benutz die Idee das innerhalb einer Klasse bezüglich unterschiedlicher Aktivierungen klassifiziert werden kann. Beim CLPA funktioniert das nicht mehr, denn: Hier passen jetzt auch die Aktivierungen der korrumpierten Bilder zur entsprechenden/untersuchten Klasse. Es ist also zu erwarten, dass das AC für CLPA nicht funktioniert.
+		\end{remark}
+		
+		
+		\subsubsection{Methoden zur Untersuchung, ob ein Angriff vorliegt}
+		\#TODO: Vergleich mit Fisher-Discriminant-Anaylsis/Ansatz in \cite{imagenet_unhansed_v1}
+		Zur
+		Bestimmung, ob eine Klasse korrumpierte Daten enthält, kann das Ergebnis
+		des Clusterings mit den folgenden Methoden untersucht werden:\\
+		
+		\noindent \textbf@article{szegedy2013intriguing,
+			title={Intriguing properties of neural networks},
+			author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+			journal={arXiv preprint arXiv:1312.6199},
+			year={2013}
+		}
+		{Vergleich der relativen Größe:} Eine Möglichkeit, korrumpierte Datenpunkte
+		zu erkennen, ist der Vergleich der relativen Größen der beiden Cluster. Laut [2]
+		ist die relative Größe bei nicht korrumpierten Klassen ca. 50 Prozent, bei kor-
+		rumpierten Daten und einem erfolgreichen Clustering würde die relative Größe
+		dann dem prozentualen Anteil an korrumpierten Datenpunkten entsprechen.\\
+		
+		\noindent \textbf{Silhouette-Koeffizient:} Eine weitere Möglichkeit besteht darin, die Qualität
+		des Clusterings mit Hilfe des Silhouette-Koeffizienten zu beschreiben. Dieser gibt
+		an, wie gut ein Clustering zu den gegebenen Datenpunkten mit den entsprechen-
+		den Labeln passt und ist wie folgt definiert: Sei das Ergebnis eines Clustering-
+		Algorithmus mit verschiedenen Clustern gegeben. Zu einer Beobachtung $x$ im Cluster $A$ wir die Silhouette $s(x) = \frac{d(B,x)-d(A,x)}{max\lbrace d(A,x), d(B,x) \rbrace}$ definiert, wobei $d(A,x)  = \frac{1}{n_A -1}\sum_{a \in A, a \neq x}{d(a,x)}$ dem mittleren Abstand einer Beobachtung innerhalb einer Klasse zu allen anderen Beobachtungen dieser Klasse entspricht.
+		Dabei steht $n_A$ für die Anzahl der Beobachtungen in Cluster A. $d(B,x) = \min_{C \neq A}d(C,x)$ beschreibt die Distanz von $x$ zum nächstgelegenen Cluster B. Der Silhouetten-Koeffizient $SC$ ist nun definiert als
+		\begin{equation}
+			SC = \max_k \tilde{s}(k),
+		\end{equation}
+		wobei $\tilde{s}(k)$ der Mittelwert der Silhoutten aller Datenpunkte im gesamten Datensatz ist. Damit ist der Silhouttenkoeffizient ein Maß dafür, wie gut ein Clustering für eine vorher fixierte Clusteranzahl $k$ zum Datensatz passt.\\
+		
+		\noindent \textbf{Exklusives Retraining:} Beim exklusiven Retraining wird das neuronale Netz
+		von Grund auf neu trainiert. Das oder die verdächtigen Cluster werden beim
+		erneuten Training nicht benutzt. Mit Hilfe des neu trainierten Netzes wer-
+		den dann anschließend die vorenthaltenen, verdächtigen Cluster klassifiziert.
+		Falls das Cluster Aktivierungen von Datenpunkten enthält, die zum Label des
+		Datenpunktes gehören, erwarten wir, dass die Vorhersage des Netzwerks mit
+		dem Label übereinstimmen. Gehören die Aktivierungen eines Datenpunktes im
+		verdächtigen Cluster jedoch zu einer anderen Klasse als die durch das Label
+		angedeutete Klasse, so sollte das Netzwerk den Datenpunkt einer anderen Klas-
+		se zuordnen. Um nun zu entscheiden, ob ein verdächtiges Cluster korrumpiert
+		oder nicht korrumpiert ist, wird wie folgt vorgegangen: Sei $l$ die Anzahl an Vor-
+		hersagen, die zum Label des Datenpunktes passen. Sei $p$ die größte Anzahl an
+		Vorhersagen, die für eine weitere Klasse $C$ sprechen, wobei $C$ nicht die Klas-
+		se mit den Labeln des zu untersuchenden Clusters ist. Der Quotient $\frac{l}{p}$ gibt
+		dann an, ob das Cluster korrumpiert ist oder nicht: Es wird ein Schwellenwert
+		$T > 0$ gesetzt. Gilt $\frac{l}{p} < T$ , wurden mehr Datenpunkte einer anderen Klasse zu-
+		geordnet und das Cluster wird als korrumpiert deklariert. Umgekehrt wird das
+		verdächtige Cluster im Fall von $\frac{l}{p} > T$ als nicht korrumpiert/sauber eingestuft.
+		@article{szegedy2013intriguing,
+			title={Intriguing properties of neural networks},
+			author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+			journal={arXiv preprint arXiv:1312.6199},
+			year={2013}
+		}
+		
+		\subsubsection{Entfernen von korrumpierten Datenpunkten}
+	
+	\noindent \textbf{AC für Label-konistente Poisoning-Angriffe:} Warum funktioniert Activation-Clustering hier nur schlecht oder gar nicht?: Wenn wir einen korrumpierten Trainingsdatensatz gegeben haben, gilt im Fall des Standard-Angriffs folgender Sachverhalt: Die angegriffene Klasse, die Klasse in der samples eingefügt wurden, besitzt die eine Gruppe an Bildern, die zu einer Aktivierung von einer anderen Klasse führen sollten, und die Gruppe an Bildern, die zu dieser Klasse gehören und zur Aktivierung genau dieser Klasse führen sollte.\\
 	Im Fall des Label-konsistenten Poisoning-Angriffs, werden nun keine Label mehr getauscht, d.h. Bilder von der einen in die andere Klasse verschoben. Damit können die beiden Gruppen (korrumpiert, sauber) innerhalb einer Klasse nicht mehr anhand ihrer Aktivierungen unterschieden werden.\\
 	Trotzdem ergibt sich ein Ansatz daraus, dass es innerhalb dieser Klasse verschiedene \glqq Strategien\grqq{}  gibt, die zur selben Klassifikation führen. Mithilfe des kmeans-Clustering basierend auf den Heatmaps sollen genau diese Strategien ausfindig gemacht werden, um die Bilder in korrumpiert und sauber zu unterteilen.
+	
+	\subsubsection{Heatmap Clustering}
+	Im Unterschied zum Activation Clustering, bei dem die Aktivierungen der vorletzten Netzwerk-Schicht verwendet werden, ist nun hier die Idee, zu jedem Eingabebild eine Relevanzkarte zu erstellen, die für jeden Pixelpunkt angibt, wie wichtig dieser für die Klassifikation dieses Bildes ist. \\
+	
+	Für das Erstellen/Berechnen solcher Relevanzkarten/Heatmaps existieren mehrere Methoden, die zusammengefasst dem Bereich der Erklärbaren KI zugeordnet werden.
+	Im folgenden Kaptiel wollen wir einen kurzen Überblick über verschiedene Methoden geben.
+	
+	
 	\section{Erklärbare KI} \label{chapter_xai}
 	
 	Erklärbarkeit vs. Interpretierbarkeit, youtube talk?!
@@ -634,7 +795,7 @@
 		\caption{(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap.}
 		\label{vergleich_original_lrp}
 	\end{figure}
-	\subsection{Implementierung}
+	\subsection{Implementierungen}
 	
 	\subsubsection{Tensorflow}
 	\subsubsection{pytorch}
@@ -1051,7 +1212,7 @@
 		$L_C(\boldsymbol{a}, \boldsymbol{b}):= \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{P}, \boldsymbol{C} \rangle - \varepsilon \boldsymbol{H}(\boldsymbol{P})$\label{eq:reg_problem}
 		
 		ist ein $\varepsilon$-streng konvexes Problem und besitzt deshalb eine eindeutige optimale Lösung
-		
+		test
 	\end{lemma}
 	
 	\begin{proof}
@@ -1262,7 +1423,7 @@
 		T \leftarrow \mathcal{T}(\mathcal{L} (C, \bar{C}) \otimes T,p,q). \label{simple_iteration}
 		\end{equation}
 	\end{proposition}
-	
+% TODO: Hier in Prop 2kommt wohl noch der Faktor 2 rein: vgl. POT Implementerung
 	\begin{proof}
 		Nach \cite{iterative_bregman_projections} ist die Projektion in \ref{iteration_projection} gegeben durch die Lösung des regularisirten Transportproblems \ref{eq:reg_problem} und ist damit gegeben durch:
 		\begin{equation}
@@ -1273,6 +1434,7 @@
 		\begin{equation}
 		\nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T) = blub
 		\end{equation}
+		Durch Umordnen der Terme in \autoref{iteration_projection} erhalten wir für $\tau \varepsilon = 1$ die angegebene Vorschrift.
 	\end{proof}
 	
 	\begin{remark}
@@ -1280,7 +1442,8 @@
 	\end{remark}
 	
 	\begin{remark}[Konvergenz]
-		
+		Die Iterationen \autoref{iteration_projection} konvergieren nach \cite{boct2016inertial} für $\tau < \tau_{max}$. Im Allgemeinen gilt jedoch $1/\varepsilon < \tau_{max}$ jedoch nicht, womit die Wahl der Schrittweite $\tau = 1 $ in \autoref{prop:iteration_GW_eps} nicht durch die Theorie abgedeckt ist. Laut \cite{gwd_averaging_kernels} konvergiert die Iteration mit $\tau = 1/\varepsilon$ jedoch in der Praxis.\\
+		Für den Fall $L=L_2$ ergibt sich der \glqq \textit{Softassign quadratic assignment algorithm} \glqq{} \cite{rangarajan1999convergence}, für welchen ein Konvergenzresultat im Fall eines konvexen Problems existiert. Da wir in unserem Fall nur positive symmetrische Matrizen $C,C_s$ betrachten ist hier die Konvergenz gesichert.
 	\end{remark}
 	
 	
@@ -1470,29 +1633,49 @@
 	%: Warum gibts bei den beiden oberen Auswertungen %einen Unterschied?
 	
 	\begin{table}[ht]
-		
-		
 		\begin{center}
-			\begin{tabular}{|l|c|c|ccc|}
+		\resizebox{\textwidth}{!}{
+		
+		
+			\begin{tabular}{|l|c|c|ccc|ccc|c|}
 				\hline
-				Seitenlänge s& Prozentualer & AER   & &Detektionsrate & \\
-				des Triggers & Anteil& & ACC & TPR & TNR   \\\hline
-				s=2 & 0.000625 & 0.01333333  & &&   \\
-				& 0.00125 & 0.356  &  &&   \\
-				& 0.0025 & 0.576 & &&   \\
-				& 0.005 & 0.99867 & &&   \\
-				& 0.01 & 0.92 & &&   \\
-				& 0.02 & 1.0 & &&  \\ 
-				& 0.10 & 1.0 & &&  \\ 
-				& 0.33 & 1.0 & 98.17 & 96.98 & 98.91  \\ \hline
-				s=3 & 0.05 & 1.0 &   && \\ 
-				& 0.15 & 1.0 &  && \\ \hline
-				s=1 & 0.33 & 1.0 &   && \\ \hline
-			\end{tabular}
+				Seitenlänge s	& Prozentualer 	& AER  		& 		&	DR 			& 		& 		& DR 	& 		& Clustering HC \\
+				des Triggers 	& Anteil 		& 			& 		&	(HC) 		& 		& 		& (AC,PCA)	& 		&				\\
+				 				& 				& 			& ACC 	& 	TPR 		& TNR  	& ACC 	& TPR 	& TNR 	& 	\\\hline
+				s=2 			& 0.000625 		& 0.01333333&  		& 				&		&		&		&   	&	\\
+								& 0.00125 		& 0.356 	&  		&				&		&		&		&   	&		\\
+								& 0.0025 		& 0.576 	& 		&				&		&		&		&   	&		\\
+								& 0.005 		& 0.99867 	& 		&				&		&		&		&		&   \\
+								& 0.01 			& 0.92 		&		&				&		&		&		&		&		   \\
+								
+								& 0.02 			& 1.0 		& 		& 				&  		&51.9	&2.94	&52.91	&	\\ 
+								& 5.00 			& 100.00	&		&				&		&59.47	&100.00	&57.33	&		   \\
+								& 10.00			& 1.0 		& 		&		 		& 		& 45.77	& 1.09	& 50.73	&  \\ 
+								& 15.00			&			& 100.00& 100.00		& 100.00&81.97	& 95.87	&79.51	& (tn, fp, fn, tp): 1650,0,0,291 it3 \\
+					(eps5e-4)	& 0.33 			& 1.0 		& 98.17 & 96.98			& 98.91 &99.23	&97.66	&100.00	& (tn, fp, fn, tp): 1632,18,27,786 it5\\ 
+					eps0.02		&				&			& 100.00&	100.00		&100.00	&		&		&		& (tn, fp, fn, tp): 1650,0,0,813 it3\\	\hline	
+				s=3 			& 0.05 			& 1.0 		&   	&				&		&		&	 	&		& \\ 
+						
+								& 0.15 			& 1.0 		&  		& 				&  		&		&		&		&\\ \hline
+				s=1 			& 0.33 			& 1.0 		&   	&				&		& 		&		&		& \\ \hline
+			\end{tabular}}
 			\caption{Qualität der Detektion unterschiedlich starker Angriffe mithilfe von LRP-Clustering(?) und Gromov-Wasserstein-Distanzen}
 			\label{tab:SPA_def_inv3_gwclustering}	
 		\end{center}
 	\end{table}
+ACC: 51.9
+TPR:  2.94
+TNR:  52.91
+ACC: 52.02
+TPR:  8.82
+TNR:  52.91
+ACC: 51.72
+TPR:  0.0
+TNR:  52.79
+
+	10 Prozent: ACC: 45.77
+	TPR:  1.09
+	TNR:  50.73
 	\newpage
 	\noindent \textbf{Mo, 2.August:}\\
 	s=2\\
@@ -1507,7 +1690,17 @@
 	iter: 4:	(tn, fp, fn, tp): 1632,18,27,786\\
 	\\
 	acc = 98.17\\
-	tpr = 96.98\\
+	tpr = 96.98\\0.11666667 0.23055556 0.26       0.55333333 0.43333333        nan
+	0.23333333 0.28444444 0.11555556 0.07708333 0.15       0.0952381
+	0.4173913  0.41527778 0.40740741 0.45238095 0.01333333 0.35833333
+	0.29487179 0.         0.         0.04444444 0.05       0.01333333
+	0.4        0.29791667 0.13888889 0.23333333 0.11333333 0.3
+	0.06       0.02962963 0.11666667 0.65714286 0.475      0.71794872
+	0.50833333 0.43333333 0.35652174 0.45555556 0.27777778 0.
+	0.51111111]
+	Performance of poisoned net on unpoisoned training data:
+	loss on test dataset: 0.19637071904851583
+	Accuracy on test Dataset: 0.958 
 	tnr = 98.91\\
 	
 	
@@ -1524,6 +1717,16 @@
 	acc = 100.00\\
 	tpr = 100.00\\
 	tnr = 100.00\\
+	
+	\noindent \textbf{Do, 5.August}
+	Das ist der Vergleich zu dem Experiment am Montag mit eps=0.0005. Das Ergebnis ist deutlich besser(denn perfekt).Daraus schließen wir, dass eps=0.02 für die restlichen Experimente genügen sollte. (Stimmt so vll nicht ganz)
+	
+	eps\_init: 0.02\\
+	eps\_update: 0.02\\
+	n\_samples\_bary: 10\\
+	iter: 0: (tn, fp, fn, tp): 1650,0,812,1\\
+	iter: 1: (tn, fp, fn, tp): 1650,0,0,813\\
+	iter: 2: (tn, fp, fn, tp): 1650,0,0,813\\
 	
 	\newpage
 	\noindent \textbf{Spektralanalyse:}
@@ -1591,7 +1794,7 @@
 			\label{tab:SPA_incv3}	
 		\end{center}
 	\end{table}
-
+	
 	\begin{remark}
 		Für größere Netzwerke ist es einfacher, erfolgreiche Angriffe zu implementieren, auch schon mit weniger korrumpierten Daten.\\
 		Vermutung: Die Detektion mittels Clustering funktioniert für eine größere Anzahl an korrumpierten Daten besser. Wenn wir also nur perfekte Angriffe verteidigen wollen, d.h AER=100.00 funktioniert das bei kleineren Netzwerken besser.
@@ -1616,6 +1819,87 @@
 			\label{errors_testproblem1}
 		\end{center}
 	\end{table}
+	
+	\begin{remark}
+		Für einen einzelnen Amplitudensticker mit d=10 ist das eigentlich identisch zu dem Angriff mit dem Sticker
+	\end{remark}
+	0.7        0.86111111 0.85066667 0.81111111 0.66666667        nan
+	0.42       0.72888889 0.60888889 0.77083333 0.40757576 0.46666667
+	0.69855072 0.88472222 0.53333333 0.74285714 0.39333333 0.67222222
+	0.75128205 0.11666667 0.58888889 0.32222222 0.425      0.18
+	0.44444444 0.44375    0.8        0.71666667 0.56       0.86666667
+	0.11333333 0.3        0.71666667 0.5047619  0.23333333 0.44358974
+	0.63333333 0.58333333 0.46666667 0.01111111 0.5        0.36666667
+	0.67777778
+	$CLP\_amplitudesticker4\_pp33\_eps1200\_d10amp32$
+	Jetzt dasselbe noch für nur !!!einen!!! Sticker mit derselben Amplitude am selben Ort
+	$'CLP_amplitudesticker_pp33_eps1200_d10amp32'$
+	[0.         0.00833333 0.00133333 0.03555556 0.01666667        nan
+	0.         0.         0.00222222 0.         0.         0.
+	0.05362319 0.00138889 0.0037037  0.         0.         0.025
+	0.         0.         0.         0.         0.         0.
+	0.         0.         0.         0.05       0.         0.
+	0.         0.         0.         0.         0.         0.00512821
+	0.         0.         0.         0.         0.         0.
+	0.        ]
+	
+	Dann noch mit amp=16 wieder 4 sticker mit d=10
+	$CLP_amplitudesticker4_pp33_eps1200_d10amp16$
+	0.11666667 0.23055556 0.26       0.55333333 0.43333333        nan
+	0.23333333 0.28444444 0.11555556 0.07708333 0.15       0.0952381
+	0.4173913  0.41527778 0.40740741 0.45238095 0.01333333 0.35833333
+	0.29487179 0.         0.         0.04444444 0.05       0.01333333
+	0.4        0.29791667 0.13888889 0.23333333 0.11333333 0.3
+	0.06       0.02962963 0.11666667 0.65714286 0.475      0.71794872
+	0.50833333 0.43333333 0.35652174 0.45555556 0.27777778 0.
+	0.51111111
+	Accuracy on test Dataset: 0.958 
+	
+	Jetzt: $CLP_amplitudesticker4_pp33_eps1200_d10amp255$
+	0.71666667 0.78333333 0.80266667 0.99333333 0.9469697         nan
+	0.96       0.97555556 0.98444444 1.         1.         0.25714286
+	0.98985507 0.86111111 0.94444444 0.99047619 0.91333333 0.51666667
+	0.84871795 0.86666667 0.52222222 0.57777778 0.75       0.67333333
+	0.95555556 0.725      0.98888889 0.88333333 0.45333333 0.82222222
+	0.81333333 1.         0.98333333 0.4952381  0.26666667 0.92820513
+	0.63333333 0.81666667 0.77681159 0.33333333 0.74444444 0.91666667
+	0.83333333
+	Accuracy on test Dataset: 0.959 
+	
+	$CLP_amplitudesticker4_pp33_dist10_amp64$ eps300
+	[0.8        0.98888889 0.99733333 1.         1.                nan
+	1.         1.         0.99555556 0.97916667 0.99545455 0.8047619
+	1.         0.99861111 0.92222222 1.         0.99333333 0.98888889
+	0.98717949 0.93333333 0.86666667 0.93333333 0.975      0.83333333
+	0.96666667 0.93958333 1.         1.         0.98       1.
+	0.98       0.97777778 1.         0.92380952 0.55       0.93076923
+	0.70833333 0.85       0.82173913 1.         0.8        1.
+	1.        
+	
+	$CLP_amplitudesticker4_pp33_dist10_amp32$
+	0.7        0.86111111 0.85066667 0.81111111 0.66666667        nan
+	0.42       0.72888889 0.60888889 0.77083333 0.40757576 0.46666667
+	0.69855072 0.88472222 0.53333333 0.74285714 0.39333333 0.67222222
+	0.75128205 0.11666667 0.58888889 0.32222222 0.425      0.18
+	0.44444444 0.44375    0.8        0.71666667 0.56       0.86666667
+	0.11333333 0.3        0.71666667 0.5047619  0.23333333 0.44358974
+	0.63333333 0.58333333 0.46666667 0.01111111 0.5        0.36666667
+	0.67777778
+	Accuracy on test Dataset: 0.959 
+	
+	
+	$CLP_amplitudesticker4_pp33_dist10_amp16$
+	0.11666667 0.23055556 0.26       0.55333333 0.43333333        nan
+	0.23333333 0.28444444 0.11555556 0.07708333 0.15       0.0952381
+	0.4173913  0.41527778 0.40740741 0.45238095 0.01333333 0.35833333
+	0.29487179 0.         0.         0.04444444 0.05       0.01333333
+	0.4        0.29791667 0.13888889 0.23333333 0.11333333 0.3
+	0.06       0.02962963 0.11666667 0.65714286 0.475      0.71794872
+	0.50833333 0.43333333 0.35652174 0.45555556 0.27777778 0.
+	0.51111111]
+	Performance of poisoned net on unpoisoned training data:
+	loss on test dataset: 0.19637071904851583
+	Accuracy on test Dataset: 0.958 
 	
 	\begin{figure}[h]
 		\begin{center}
@@ -1827,7 +2111,7 @@
 	
 	[Cat()]]]
 	\end{lstlisting}
-	\section{Parameter für Training und Einlesen der Daten}
+	\section{Parameter für Training und Einlesen der Daten}\label{param_net}
 	Die in \cite{CH} gewählten Parameter wären ein guter Ausgangspunkt.\\
 	Für das Einlesen der Daten benutzen wir, sofern nicht weiter angegeben die folgenden Augmentierungen:
 	
@@ -1851,6 +2135,11 @@
 	\end{lstlisting}
 	Die Werte von mean und std variieren für alle ausgeführten Poisoning-Angriffe. Anstatt beide jedes Mal erneut zu berechnen, verwenden wir die von pytorch angegebenen Werte \footnote{\url{https://github.com/pytorch/examples/blob/97304e232807082c2e7b54c597615dc0ad8f6173/imagenet/main.py\#L197-L198}}, die für die vor-trainierten Modelle empfohlen werden und auf dem Datensatz ImageNet\footnote{\url{https://image-net.org/}} basieren.\\ 
 	Wir trainieren die Netzwerke über maximal 100 Epochen und benutzen \textit{early stopping} mit einer $patience=20$. Die verwendete Implementierung ist eine modifizierte Version von Bjarte Mehus Sunde \footnote{\url{https://github.com/Bjarten/early-stopping-pytorch}}, die wiederum auf PyTorch Ignite\footnote{\url{https://github.com/pytorch/ignite/blob/master/ignite/handlers/early\_stopping.pyt}} basiert.\\
+	
+	\section{Parameter für die ausgeführten Angriffe}\label{param_attacks}
+	Für das projizierte Gradientenverfahren benutzen wir 10 Iterationen und eine Schrittweite von 0.015.
+	
+	\textbf{Label-konsistente Poisoning-Angriffe:}
 	\section{Datensätze}
 	GTSRB\footnote{\url{https://benchmark.ini.rub.de/gtsrb_dataset.html}}
 	Datensatz Splitting (Train; Val, test)
@@ -1864,7 +2153,8 @@
 	%\verbatiminput{InceptionNet3layout.txt}
 	\section{Notizen}
 	registered spaces \footnote{\url{https://arxiv.org/pdf/1809.06422.pdf}}
-	Barycenters in the Wasserstein Space\footnote{\url{https://arxiv.org/pdf/1809.06422.pdf}}
+	Barycenters in the Wasserstein Space\footnote{\url{https://arxiv.org/pdf/1809.06422.pdf}}\\
+	Was passiert bei der Kombination von 2 verschiedenen Triggern? Einmal keine Überlappung(d.h. 2verschiedene Trigger auf dem selben Bild) vs. auch beide Trigger auf einem Bild ist zulässig.
 	\newpage
 	
 	\printglossaries
