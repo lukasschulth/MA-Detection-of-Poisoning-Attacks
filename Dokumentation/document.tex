@@ -1485,7 +1485,7 @@
 				& 0.02 & 1.0 & &&  \\ 
 				& 0.10 & 1.0 & &&  \\ 
 				& 0.33 & 1.0 & 98.17 & 96.98 & 98.91  \\ \hline
-				s=3 & ? & ? & ?  && \\ 
+				s=3 & 0.05 & 1.0 &   && \\ 
 				& 0.15 & 1.0 &  && \\ \hline
 				s=1 & 0.33 & 1.0 &   && \\ \hline
 			\end{tabular}
@@ -1578,7 +1578,12 @@
 				& 0.10 & 1.0 & 0.968 & 291\\
 				& 0.15 & 1.0 & 0.968 & 436 \\ 
 				& 0.33 & 1.0 & 0.968 & 813 \\ \hline
-				s=3 & ? & ? & ? &? \\ 
+				s=3 & ? & ? & ? &? \\
+				& 0.00125 & 34.26 & 96.2 & 2\\
+				& 0.0025 & 85.07 & 96.5 & 4\\
+				& 0.005	&1.0&96.9& 8 \\ 
+				& 0.01 & 1.0 & 0.962& 17 \\
+				& 0.05 & 1.0 & 0.966 & 87 \\
 				& 0.15 & 1.0 & 0.961& \\ \hline
 				s=1 & 0.33 & 1.0 & 0.966 & 813 \\ \hline
 			\end{tabular}
@@ -1586,6 +1591,11 @@
 			\label{tab:SPA_incv3}	
 		\end{center}
 	\end{table}
+
+	\begin{remark}
+		Für größere Netzwerke ist es einfacher, erfolgreiche Angriffe zu implementieren, auch schon mit weniger korrumpierten Daten.\\
+		Vermutung: Die Detektion mittels Clustering funktioniert für eine größere Anzahl an korrumpierten Daten besser. Wenn wir also nur perfekte Angriffe verteidigen wollen, d.h AER=100.00 funktioniert das bei kleineren Netzwerken besser.
+	\end{remark}
 	\subsubsection{Label-konsistente Poisoning-Angriffe}
 	\begin{table}[h]
 		\begin{center}
