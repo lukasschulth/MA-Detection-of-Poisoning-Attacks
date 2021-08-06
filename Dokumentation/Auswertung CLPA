@@ -1,0 +1,200 @@
+
+####
+ Hier wurde jetzt immer mit einem einfach conv Netz das Inceptionv3 Netz angegriffen
+amplitude=amplitude
+PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=0.33)
+
+
+=> Did save Model - CLPA_incV3_amplitude_pp33 - at epoch: 61
+=>	[61] loss: 0.048, accuracy: 98.807%
+EarlyStopping counter: 20 out of 20
+Early stopping
+=>	FINISHED TRAINING
+loss on test dataset: 0.22408122457195978
+Accuracy of test Dataset: 0.971 
+
+BDSR classwise:
+[0.         0.         0.00133333 0.02222222 0.                nan
+ 0.00666667 0.         0.         0.         0.         0.
+ 0.         0.         0.         0.         0.         0.
+ 0.         0.         0.         0.         0.         0.
+ 0.         0.         0.         0.48333333 0.         0.
+ 0.         0.         0.         0.         0.         0.
+ 0.         0.         0.         0.         0.         0.
+ 0.        ]
+Performance of poisoned net on unpoisoned training data:
+loss on test dataset: 0.2304986055642277
+Accuracy on test Dataset: 0.96 
+
+
+
+\section{TODO:}
+	\begin{itemize}
+		\item Pweave \footnote{\url{https://mpastell.com/pweave/}}
+	\end{itemize}
+
+
+
+
+
+#### CLPA mit Sticker und 33Prozent
+PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=0.33, insert='sticker')
+
+=>	[39] loss: 0.060, accuracy: 98.414%
+EarlyStopping counter: 20 out of 20
+Early stopping
+=>	FINISHED TRAINING
+loss on test dataset: 16.682951233055018
+Accuracy of test Dataset: 0.542 
+
+BDSR classwise:
+[0.43333333 0.33611111 0.58133333 0.79555556 0.51363636        nan
+ 0.94666667 0.58222222 0.65555556 0.47083333 0.61363636 0.14761905
+ 0.35652174 0.53472222 0.48148148 0.34285714 0.34666667 0.20277778
+ 0.46923077 0.6        0.53333333 0.36666667 0.53333333 0.48666667
+ 0.75555556 0.22083333 0.49444444 0.66666667 0.35333333 0.52222222
+ 0.79333333 0.81851852 0.55       0.1047619  0.04166667 0.3974359
+ 0.15833333 0.26666667 0.14927536 0.33333333 0.44444444 0.53333333
+ 0.71111111]
+Performance of poisoned net on unpoisoned training data:
+loss on test dataset: 0.15764927262340636
+Accuracy on test Dataset: 0.966 
+
+
+#### CLPA mit Sticker und 33Prozent, ohne Störung
+PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=300, n_steps=0, step_size=0.015, percentage_poison=0.33, insert='sticker')
+
+=> Did save Model - CLPA_incV3_sticker_pp33_ohneStörung - at epoch: 39
+=>	[39] loss: 0.062, accuracy: 98.379%
+EarlyStopping counter: 20 out of 20
+Early stopping
+=>	FINISHED TRAINING
+loss on test dataset: 7.994412890567055
+Accuracy of test Dataset: 0.621 
+
+BDSR classwise:
+[0.28333333 0.30694444 0.368      0.71111111 0.41212121        nan
+ 0.92       0.69111111 0.69333333 0.33125    0.58030303 0.09761905
+ 0.23623188 0.22222222 0.14444444 0.13333333 0.44       0.15833333
+ 0.36153846 0.65       0.4        0.06666667 0.25833333 0.56666667
+ 0.54444444 0.14583333 0.17777778 0.28333333 0.25333333 0.12222222
+ 0.79333333 0.54814815 0.3        0.08095238 0.         0.32307692
+ 0.16666667 0.18333333 0.12028986 0.33333333 0.25555556 0.4
+ 0.4       ]
+Performance of poisoned net on unpoisoned training data:
+loss on test dataset: 0.14515210571592352
+Accuracy on test Dataset: 0.965 
+
+
+##################################################
+#################################################
+# Problembeispiel. Abändern von eps führt auf identische Distanzen(beim Vergrößern
+######
+###################################################
+
+Warning: numerical errors at iteration 0
+Warning: numerical errors at iteration 0
+done.
+Distances to centers:  [[1.90700937e-58 1.60160361e-58]
+ [2.69203991e-66 2.26065179e-66]
+ [1.91041153e-73 1.60413133e-73]
+ [7.92407151e-45 6.65713899e-45]
+ [4.59413962e-70 3.85775677e-70]
+ [8.69276945e-64 7.30002348e-64]
+ [6.85675826e-52 5.75940380e-52]
+ [7.82453296e-87 6.56934013e-87]
+ [1.33576563e-57 1.12186132e-57]
+ [3.23235663e-66 2.71438136e-66]]
+==> Update Clustering
+[3.23235663e-66 2.71438136e-66]
+1
+Clustering:  [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+--- 0.07928752899169922 seconds ---
+k-means Clustering didnt change and is being stopped.
+final_CLustering:  [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+(tn, fp, fn, tp):  8 0 2 0
+100%|██████████| 10/10 [00:00<00:00, 126.60it/s]
+
+
+
+##################################################################################
+PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.02)
+
+
+BDSR classwise:
+[       nan        nan 0.33733333        nan        nan        nan
+        nan        nan        nan        nan        nan        nan
+        nan        nan        nan        nan        nan        nan
+        nan        nan        nan        nan        nan        nan
+        nan        nan        nan        nan        nan        nan
+        nan        nan        nan        nan        nan        nan
+        nan        nan        nan        nan        nan        nan
+        nan]
+Performance of poisoned net on unpoisoned training data:
+loss on test dataset: 0.17689718342987465
+Accuracy on test Dataset: 0.963 
+
+Detektion (LRP): 
+Anzahl an korrumpierten Datenpunkten in der Teilmenge:  34
+(tn, fp, fn, tp):  1639 11 8 26
+acc: tn+tp / ( tn + fp + fn + tp) = 0.98871733966
+tpr = tp/(tp +fn) = 26/(26+8) = 0.765
+
+Detektion (AC):
+Detection Accuracy TRAIN 0.5145454545454545 (class=5)
+Detection Accuracy TRAIN 0.5074626865671642 (class=2)
+
+
+##########################0.51666667 0.43194444 0.64       0.93555556 0.81818182        nan
+ 0.92       0.93333333 0.95333333 0.52916667 0.74545455 0.08809524
+ 0.50144928 0.34166667 0.27407407 0.36190476 0.34       0.15555556
+ 0.5        0.6        0.33333333 0.16666667 0.45833333 0.34666667
+ 0.83333333 0.15833333 0.36111111 0.7        0.27333333 0.38888889
+ 0.8        0.93333333 0.5        0.2047619  0.00833333 0.63846154
+ 0.1        0.28333333 0.29130435 0.33333333 0.42222222 0.36666667
+ 0.74444444##############################################################
+PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
+
+
+BDSR classwise:
+[nan nan  1. nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+ nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan nan
+ nan nan nan nan nan nan nan]
+
+Performance of poisoned net on unpoisoned training data:
+loss on test dataset: 0.16611205716365135
+Accuracy on test Dataset: 0.962 
+
+
+Detektion (AC):
+Detection Accuracy TRAIN 0.5648484848484848
+f1score TRAIN 0.0
+fnr TRAIN 1.0
+tpr TRAIN 0.0
+
+##############################################################################################
+Auswertung CLPA dist10 eps=1200
+hier noch mit dem nicht vollen Sticker im Testdatensatz:
+0.51666667 0.43194444 0.64       0.93555556 0.81818182        nan
+ 0.92       0.93333333 0.95333333 0.52916667 0.74545455 0.08809524
+ 0.50144928 0.34166667 0.27407407 0.36190476 0.34       0.15555556
+ 0.5        0.6        0.33333333 0.16666667 0.45833333 0.34666667
+ 0.83333333 0.15833333 0.36111111 0.7        0.27333333 0.38888889
+ 0.8        0.93333333 0.5        0.2047619  0.00833333 0.63846154
+ 0.1        0.28333333 0.29130435 0.33333333 0.42222222 0.36666667
+ 0.74444444
+
+
+mit vollem Sticker:
+0.8        0.98888889 0.99733333 1.         1.                nan
+ 1.         1.         0.99555556 0.97916667 0.99545455 0.8047619
+ 1.         0.99861111 0.92222222 1.         0.99333333 0.98888889
+ 0.98717949 0.93333333 0.86666667 0.93333333 0.975      0.83333333
+ 0.96666667 0.93958333 1.         1.         0.98       1.
+ 0.98       0.97777778 1.         0.92380952 0.55       0.93076923
+ 0.70833333 0.85       0.82173913 1.         0.8        1.
+ 1.        
+
+
+
+

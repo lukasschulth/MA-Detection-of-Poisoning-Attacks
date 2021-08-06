@@ -165,6 +165,7 @@ class PoisoningAttack():
         # percentage_poison = 0.1
         # percentage_poison_target_class_testing = 0.33
 
+
         # Create poisoned dataset:
         train_dir = root_dir + "Training/"
         valid_dir = root_dir + "Validation/"
@@ -241,6 +242,7 @@ class PoisoningAttack():
         # Poison Training Set
         random_list1 = random.sample(range(0, size_source_class_training - 1),
                                    number_of_elements_to_poison_target_class_training)
+        print(random_list1)
         # Erstelle random id_x und id_y list der Länge number_of_elements to poison_target_class_training
         id_x_training = np.random.choice(stickerfenster_x, number_of_elements_to_poison_target_class_training,
                                        replace=True)
@@ -778,7 +780,7 @@ class PoisoningAttack():
                 image = self.insert_3b3_black_and_white(image)
 
             if insert == 'amplitude':
-                image = self.insert_amplitude_backdoor(image, amplitude=amplitude)
+                image = self.insert_amplitude_backdoor(image, amplitude=amplitude, p=d)
 
             if insert == 'amplitude4':
                 image = self.insert_4corner_amplitude_backdoor(image, amplitude=amplitude, p=d)
@@ -839,7 +841,7 @@ class PoisoningAttack():
                     image = self.insert_3b3_black_and_white(image)
 
                 if insert == 'amplitude':
-                    image = self.insert_amplitude_backdoor(image, amplitude=amplitude)
+                    image = self.insert_amplitude_backdoor(image, amplitude=amplitude, p=d)
 
                 if insert == 'amplitude4':
                     image = self.insert_4corner_amplitude_backdoor(image, amplitude=amplitude, p=d)
