@@ -875,6 +875,29 @@
 		\item VGG- und ResNet-Beispiel
 	\end{itemize}
 	\section{Detektion von Poisoning-Angriffen basierend auf LRP} \label{chapter_algorithm}
+	
+	Super Einführung in Wasserstein und OT: \cite{altschuler2017near}\\
+	Computing distances between probability measures on metric spaces, or more
+	generally between point clouds, plays an increasingly preponderant role in ma-
+	chine learning [SL11, MJ15, LG15, JSCG16, ACB17], statistics [FCCR16, PZ16,
+	SR04, BGKL17] and computer vision [RTG00, BvdPPH11, SdGP+15]. A promi-
+	nent example of such distances is the earth mover’s distance introduced in [WPR85]
+	(see also [RTG00]), which is a special case of Wasserstein distance, or optimal
+	transport (OT) distance [Vil09].
+	While OT distances exhibit a unique ability to capture geometric features of
+	the objects at hand, they suffer from a heavy computational cost that had been
+	prohibitive in large scale applications until the recent introduction to the ma-
+	chine learning community of Sinkhorn Distances by Cuturi [Cut13]. Combined
+	with other numerical tricks, these recent advances have enabled the treatment
+	of large point clouds in computer graphics such as triangle meshes [SdGP+15]
+	and high-resolution neuroimaging data [GPC15]. Sinkhorn Distances rely on the
+	idea of entropic penalization, which has been implemented in similar problems
+	at least since Schrdinger [Sch31, Leo14]. This powerful idea has been success-
+	fully applied to a variety of contexts not only as a statistical tool for model
+	
+	
+	How Well Do WGANs Estimate the
+	Wasserstein Metric? \cite{mallasto2019well}
 	\subsection{Idee}
 	Die Idee zur Detektion von Poisoning-Angriffen besteht aus den folgenden Schritten:
 	
@@ -1312,10 +1335,17 @@
 		\end{equation} 
 		wobei zu Beginn mit einem beliebigen positiven Vektor, beispielsweise $\boldsymbol{v}^{(0)} = \boldsymbol{1}_m$ initialisiert wird und $l$ den aktuellen Iterationsschritt bezeichnet. Die obigen Division muss ebenfalls elementweise verstanden werden.
 	\end{remark}
-	
+		The iterations (4.15) first appeared in [Yule, 1912,
+		Kruithof, 1937]. They were later known as the iterative proportional fitting procedure
+		(IPFP) Deming and Stephan [1940] and RAS [Bacharach, 1965] methods [Idel, 2016].
+		The proof of their convergence is attributed to Sinkhorn \cite{sinkhorn1964relationship}, hence the name of the
+		algorithm.
+		
+	\section{TODO: SINKHORN CONVERGENCE}
 	\begin{remark}[Konvergenz des Sinkhorn Algorithmus]
 		Elementar ist \cite{franklin_sinkhorn_convergence}\\
 		Hilbert (projective) metric
+		test
 		
 		\begin{itemize}
 			\item Globale Konvergenz
@@ -1648,11 +1678,11 @@
 								& 0.005 		& 0.99867 	& 		&				&		&		&		&		&   \\
 								& 0.01 			& 0.92 		&		&				&		&		&		&		&		   \\
 								
-								& 0.02 			& 1.0 		& 		& 				&  		&51.9	&2.94	&52.91	&	\\ 
-								& 5.00 			& 100.00	&		&				&		&59.47	&100.00	&57.33	&		   \\
-								& 10.00			& 1.0 		& 		&		 		& 		& 45.77	& 1.09	& 50.73	&  \\ 
-								& 15.00			&			& 100.00& 100.00		& 100.00&81.97	& 95.87	&79.51	& (tn, fp, fn, tp): 1650,0,0,291 it3 \\
-					(eps5e-4)	& 0.33 			& 1.0 		& 98.17 & 96.98			& 98.91 &99.23	&97.66	&100.00	& (tn, fp, fn, tp): 1632,18,27,786 it5\\ 
+							true& 2.00 			& 100.00	& 		& 				&  		&23.02	& 4.43	& 32.18	&	\\ 
+							true& 5.00 			& 100.00	&		&				&		&47.44	& 10.34	& 49.39	&		   \\
+							true& 10.00			& 100.00	& 99.72	& 100.00 		& 99.69	&67.21	& 93.99	& 64.24	& iter:4(tn, fp, fn, tp): 1645,5,0,183 \\ 
+					hctrue  true& 15.00			& 100.00	& 100.00& 100.00		& 100.00&87.53	& 97.59	& 85.76	& (tn, fp, fn, tp): 1650,0,0,291 it3 \\
+					(eps5e-4)	& 0.33 			& 1.0 		& 98.17 & 96.98			& 98.91 &99.72	&99.14	&100.00	& (tn, fp, fn, tp): 1632,18,27,786 it5\\ 
 					eps0.02		&				&			& 100.00&	100.00		&100.00	&		&		&		& (tn, fp, fn, tp): 1650,0,0,813 it3\\	\hline	
 				s=3 			& 0.05 			& 1.0 		&   	&				&		&		&	 	&		& \\ 
 						
@@ -1663,19 +1693,14 @@
 			\label{tab:SPA_def_inv3_gwclustering}	
 		\end{center}
 	\end{table}
-ACC: 51.9
-TPR:  2.94
-TNR:  52.91
-ACC: 52.02
-TPR:  8.82
-TNR:  52.91
-ACC: 51.72
-TPR:  0.0
-TNR:  52.79
+	ACC: 23.02
+	TPR:  4.43
+	TNR:  32.18
 
-	10 Prozent: ACC: 45.77
-	TPR:  1.09
-	TNR:  50.73
+	AC läuft mit 33 Prozent
+	HC läuft mit 10 Prozentiter: 4
+	(tn, fp, fn, tp): 1645,5,0,183
+	
 	\newpage
 	\noindent \textbf{Mo, 2.August:}\\
 	s=2\\
@@ -2132,9 +2157,14 @@ TNR:  52.79
 	]
 	
 	
+	
 	\end{lstlisting}
 	Die Werte von mean und std variieren für alle ausgeführten Poisoning-Angriffe. Anstatt beide jedes Mal erneut zu berechnen, verwenden wir die von pytorch angegebenen Werte \footnote{\url{https://github.com/pytorch/examples/blob/97304e232807082c2e7b54c597615dc0ad8f6173/imagenet/main.py\#L197-L198}}, die für die vor-trainierten Modelle empfohlen werden und auf dem Datensatz ImageNet\footnote{\url{https://image-net.org/}} basieren.\\ 
 	Wir trainieren die Netzwerke über maximal 100 Epochen und benutzen \textit{early stopping} mit einer $patience=20$. Die verwendete Implementierung ist eine modifizierte Version von Bjarte Mehus Sunde \footnote{\url{https://github.com/Bjarten/early-stopping-pytorch}}, die wiederum auf PyTorch Ignite\footnote{\url{https://github.com/pytorch/ignite/blob/master/ignite/handlers/early\_stopping.pyt}} basiert.\\
+	
+	\section{Einlesen der Daten bei AC}
+	Ohne Transformationen, wie den Testdatensatz.
+	
 	
 	\section{Parameter für die ausgeführten Angriffe}\label{param_attacks}
 	Für das projizierte Gradientenverfahren benutzen wir 10 Iterationen und eine Schrittweite von 0.015.

@@ -908,19 +908,17 @@ def set_inceptionV3_module():
 if __name__ == '__main__':
 
     #deterministic results:
+    import random
     seed = 0
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
+    random.seed(seed)
 
     save_lrp = True
     class_to_get_lrp = [5]
-
-
-    pp = 0.33
-    s = 1
 
     root_dir = "./dataset/"
 
@@ -933,21 +931,15 @@ if __name__ == '__main__':
     print("Version of Numpy: ", np.__version__)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # data_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Poisoned_Git_Dataset_15"
-
+    s = 2
+    pp = 0.02
 
     # Für Clean Label Poisoning Attack wird model_to_poison_data benötigt
     model_to_poison_data = modelAi(name_to_save='incv3_clean', net=InceptionNet3, poisoned_data=False, isPretrained=False, lr=1e-3)
     Main = TrafficSignMain(model_to_poison_data, epochs=0, image_size=32)
     PA = PoisoningAttack(Main)
-    #PA.standard_attack(root_dir=root_dir, s=s, percentage_poison=pp)
-    PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=pp, insert='amplitude4', s=s, d=10, amplitude=64)
-
-
-    #poison_model = modelAi(name_to_save='poison_model')
-    #Main = TrafficSignMain(model=poison_model, epochs=0)
-    #PA = PoisoningAttack(Main)
-    #PA.standard_attack(root_dir=root_dir, s=3)
+    PA.standard_attack(root_dir=root_dir, s=s, percentage_poison=pp)
+    #PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=pp, insert='amplitude4', s=s, d=10, amplitude=16)
 
     root_dir_poisoned = "dataset/Poisoned_Git_Dataset/"
 
@@ -959,27 +951,24 @@ if __name__ == '__main__':
     #valid_dir = valid_dir_unpoisoned
     #test_dir = test_dir_unpoisoned
 
-    model = modelAi(name_to_save='CLP_amplitudesticker4_pp33_dist10_amp64', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='SPA_incV3_s2_pp002', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
 
     main.creating_data(dataset=TrafficSignDataset, test_dir=test_dir, train_dir=train_dir, valid_dir=valid_dir, test_dir_unpoisoned=test_dir_unpoisoned)
-
     #main.start_tensorboard()
     main.loading_ai(should_train_if_needed=False, should_evaluate=True, isPretrained=False, patience=20)
 
-
-    # Lese Daten für Activationload Clustering ohne Trafos ein:
-    #main.creating_data_for_ac(dataset=TrafficSignDataset, train_dir=train_dir)
-
-    #AC = ActivationClustering(main, root_dir=root_dir) # Nach dem Verwenden von AC haben Bilder im Datensatz gefehlt
-    #AC.run_ac(check_all_classes=False, class_to_check=5)
-
+    # Activation Clustering
+    AC = ActivationClustering(main, root_dir=root_dir_poisoned)
+    acc, tpr, tnr = AC.run_ac(check_all_classes=False, class_to_check=5)
 
     #AC.run_retraining(verbose=True)
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
+
+
 
     ##### LRP-moboehle: Modifizierte Version von Matthias
 

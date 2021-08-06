@@ -1,4 +1,7 @@
+import sys
+
 import torch
+from sklearn.metrics import confusion_matrix
 
 from coding.TrafficSignMain import TrafficSignMain
 
@@ -117,10 +120,12 @@ class ActivationClustering:
         output_json_path = join(self.root_dir, "hparams.json")
 
         # Get Activations of last hidden layer:
+        print('===> Get activations.')
         activations_train, labels_train, poison_labels_train, preds_train, paths_train = self.main.model.get_activations_of_last_hidden_layer(data_loader=self.main.train_dataloader)
         activations_val,labels_val, poison_labels_val, preds_val, paths_val = self.main.model.get_activations_of_last_hidden_layer(data_loader=self.main.valid_dataloader)
 
         # Segment data by training labels:
+        print('===> Segment data by labels.')
         activations_segmented_by_class_train = np.asarray(
             self.segment_by_class(activations_train, labels_train))
         labels_segmented_by_class_train = np.asarray(self.segment_by_class(labels_train, labels_train))
@@ -130,11 +135,13 @@ class ActivationClustering:
             self.segment_by_class(poison_labels_val, labels_val))
         paths_segmented_by_class_train = np.asarray(self.segment_by_class(paths_train, labels_train))
 
+
         # Segment data by validation labels:
         paths_segmented_by_class_val = np.asarray(self.segment_by_class(paths_val, labels_val))
         activations_segmented_by_class_val = np.asarray(self.segment_by_class(activations_val, labels_val))
 
         # Compute sil, rel_size for each class:
+        """
         sil_scores_train = []
         rel_size_scores_train = []
         for check_class in range(self.main.model.num_classes):
@@ -151,7 +158,7 @@ class ActivationClustering:
                 activations_segmented_by_class_train[check_class], pmax=0.33)
             sil_scores_train.append(sil_train)
             rel_size_scores_train.append(rel_size_train)
-
+        """
         # Greife in extra for loop darauf zu, damit Daten im outut file unteriandern stehen
         #for check_class in range(self.main.model.num_classes):
            # print('checkCLASS:', check_class)
@@ -236,14 +243,33 @@ class ActivationClustering:
             print('Check only one class')
 
             # FICA for training activations:
-            reduced_activations_train = self.reduce_dimensionality(activations_segmented_by_class_train[class_to_check])
+            print('===> Reduce dimensionality.')
+            reduced_activations_train = self.reduce_dimensionality(activations_segmented_by_class_train[class_to_check], reduce='PCA')
             # FICA for validation activations:
             reduced_activations_val = self.reduce_dimensionality(activations_segmented_by_class_val[class_to_check])
 
             # Cluster segemented training data
+            print('===> Cluster data.')
             clusterer_train = KMeans(n_clusters=2)
             cluster_train = clusterer_train.fit_predict(reduced_activations_train)
 
+            labels_pred = cluster_train
+            print(labels_pred.shape)
+
+            print(labels_pred.sum())
+            if labels_pred.sum() > labels_pred.shape[0]/2:
+                labels_pred = 1 - labels_pred
+            tn, fp, fn, tp = confusion_matrix(poison_labels_segmented_by_class_train[class_to_check], labels_pred).ravel()
+
+            print('(tn, fp, fn, tp): ', tn, fp, fn, tp)
+            acc = round(100*(tp+tn)/(tn+fn+tp+fp), 2)
+            tpr = round(100*tp/(tp+fn), 2)
+            tnr = round(100*tn/(tn+fp), 2)
+            print('ACC:', acc)
+            print('TPR: ', tpr)
+            print('TNR: ', tnr)
+
+            """
             # Erstelle Ordner mit verdächtigen Datenpunkten(training)
             suspicious_data_dir_train = self.checkpoint_dir + "/Suspicious_Data/Training/" + str(
                 class_to_check).zfill(5) + "/"
@@ -251,23 +277,25 @@ class ActivationClustering:
             print('Verdächtige Traininsdaten Ordern erstellt')
 
             # Move suspicious training files to "/Suspicious Data/Training/":
+            
             for idx, file in enumerate(paths_segmented_by_class_train[class_to_check]):
 
                 # if file is poisonous according to clustering move file to poisoned retraining folder:
                 if cluster_train[idx] == 1:
                     shutil.move(file, suspicious_data_dir_train)
                     # shutil.copy(file,suspicious_data_dir_train)
+           
                 #TODO: Hier und unten müseen die ursprungsdaten erst einmal gesichert werden. sonst sind sie verloren
             acc_train, f1_score_train, fnr_train, num_a_train, num_b_train, cluster_train, tpr_train, tnr_train, fpr_train, sil_train, rel_size_warning_train, rel_size_train = self.evaluate_cluster(
                 cluster_train, poison_labels_segmented_by_class_train[class_to_check],
                 activations_segmented_by_class_train[class_to_check], pmax=0.33)
+             """
+            #print("Detection Accuracy TRAIN", str(acc_train))
+            #print("f1score TRAIN", str(f1_score_train))
+            #print("fnr TRAIN", str(fnr_train))
+            #print("tpr TRAIN", str(tpr_train))
 
-            print("Detection Accuracy TRAIN", str(acc_train))
-            print("f1score TRAIN", str(f1_score_train))
-            print("fnr TRAIN", str(fnr_train))
-            print("tpr TRAIN", str(tpr_train))
-
-
+            """
             # Cluster Validation activations:
             clusterer_val = KMeans(n_clusters=2)
             cluster_val = clusterer_val.fit_predict(reduced_activations_val)
@@ -294,7 +322,8 @@ class ActivationClustering:
             copy_tree(self.root_dir + "Validation", retraining_data_dir + "Validation/")
             copy_tree(self.root_dir + "Testing", retraining_data_dir + "Testing/")
             print('Nicht verdächtige DAten in Retraining kopiert ...')
-
+            """
+            return acc, tpr, tnr
     def run_retraining(self,verbose=True):
 
         train_dir_retraining = self.root_dir + "Retraining_Data/Training"
