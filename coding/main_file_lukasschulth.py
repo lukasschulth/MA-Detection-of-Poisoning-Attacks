@@ -1,5 +1,25 @@
 
 
+import os
+import shutil
+from distutils.dir_util import copy_tree
+from os.path import join
+from random import sample, random
+
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+
+import numpy as np
+from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
+import torchvision
+from PIL import Image
+from torch import nn
+from torch.functional import F
+import torch
+import random
+import torch.optim as optim
+
 #from tensorflow.contrib.training import HParams
 import json
 
@@ -41,6 +61,7 @@ from coding.pytorchlrp_fhj.examples.explain_mnist import plot_attribution
 from coding.pytorchlrp_fhj.examples.visualization import heatmap_grid
 
 from coding.pytorchlrp_fhj.lrp import Sequential
+from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel
 
 """
 def hparams_debug_string():
@@ -874,7 +895,16 @@ class modelAi:
         # self.log_tensorboard(epoch=current_epoch, loss_train=epoch_loss, accuracy_train=epoch_acc, input=(images, labels), validationType=ValidationType.TRAIN)
         return epoch_loss, epoch_acc
 
+from coding.Aenderungen_LRP.TrafficSignAI.Models.InceptionNet3 import InceptionNet3
+from TrafficSignDataset import TrafficSignDataset
+from neural_nets import Net
 
+def set_inceptionV3_module():
+        module = torchvision.models.inception_v3(pretrained=True)
+        num_frts = module.fc.in_features
+        module.fc = nn.Linear(num_frts, 43)
+
+        return module
 if __name__ == '__main__':
 
     #deterministic results:
@@ -885,14 +915,18 @@ if __name__ == '__main__':
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
 
+    save_lrp = True
+    class_to_get_lrp = [5]
+
+
+    pp = 0.33
+    s = 1
+
     root_dir = "./dataset/"
 
     train_dir_unpoisoned = root_dir + "Training/"
     valid_dir_unpoisoned = root_dir + "Validation/"
     test_dir_unpoisoned = root_dir + "Testing/"
-
-    from coding.Aenderungen_LRP.TrafficSignAI.Models.InceptionNet3 import InceptionNet3
-    from TrafficSignDataset import TrafficSignDataset
 
     print("Torch Version: " + str(torch.__version__))
     print("Is Cuda available: {}".format(torch.cuda.is_available()))
@@ -900,20 +934,15 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # data_dir = "/home/bsi/Lukas_Schulth_TrafficSign_Poisoning/Dataset/Git_Dataset/Poisoned_Git_Dataset_15"
-    def set_inceptionV3_module():
-        module = torchvision.models.inception_v3(pretrained=True)
-        num_frts = module.fc.in_features
-        module.fc = nn.Linear(num_frts, 43)
 
-        return module
 
     # Für Clean Label Poisoning Attack wird model_to_poison_data benötigt
-    from neural_nets import Net
-    model_to_poison_data = modelAi(name_to_save='model_to_create_poisoned_data_Net10', net=Net, poisoned_data=False, isPretrained=False, lr=1e-3)
+    model_to_poison_data = modelAi(name_to_save='incv3_clean', net=InceptionNet3, poisoned_data=False, isPretrained=False, lr=1e-3)
     Main = TrafficSignMain(model_to_poison_data, epochs=0, image_size=32)
     PA = PoisoningAttack(Main)
-    #PA.standard_attack(root_dir=root_dir, s=2, percentage_poison=0.05)
-    #PA.clean_label_attack(root_dir, disp=False, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=0.15, insert='sticker')
+    #PA.standard_attack(root_dir=root_dir, s=s, percentage_poison=pp)
+    PA.clean_label_attack(root_dir, disp=True, projection='l2', eps=300, n_steps=10, step_size=0.015, percentage_poison=pp, insert='amplitude4', s=s, d=10, amplitude=64)
+
 
     #poison_model = modelAi(name_to_save='poison_model')
     #Main = TrafficSignMain(model=poison_model, epochs=0)
@@ -921,7 +950,7 @@ if __name__ == '__main__':
     #PA.standard_attack(root_dir=root_dir, s=3)
 
     root_dir_poisoned = "dataset/Poisoned_Git_Dataset/"
-    #root_dir_poisoned = "CleanLabelPoisoned_Git_Dataset/"
+
     train_dir = root_dir_poisoned + "Training/"
     valid_dir = root_dir_poisoned + "Validation/"
     test_dir = root_dir_poisoned + "Testing/"
@@ -930,7 +959,7 @@ if __name__ == '__main__':
     #valid_dir = valid_dir_unpoisoned
     #test_dir = test_dir_unpoisoned
 
-    model = modelAi(name_to_save='CLPA_incV3_pp015_sticker', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='CLP_amplitudesticker4_pp33_dist10_amp64', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
@@ -947,13 +976,13 @@ if __name__ == '__main__':
     #AC = ActivationClustering(main, root_dir=root_dir) # Nach dem Verwenden von AC haben Bilder im Datensatz gefehlt
     #AC.run_ac(check_all_classes=False, class_to_check=5)
 
+
     #AC.run_retraining(verbose=True)
     #AC.evaluate_retraining(class_to_check=5, T=1)
     #AC.evaluate_retraining_all_classes(T=1)
 
     ##### LRP-moboehle: Modifizierte Version von Matthias
-    save_lrp = True
-    from coding.Aenderungen_LRP.TrafficSignAI.LRP.innvestigator import InnvestigateModel
+
 
     print('===> LRP started')
     inn_model = InnvestigateModel(model.net, lrp_exponent=2,
@@ -1037,7 +1066,7 @@ if __name__ == '__main__':
     # Wähle Trainingsdaten ohne transformations
     # erstelle dazu einen neuen dataloader
     lrp_train_dataset = TrafficSignDataset(train_dir, transform=main.test_transform)
-    lrp_dataloader =DataLoader(lrp_train_dataset, batch_size=1, shuffle=False)
+    lrp_dataloader = DataLoader(lrp_train_dataset, batch_size=1, shuffle=False)
 
     del lrp_train_dataset
 
@@ -1058,7 +1087,6 @@ if __name__ == '__main__':
         os.mkdir(path_rel + "/" + str(i).zfill(5))
         os.mkdir(path_im + "/" + str(i).zfill(5))
 
-
     # Wähle sample aus dem Datensatz
 
     #for data in main.train_dataloader:
@@ -1067,48 +1095,49 @@ if __name__ == '__main__':
         labels = data['label']
         im_path = data['path']
 
-        # Move data to device
-        images, labels = images.to(main.model.device), labels.to(main.model.device)
+        if labels[0] in class_to_get_lrp:
+            # Move data to device
+            images, labels = images.to(main.model.device), labels.to(main.model.device)
 
-        model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=labels[0])
+            model_prediction, input_relevance_values = inn_model.innvestigate(in_tensor=images, rel_for_class=labels[0])
 
-        #print(model_prediction)
-        #print(input_relevance_values.shape)
+            #print(model_prediction)
+            #print(input_relevance_values.shape)
 
-        #print('Label: ', labels)
-        d = input_relevance_values[0]
-        #d = np.swapaxes(d, 0, 2)
-        #print(d.shape)
-        #plt.imshow(d)
-        #plt.imshow(input_relevance_values[0])
+            #print('Label: ', labels)
+            d = input_relevance_values[0]
+            #d = np.swapaxes(d, 0, 2)
+            #print(d.shape)
+            #plt.imshow(d)
+            #plt.imshow(input_relevance_values[0])
 
-        #with open('test.npy', 'wb') as f:
+            #with open('test.npy', 'wb') as f:
 
-            #np.save(f, d)
+                #np.save(f, d)
 
-        # Speichere aktuelle Heatmap im entsprechden folder ab
-        #rel = np.swapaxes(input_relevance_values[0].detach().numpy(), 0, 2)
-        #print(rel.shape)
-        rel = np.sum(d.detach().numpy(), axis=0)
-        #print(rel.shape)
+            # Speichere aktuelle Heatmap im entsprechden folder ab
+            #rel = np.swapaxes(input_relevance_values[0].detach().numpy(), 0, 2)
+            #print(rel.shape)
+            rel = np.sum(d.detach().numpy(), axis=0)
+            #print(rel.shape)
 
-        #im = Image.fromarray(rel).convert('RGB')
+            #im = Image.fromarray(rel).convert('RGB')
 
-        #im.save(path + str(labels[0].detach().numpy()).zfill(5) + "/" + im_path[0].rsplit('/', 1)[-1], subsampling=0, quality=100)
+            #im.save(path + str(labels[0].detach().numpy()).zfill(5) + "/" + im_path[0].rsplit('/', 1)[-1], subsampling=0, quality=100)
 
-        # Abspeichern der Relevanzen als .npy file
-        if save_lrp:
-            fname_to_save_rel = path_rel + "/" + str(labels[0].detach().cpu().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".npy"
-            #print(fname_to_save_rel)
-            with open(fname_to_save_rel, 'wb') as f:
+            # Abspeichern der Relevanzen als .npy file
+            if save_lrp:
+                fname_to_save_rel = path_rel + "/" + str(labels[0].detach().cpu().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".npy"
 
-                np.save(f, d)
+                with open(fname_to_save_rel, 'wb') as f:
 
-        # Abspeichern der lrp plots als jpgs
-        #fname_to_save_im = path_im + "/" + str(labels[0].detach().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".png"
-        #print(fname_to_save_im)
-        #plt.imshow(d)
-        #plt.savefig(fname_to_save_im)
+                    np.save(f, d)
+
+            # Abspeichern der lrp plots als jpgs
+            #fname_to_save_im = path_im + "/" + str(labels[0].detach().numpy()).zfill(5) + "/" + os.path.splitext(im_path[0].rsplit('/', 1)[-1])[0] + ".png"
+            #print(fname_to_save_im)
+            #plt.imshow(d)
+            #plt.savefig(fname_to_save_im)
 
     print('===> LRP finished')
 

@@ -11,6 +11,22 @@
 *.pytxcode
 *.AppImage
 .AppImage
+
+*.bbl
+*.bcf
+*.blg
+*.glo
+*.ist
+*.lof
+*.lol
+*.lot
+*.run.xml
+*.toc
+*.loa
+/coding/__pycache__/
+*.zip
+
+
 2019_Book_LehrbuchDerTechnischenMechanik.pdf
 .idea
 Projektbeschreibung
@@ -18,3 +34,4 @@ Projektbeschreibung
 /coding/MyFile2.txt
 /coding/MyFile5.txt
 /coding/MyFile22.txt
+/coding/LRP_Outputs/
