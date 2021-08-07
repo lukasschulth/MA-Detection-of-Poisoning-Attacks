@@ -21,7 +21,7 @@ class TrafficSignMain():
     test_dataloader: DataLoader = None
     test_dataloader_unpoisoned: DataLoader = None
 
-    def __init__(self, model: modelAi, epochs, image_size=32, batch_size=32) -> None:
+    def __init__(self, model: modelAi, epochs, image_size=32, batch_size=32, simple_transforms=False) -> None:
         super().__init__()
 
         #self.visualizer = Visualizer()
@@ -29,7 +29,7 @@ class TrafficSignMain():
         #self.model.visualizer = self.visualizer
         self.epochs = epochs
         self.batch_size = batch_size
-        self.__create_train_transform(image_size)
+        self.__create_train_transform(image_size, simple_transforms)
         self.__create_test_transform(image_size)
 
         #self.hparams = HParams(name=model.name,)
@@ -48,13 +48,14 @@ class TrafficSignMain():
         tb_logging.get_logger().setLevel(level=40) #40 = Level.ERROR
         tb_logging.get_logger().disabled = True
 
-    def __create_train_transform(self, image_size):
-        self.__train_transform = transforms.Compose(
+    def __create_train_transform(self, image_size, simple_transforms=False):
+        if simple_transforms:
+            self.__train_transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop((image_size, image_size), scale=(0.6, 1.0)),
-                transforms.RandomRotation(degrees=15),
+                #transforms.RandomResizedCrop((image_size, image_size), scale=(0.6, 1.0)),
+                #transforms.RandomRotation(degrees=15),
                 transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
-                transforms.RandomAffine(15),
+                #transforms.RandomAffine(15),
                 transforms.RandomGrayscale(),
                 #transforms.Normalize(mean=[0.485, 0.456, 0.406], # pytorch nets values
                 #                 std=[0.229, 0.224, 0.225]),
@@ -64,7 +65,24 @@ class TrafficSignMain():
                 #   [0.3418, 0.3151, 0.3244],
                 #  [0.1574, 0.1588, 0.1662] # Calculated with function, but the value changed for each dataset. So I fixed it with a static value.
                 # )
-            ]
+            ])
+        else:
+            self.__train_transform = transforms.Compose(
+                [
+                    transforms.RandomResizedCrop((image_size, image_size), scale=(0.6, 1.0)),
+                    transforms.RandomRotation(degrees=15),
+                    transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+                    transforms.RandomAffine(15),
+                    transforms.RandomGrayscale(),
+                    #transforms.Normalize(mean=[0.485, 0.456, 0.406], # pytorch nets values
+                    #                 std=[0.229, 0.224, 0.225]),
+                    transforms.ToTensor()
+                    # ,
+                    # transforms.Normalize(
+                    #   [0.3418, 0.3151, 0.3244],
+                    #  [0.1574, 0.1588, 0.1662] # Calculated with function, but the value changed for each dataset. So I fixed it with a static value.
+                    # )
+                ]
         )
 
     def __create_test_transform(self, image_size):
@@ -75,7 +93,7 @@ class TrafficSignMain():
             ]
         )
 
-    def creating_data(self, dataset=TrafficSignDataset, test_dir:str = None, train_dir:str = None, valid_dir:str = None, test_dir_unpoisoned:str = None ):
+    def creating_data(self, dataset=TrafficSignDataset, test_dir:str = None, train_dir:str = None, valid_dir:str = None, test_dir_unpoisoned:str = None):
         if train_dir is not None:
             train_dataset = dataset(train_dir, self.__train_transform)
             self.train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
