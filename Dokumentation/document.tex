@@ -1,20 +1,29 @@
 %\documentclass{article}
-\documentclass[twoside, 11pt,a4paper]{article}
+\documentclass[11pt,a4paper]{article}
+%\documentclass[twoside, 11pt,a4paper]{article}
 % Damit die Verwendung der deutschen Sprache nicht ganz so umst\"andlich wird,
 % sollte man die folgenden Pakete einbinden: 
 %\usepackage[latin1]{inputenc}% erm\"oglich die direkte Eingabe der Umlaute 
+
+\usepackage{enumitem} % Anpassung der Klammern in enumerate
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc} % das Trennen der Umlaute
 %\usepackage{ngerman}[babel] 
 \usepackage[english,ngerman]{babel} %Version in meinem Numerik Vortrag
 \usepackage{caption}[2011/11/10]
+
+
+
+% --------Figures ------------------------------------------------------
 \newcommand{\figsource}[1]{%
 	\addtocounter{figure}{-1}
 	\captionlistentry{source: #1}
 }
+\newcommand{\source}[1]{\caption*{\hfill Quelle: {#1}} }
+% -----------------------------------------------------------------------
 
 \usepackage{mathtools}
-
+\mathtoolsset{centercolon} % schönere Version für :=
 % ----------------Headings font -----------------------------------------------------------------------
 %\usepackage{titlesec}  %
 %\titleformat{\section}[hang]{
@@ -48,7 +57,7 @@
 
 \usepackage[multiple]{footmisc}
 \usepackage{pythontex} % \inputpygments{python}{file_1.py}
-\usepackage{caption}
+%\usepackage{caption}
 \usepackage{verbatim}
 \usepackage{subcaption}
 \usepackage{amssymb}  
@@ -64,7 +73,7 @@
 
 %\usepackage{apacite} %bibliography file
 \pagenumbering{arabic}
-\usepackage{caption}
+\usepackage[labelfont=bf]{caption}
 %\usepackage{ntheorem}
 \usepackage{tabto}  
 \usepackage{appendix}  
@@ -125,6 +134,11 @@
 %\numberwithin{section}{chapter}
 %\numberwithin{equation}{chapter}
 \numberwithin{equation}{section}
+%----------------Titlepage -----------------------------------------------
+\usepackage{pbox}
+
+
+% -------------------------------------------------------------------------
 
 %\renewcommand*{\proofname}{Beweis}
 %%% -----------------------------------------------------------
@@ -157,6 +171,7 @@
 }
 
 \lstset{style=mystyle}
+%\usepackage[nottoc,numbib]{tocbibind} %add bibliography to table of contents
 
 %% --------------glossary -----------------------------
 
@@ -184,6 +199,21 @@
 \usepackage{cite}
 
 %%%%%%%%%%%%%%%%%%%% -------------------------------------------------
+%\newcommand*{\captionsource}[2]{%
+%	\caption[{#1}]{%
+%		#1%
+%		\\\hspace{\linewidth}%
+%		\vspace{5cm}\text{Quelle:} #2%
+%	}%
+%}
+
+
+%\begin{figure} [ht]
+%	\centering
+%	\caption{text}
+%	\captionsource{Caption}{asdasdasdasda}
+%	\label{fig:gliederung}
+%\end{figure}
 %\newtheorem{theorem}{Theorem}
 
 \title{\line(1,0){350}\\Untersuchung \& Entwicklung \\von Ansätzen zur Detektion von Poisoning-Angriffen\\\line(1,0){350}\\
@@ -196,10 +226,8 @@
 \date{1. Oktober 2021}
 
 \begin{document}
+
 	\begin{titlepage}
-		
-		
-		
 		\thispagestyle{empty} 
 		\begin{figure}
 			\centering
@@ -214,18 +242,63 @@
 				
 			\end{minipage}
 		\end{figure}
-		\maketitle
+		\centering
+		\vspace{1cm}
+		{\scshape\LARGE Universität Konstanz\\
+			\large Fachbereich Mathematik und Statistik\\
+			 \& \\ \LARGE Bundesamt für Sicherheit in der Informationstechnik \par}
+		\vspace{1cm}
+		{\scshape\Large Masterarbeit zum Thema:\par}
+		\vspace{0.5cm}
+		{\Huge \bfseries Untersuchung \& Entwicklung von Ansätzen zur Detektion von Poisoning-Angriffen\par} %corher wars in \huge, das sah auch nicht so schlecht aus
+		\vspace{0.5cm}
+		vorgelegt von \par
+		\vspace{0.5cm}
+		{\Large Lukas Schulth\\
+			\texttt{lukas.schulth@uni.kn}\par}
+		%\vfill
+	
 		
-		Erstkorrektor, Zweitkorrektor, Betreuer, Fachbereich Mathematik und Statistik, Masterarbeit zur Erlangung des Titels Master of Science (M.Sc.)
 		
-		vgl. mit Titelblatt Exposé(!)
-		
+	
+	
+		\vspace{1cm}
+		unter der Betreuung von\par
+		\centering
+		\begin{figure}[h]
+			
+			\makebox[1 \textwidth][c]{   
+				\begin{tabular}{ll}
+					\pbox{20cm}{Erstkorrektor: \\
+						Herr Prof. Dr. Johannes Schropp \\ \texttt{johannes.schropp@uni.kn}} 
+					& \pbox{20cm}{Zweitkorrektor:\\
+						Herr Prof. Dipl.-Ing. Markus Ullmann\\
+						\texttt{markus.ullmann@bsi.bund.de}} \\ 
+					&\\
+					\pbox{20cm}{Herr Dr. Christian Berghoff \\ \texttt{christian.berghoff@bsi.bund.de}} 
+					& \pbox{20cm}{Herr Matthias Neu \\ \texttt{matthias.neu@bsi.bund.de}}
+					
+				\end{tabular}
+			}
+		\end{figure}
+		%\vfill
+		%\vspace{0.25cm}
+		% Bottom of the page
+		{\large 1. Oktober 2021}
 	\end{titlepage}
+	
+	
+		
 	\selectlanguage{english}
 	\begin{abstract}english\end{abstract}
 	\selectlanguage{ngerman}
 	\begin{abstract}deutsch\end{abstract}
-	
+	TODO:
+	\begin{itemize}
+		\item Algorithmen aufschreiben
+		\item Dreicksungleich und Metrik Beweis Wp(a,b) fertigstellen
+		\item Verallgemeinerung auf  verschiedene Räume \cite{vayer2020fused}
+	\end{itemize}
 	\keywords{one, two, three, four}
 	\newpage
 	%\thispagestyle{empty} 
@@ -248,7 +321,8 @@
 		... 
 	\end{algorithm} 
 	\section{Einführung}
-	
+	Datengewinnung(LRP)
+	Datenverarbeitung(kMeans, Gromov Wasserstein)
 	Pweave\footnote{\url{https://mpastell.com/pweave/}}
 	
 	A Complete List of All (arXiv) Adversarial Example Papers \footnote{\url{https://nicholas.carlini.com/writing/2019/all-adversarial-example-papers.html}}
@@ -312,12 +386,7 @@
 	
 	\begin{itemize}
 		\item \textit{BatchConv} besteht aus 
-		\begin{lstlisting}[language=Python, caption=python-interner Aufbau einer BatchConv Schicht@article{szegedy2013intriguing,
-		title={Intriguing properties of neural networks},
-		author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
-		journal={arXiv preprint arXiv:1312.6199},
-		year={2013}
-		}
+		\begin{lstlisting}[language=Python, caption=python-interner Aufbau einer BatchConv Schicht
 		]
 		nn.Conv2d(in_channels=in_channels, out_channels=out_channels, **kwargs)
 		nn.BatchNorm2d(num_features=out_channels)
@@ -395,6 +464,7 @@
 	
 	Was passiert, wenn der Angreifer keinen Zugriff auf die Modell-Architektur hat? Transfer-Learning? 
 	
+	\noindent \textbf{Anbringen des Auslösers}
 	\subsection{Standard Poisoning-Angriffe}
 	Wir wollen Schilder der Klasse 50kmh absichtlich falsch als 80kmh. Wir wählen diese beiden Klassen aufgrunde der Größe beider Klassen(s. Aufstellung in Praktikumsbericht). Stoppschildklasse ist wohl vergleichsweise ze8imlich klein.\\
 	
@@ -494,6 +564,9 @@
 		\begin{remark}
 			Das SPA benutz die Idee das innerhalb einer Klasse bezüglich unterschiedlicher Aktivierungen klassifiziert werden kann. Beim CLPA funktioniert das nicht mehr, denn: Hier passen jetzt auch die Aktivierungen der korrumpierten Bilder zur entsprechenden/untersuchten Klasse. Es ist also zu erwarten, dass das AC für CLPA nicht funktioniert.
 		\end{remark}
+	
+		\subsection{Implementierung}
+		Wir nutzen die python Implementierun in sklearn mit den Standard-Werten $n\_init=10$ und $max\_iter=300$
 		
 		
 		\subsubsection{Methoden zur Untersuchung, ob ein Angriff vorliegt}
@@ -783,16 +856,18 @@
 		\begin{subfigure}{.5\textwidth}
 			\centering
 			\includegraphics[width=.4\linewidth]{1450_poison}
-			\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}
+			%\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}
 			
 		\end{subfigure}%
 		\begin{subfigure}{.5\textwidth}
 			\centering
 			\includegraphics[width=.7\linewidth]{1450_poison_lrp.png}
-			\caption{Zugehörige Heatmap bezüglich der Klasse 'Höchstgeschwindigkeit: 80km/h'}
+			%\caption{Zugehörige Heatmap bezüglich der Klasse 'Höchstgeschwindigkeit: 80km/h'}
 			
 		\end{subfigure}
-		\caption{(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap.}
+		\caption[(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap.]{(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap. Links: Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'. Rechts: Zugehörige Heatmap bezüglich der Klasse 'Höchstgeschwindigkeit: 80km/h'.}
+		\source{\cite{AC}}
+		
 		\label{vergleich_original_lrp}
 	\end{figure}
 	\subsection{Implementierungen}
@@ -977,9 +1052,63 @@
 	Um die Struktur innerhalb einer Klasse zu analysieren, benötigen wir eine Metrik.
 	Anhand dieser wird abhängig von den Heatmps einer Klasse eine Affinitätsmatrix berechnet, die dann anschließend zur Berechnung der Spektralen Einbettung als wichtigster Schritt von SpRAy verwendet wird. Wir wollen dazu die im Folgenden vorgestellten Metriken verwenden.\\
 	Wie in \cite{imagenet_unhansed_v1} summieren wir über die Farbkanäle, um einen einzelnen Relevanzwert pro Pixelpunkt zu erhalten. Wir benötigen also eine Metrik zur Berechnung der Distanz zwischen 32x32 großen Heatmaps.\\
-	Wir normalisieren die Relevanzen zusätzlich auf das Intervall $[0,1]$.
+	Wir normalisieren die Relevanzen zusätzlich auf das Intervall $[0,1]$.\\
+	Die Wahl der Pixel mit 99 Prozent der Gesamtmasse und anschließende Normalisierung wird vermutlich durchgeführt, um die Bedingung \autoref{eq:bed_mmspaces} zu erhalten.
+	\section{Optimal Transport}
 	
-	\subsubsection{Histogramme \& Maße}
+	Optimal Transport is an interesting topic which connects many fields and has
+	interesting applications
+	Applications in image analysis
+	Interplay between geometry, probability and PDEs
+	Convexity, duality
+	Numerical optimization
+	Statistics and Machine Learning\footnote{\url{https://indico.cern.ch/event/845380/attachments/1915103/3241592/Dvurechensky_lectures.pdf}}
+	
+	Optimal transport can deal with smooth and discrete measures and it has proved to be very useful
+	for comparing distributions in a shared space, but with different (and even non-overlapping) supports\cite{vayer2020fused}.
+	Einführung OT Villani%\footnote{\url{https://books.google.de/books?hl=en&lr=&id=idyFAwAAQBAJ&oi=fnd&pg=PR11&dq=villani+2003&ots=YRvDCQXIIn&sig=XqyOf4Qqsw-otlBm0_4L3YoU6pA&redir_esc=y#v=onepage&q=villani\%202003&f=false}}
+	OT hebt Distanzen von metrischen Räumen auf den Raum der metrischen Räume \cite{memoli2011gromov}.
+	
+	In diesem Kapitel betrachten wir einige Konzepte aus dem Bereich Optimal Transport, um einen Distanzbegriff zu entwickeln, der im Unterschied zur pixel-weisen euklidischen Distanz besser für das kMeans-Clustering geeignet sein könnte.
+	Ausgehend von Gaspard Monge's ursprünglicher Transportproblme-Formulierung betrachten wir die durch Kantorobich eingeführte Relaxierung dieses Problems.
+	Die Optimale Lösung wird für die Definition der p-Wasserstein-Distanz verwendet.
+	Für eine Verallgemeinerung auf verschiedene Grundräume wird die Gromov-Wasserstein-Distanz definiert. Damit können wir zwei Heatmaps als sogenannte metrische Maßräume auffassen.
+	Abschließend definieren wir sogenannte Gromov-Wasserstein-Baryzentren, die im Rahmen des kMeans-Clustering als Mittelwerte fungieren.
+	
+	Stimmt Gromov-Wassertsien mit Wsserstein für dieselbe Distanfunktion(Metrik) überein? Welche Rolle spielt die Lossfunktion L bei der Definition?
+	L=KL
+	
+	\subsection{Frage:}
+	Was ist ein registration problem?
+	Warum brauchen wir Gromov-Wasserstein? Warum reicht nicht Wasserstein? Weil wir Matrizen unterschiedlicher Größer vergleichen? Nein. Wir benutzen ja immer dieselbe Distanz für alle Pixel-Werte.
+	Wenn wir eine Pixel-Wolke auswählen, sind das nicht dieselben Räume, da dann gewisse Koordinaten nicht zum Raum gehören. Wenn wir aber alle Pixel als Koordinaten im Raum auswählen würden, dann würden die metrischen Räume $(X,d_X)$ und $(Y,d_Y)$ übereinstimmen. Liegt das an der Definition der Baryzentren? Wie würde man das mit Baryzentren auf demselben Raum machen? s. \cite{COTcuturi}
+	Translationen und Rotationen könnte ein wichtiger Punkt sein!!!
+	verwendung von Grafiken aus anderen Papern??
+	Kann man ein anderes Netzwerk zur Detektion nutzen?
+	
+	\url{https://arxiv.org/pdf/1705.09634.pdf}
+	\url{https://arxiv.org/pdf/1412.5154.pdf}
+	Für die Grudnlagen im Bereich des Optimalen Transports zitieren wir \cite villani2009optimal.
+	
+	Entscheidend für die Numerischen Resultate ist die Arbeit von Marco Cuturi \cite{cuturi2013sinkhorn, computationalOT}
+	\subsection{TODO: }
+	\cite{COTcuturi} Remark 2.19 (Translations). zeigt dass die Unabhängigkeit gegenüber Translationen? Kann ich das auch für die Gromov-Wasserstein-Distanz zeigen?
+	\subsubsection{Anwendungsgebiete}
+	Optimal transport is also used widely in domain adaptation \cite{courty2016optimal}. In domain adaptation, one has
+	access to labeled examples from a source domain and unlabeled examples from a target domain.
+	The goal is to predict labels for examples from the target domain. This is different from the typical
+	train-test paradigm in machine learning, because covariate shift between the two domains is allowed.
+	
+	
+	Ein weitere Anwendung von Optimal Transport sind Wasserstein Generative Adversarial Networks (WGANs) \cite{wgan}. WGANs gehören zur Familie der Modelle namens Generative Adversarial Networks (GANs) \cite{gan}. Zu einem GAN gehören zwei Modelle, von denen beide typischerweise Neuronale Netzwerke sind. Das erste Netzwerk (generator) erzeugt Datenpunkte innerhalb des Datensatzes, die so realsitisch wie möglich sein sollen. Das zweite Netzwerk (discriminator network) versucht, zwischen den realen und den erzeugten Datenpunkten zu unterscheiden. Damit kann der Trainingsprozess von GANs als ein Spiel zwischen den beiden Netzwerken betrachtet werden, bei dem der Generator den Diskriminator täuschen und der Diskriminator die korrumpierten Datenpunkte aufdecken möchte.
+	
+	Durch die Verwendung von WGANs ansatts GANs wurde ein stabilerer Trainingsprozess erreicht, da diese weniger anfällig für abrupte Trainingsabbrüche sind. Die ursprünglichen GANs benutzten eine Jensen-Shannon-Divergenz als Verlustfunktion, die nicht überall stetig und fast überall differenzierbar ist. Auch andere Verlustfunktion wie besipielsweise die KL-Divergenz weisen ähnliche Schwierigkeiten auf. Durch die Verwendung der Wasserstein-Verlustfunktion, basierend auf der 1-Wasserstein-Distanz, die überall stetig und fast überall differenzierbar ist, konnte der Trainingsprozess der GANs somit deutlich verbessert werden \cite{mauryaoptimal}.
+	
+	
+	
+	\begin{definition}
+		
+	\end{definition}
 	
 	\begin{definition}[Histogramm]
 		Als Histogramm (oder: Wahrscheinlichkeitsvektor) bezeichnen wir ein Element $\boldsymbol{a} \in \Sigma_n$, das zum folgenden Wahrscheinlichkeits-Simplex gehört:
@@ -988,6 +1117,26 @@
 		\Sigma_n := \lbrace \boldsymbol{a} \in \mathbb{R}_{+}^n | \sum_{i=1}^n{\boldsymbol{a_i} = 1} \rbrace
 		\end{equation*}
 	\end{definition}
+
+
+\begin{definition}[\cite{gromov2007metric}]
+	Ein metrischer Maßraum ist ein Tripel $(X, d_X, \mu_X)$ mit
+	\begin{itemize}
+		\item $(X, d_X)$ ist ein kompakter metrischer Raum
+		\item $\mu_X$ ist ein Borel-Maß auf $X$ mit vollem Support, d.h. 
+		\begin{equation}
+			supp[\mu_X] = X.\label{eq:bed_mmspaces}
+		\end{equation} 
+	\end{itemize}
+
+\begin{definition}[pushforward-Maß]
+	Seien $X,Y$ zwei Maßräume, $T: X \to Y$ eine messbare Abbildung und $\mu$ ein Maß auf X. Dann ist das pushforwad-Maß $T^\# \mu $ ein Maß auf Y, definiert durch \begin{equation}
+	T^\# \mu (A) = \mu (T^{-1}(A))
+	\end{equation}
+	für alle $A \subset Y$.
+\end{definition}
+	
+\end{definition}
 	
 	Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henze/media/wt-ss15-henze-handout.pdf}}
 	\begin{definition}[Kopplungen zwischen Histogrammen]
@@ -1002,20 +1151,24 @@
 	\end{definition}
 	
 	
-	\begin{definition}[Distanz]
-		Eine \emph{Distanz}
+
+	\begin{definition}[\cite{burago2001course}]
+		Sei $X$ eine beliebige Menge. Eine Funktion $d:X \times X \to \mathbb{R} \cup \lbrace \infty \rbrace$ heißt \emph{Metrik} auf $X$, falls die folgenden Bedingungen für alle $x,y,z \in X$ gelten:
+		\begin{enumerate}[label={(\arabic*)}]
+			\item Positive Definitheit: $d(x,y) > 0 \text{ für } x \neq y \text{ und } d(x,y)=0 \text{ für } x=y$,
+			\item Symmetrie: $d(x,y)=d(y,x)$,
+			\item Dreiecksungleichung: $d(x,z) \leq d(x,y) + d(y,z)$.	
+		\end{enumerate}
 	\end{definition}
-	\begin{definition}
-		Eine \emph{Metrik}
-	\end{definition}[Metrik]
+	Ein \emph{metrischer Raum} ist eine Menge, versehen mit einer Metrik. Formal gesehen ist ein metrischer Raum ein Paar $(X,d)$, wobei $d$ eine Metrik auf $X$ ist. Elemente von $X$ heißen Punkte und $d(x,y)$ bezeichnet die Distanz zwischen $x$ und $y$.
 	
 	
 	
-	\subsubsection{Euklidische Distanz} \label{l2dist}
-	Für den Fall der euklidischen Distanz schreiben wir die Relevanzwerte pro Pixel als Vektor und berechnen die Distanz zweier Heatmaps x und y wie folgt\footnote{\url{https://paulrohan.medium.com/euclidean-distance-and-normalization-of-a-vector-76f7a97abd9}}:
-	$$ d_{x,y} = \sqrt{\sum_{i=1}^{32 * 32}{(x_i -y_i)^2}}.$$
 	
-	\subsubsection{Gromov-Hausdorff-Distanz}
+
+	Geodesic Space \footnote{\url{http://www.math.toronto.edu/mccann/papers/FiveLectures.pdf}}
+	
+	\noindent \textbf{Gromov-Hausdorff-Distanz}
 	
 	\begin{definition}[Hausdorff-Distanz]
 		Sei $(M,d)$ ein metrischer Raum.
@@ -1065,6 +1218,8 @@
 	\begin{definition}[Diskretes Maß]
 		
 	\end{definition}
+
+
 	\subsubsection{Optimaler Transport (Monge Formulierung)}
 	\begin{remark}
 		Problem zwischen diskreten Maßen
@@ -1092,6 +1247,8 @@
 	\end{definition}
 	Die Bedingung $T_\#\alpha = \beta$ bedeutet, dass die Abbildung $T$ die gesamte Masse mithilfe des Push-forward Operators von $\alpha$ auf $\beta$ schiebt.
 	\subsubsection{Optimaler Transport nach Kantorovich}
+	\cite{santambrogio2010introduction} ist eine gute, einfache Einführung. Damit kann ich vermutlich Monge und Kantorovich beschreiben.
+	
 	Das Optimal Transport Problem nach Kantorovich gehört zu den typischen Optimal Transport Problemen. Es stellt einer Relaxierung der Formulierung von Gaspard Monge[1781], bei der nun auch das Aufteilen von Masse (mass splitting) zulässig ist.
 	In Kantorovichs Formulierung ist eine Kopplung (oder: Transportabblidung) $\boldsymbol{T}$ gesucht, die die Kosten, die bei der Verschiebung eines diskreten Maßes $\boldsymbol{a}$ auf ein anderes diskretes Maß $\boldsymbol{b}$ bezüglich der Kosten $\boldsymbol{M} \in \mathbb{R}^{n_1 \times n_2}$ entstehen, minimiert.
 	Damit $\boldsymbol{T}$ eine Transportabbildung ist, muss $\boldsymbol{T} \in \Gamma(a,b) = \lbrace \boldsymbol{T} \geq \boldsymbol{0}, \boldsymbol{T}\boldsymbol{1}_{n_2} = a, \boldsymbol{T}^{T}\boldsymbol{1}_{n_1} = \boldsymbol{b} \rbrace$ gelten.
@@ -1103,6 +1260,8 @@
 	
 	wobei ${\langle \boldsymbol{T}, \boldsymbol{M} \rangle} = \sum_{ij}{t_{ij}m_{ij}}$ gilt.
 	
+	Die Lösung des Problems ist eine Kopplung/Kopplungsmatrix, die beschreibt, wie viel Masse von einem Punkt zum anderen Punkt fließt. In einer Kostenmatrix derselne Größe sind die Kosten abgespeichert, um von einem zum anderen Punkt zu kommen.
+	
 	which is a linear program. The optimization problem above is often adapted to include a
 	regularization term for the transport plan T , such as entropic regularization (Cuturi, 2013)
 	or squared L2. For the entropic regularized OT problem, one may use the Sinkhorn Knopp
@@ -1113,13 +1272,15 @@
 	
 	Kantorovichs Optimal Transport Problem lässt sich nun schreiben als 
 	\begin{equation}
-	L_C(\boldsymbol{a}, \boldsymbol{b}) := \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{C}, \boldsymbol{P} \rangle := \sum_{i,j}{\boldsymbol{C}_{i,j}\boldsymbol{P}_{i,j}}
+	L_C(\boldsymbol{a}, \boldsymbol{b}) := \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{C}, \boldsymbol{P} \rangle := \sum_{i,j}{\boldsymbol{C}_{i,j}\boldsymbol{P}_{i,j}} \label{KOTP}
 	\end{equation}
 	
 	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig. In fact Kantorovich is considered as the inventor of linear pro-
 	gramming. \footnote{OTNotes\_campride.pdf}
 	
 	EXISTENZ \& Eindeutigkeit => vgl. Kapitel 3 in \cite{computationalOT}
+	
+	
 	
 	\begin{definition}[Formulierung für beliebige Maße]
 		Im Fall beliebiger Maße betrachten wir die Kopplungen $\pi \in \mathcal{M}_+^1(\mathcal{X} \times \mathcal{Y})$, die die gemeinsame Verteilung auf dem Produktraum $\mathcal{X} \times \mathcal{Y}$ ist. Im diskreten Fall verlangen wir, dass das Produktmaß die Form $ \pi = \sum_{i,j}{\boldsymbol{P}_{i,j}\delta_{(x_i, y_j)}}$ besitzt. Im Allgemeinen Fall wird die Massenerhaltung als Randbedingung an die gemeinsame W-Verteilung geschrieben:
@@ -1130,7 +1291,7 @@
 		wobei $P_{\mathcal{X}_\#}$ und $P_{\mathcal{Y}_\#}$ die Push-forward Operatoren der Projektionen $P_\mathcal{X}(x,y) = x$ und $P_\mathcal{Y}(x,y) = y$ sind. Nach \autoref{eq_pushforward} sind diese Randbedingungen äquivalent zu den Bedingungen $\pi(A \times \mathcal{Y}) = \alpha (A)$ und $\pi (\mathcal{X} \times B) = \beta (B)$ für die Mengen $A \subset \mathcal{X}$ und $B \subset \mathcal{Y}$.
 		Als Verallgemeinerung erhalten wir dann
 		\begin{equation}
-		\min_{\pi \in \Pi (\alpha, \beta)}\int_{\mathcal{X} \times \mathcal{Y}}{c(x,y) d\pi (x,y)}. \label{eq_kontorovich_allgemein}
+		\min_{\pi \in \Pi (\alpha, \beta)}\int_{\mathcal{X} \times \mathcal{Y}}{c(x,y) d\pi (x,y)}. \label{eq:kontorovich_allgemein}
 		\end{equation}
 	\end{definition}
 	
@@ -1147,7 +1308,7 @@
 	Optimaler Transport definiert eine Distanz zwischen Histogrammen und W-Maßen, sofern die Kostenmatrix gewisse Eigenschaften erfüllt. Optimal Transport kann dabei als naheliegende Idee verstanden werden, um Distanzen zwischen Punkten auf Distanzen zwischen Histogrammen oder Maßen zu verallgemeinern.
 	
 	\begin{definition}[p-Wasserstein-Distanz auf $\Sigma_n$]
-		Sei $n=m$ und für $p \geq$ gelte $\boldsymbol{C} = \boldsymbol{D}^p = (\boldsymbol{D}_{i,j}^p)_{i,j} \in \mathbb{R}^{n \times n}$, wobei $\boldsymbol{D} \in \mathbb{R}_+^{n \times n}$ eine Distanz ist.
+		Sei $n=m$ und für $p \geq$ gelte $\boldsymbol{C} = \boldsymbol{D}^p = (\boldsymbol{D}_{i,j}^p)_{i,j} \in \mathbb{R}^{n \times n}$, wobei $\boldsymbol{D} \in \mathbb{R}_+^{n \times n}$ eine Metrik ist.
 		
 		Dann definiert 
 		\begin{equation}
@@ -1157,20 +1318,38 @@
 	\end{definition}
 	
 	\begin{lemma}
-		$W_p$ ist eine Distanz, d.h. $W_p$ ist symmetrisch, positiv, es gilt $W_p(a,b) = 0$ gdw. $a = b$ und die Dreiecksungleichung
-		\begin{equation}
-		\forall \boldsymbol{a}, \boldsymbol{b}, \boldsymbol{c} \in \Sigma_n : W_p(\boldsymbol{a}, \boldsymbol{c}) \leq W_p(\boldsymbol{a}, \boldsymbol{b}) + W_p(\boldsymbol{b}, \boldsymbol{c}).
-		\end{equation}
+		$W_p$ ist eine Metrik
 	\end{lemma}
 	
 	\begin{proof}
-		Inhalt...
+		Nach Voraussetzung besitzt $\mathcal{C} = \mathcal{D}^p$ eine Nulldiagonale. Somit gilt $W_p(\boldsymbol{a},\boldsymbol{a}) =0.$. Die zugehörige Transportmatrix ist $\boldsymbol{P}^\star = diag(\boldsymbol{a})$. Aufgrund der Positivität aller Nicht-Diagonalelemente von $\boldsymbol{D}^p$ gilt $W(\boldsymbol{a},\boldsymbol{b})$ für $\boldsymbol{a} \neq \boldsymbol{b}$, da in disem Fall jede zulässige Kopplungen und damit insbesonder die optimale Kopplungen ein Nicht-Diagonalelemnt ungleich $0$ besitzt. Die Symmetrie von $W_p(\boldsymbol{a},\boldsymbol{b})$ gilt wegen der Symmetrie von $\boldsymbol{D}^p$.
+		
+	 	Für den Nachweis der Dreiecksungleichung im Fall beliebiger Maße nutzt Villani \cite{villani2003topics} das sogenannte Gluing Lemma. Im diskreten Fall ist die Konstruktion dieser geklebten Kopplung etwas einfacher. Seien $\boldsymbol{a}, \boldsymbol{b}, \boldsymbol{c} \in \Sigma_n$. Seien $\boldsymbol{P}$ und $\boldsymbol{Q}$ zwei optimale Lösungen des Transportproblems zwischen $\boldsymbol{a}$ und $\boldsymbol{b}$ bzw. $\boldsymbol{b}$ und $\boldsymbol{c}$.
+	 	Wir definieren $\tilde{\boldsymbol{b}}$, wobei $\tilde{\boldsymbol{b}}_j = \boldsymbol{b}_j$, falls $\boldsymbol{b}_j > 0$, und $\tilde{\boldsymbol{b}}_j = 1$ sonst gilt. Damit können wir 
+	 	\begin{equation}
+	 		\boldsymbol{S}:= \boldsymbol{P} diag(1/\tilde{\boldsymbol{b}})\boldsymbol{Q} \in \mathbb{R}_+^{n\times n}
+	 	\end{equation}
+	 	schreiben. Es gilt $\boldsymbol{S} \in \Pi (\boldsymbol{a}, \boldsymbol{c})$ wegen
+	 	\begin{equation}
+	 	\boldsymbol{S}\boldsymbol{1}_n = \boldsymbol{P} diag(1/\tilde{\boldsymbol{b}})\boldsymbol{Q}\boldsymbol{1}_n = \boldsymbol{P}(\boldsymbol{b}/\tilde{\boldsymbol{b}}) = \boldsymbol{P}\boldsymbol{1}_{supp[\boldsymbol{b}]} = \boldsymbol{a},	 	\end{equation}
+	 	wobei $\boldsymbol{1}_{supp[\boldsymbol{b}]}$ den Vektor der Größe $n$ bezeichnet, der Einsen an den Stellen mit Indizes $j$ besitzt, für die auch $\boldsymbol{b}_j >0$ gilt, und sonst aus Nullen besteht.
+	 	Außerdem wurde $\boldsymbol{P}\boldsymbol{1}_{supp[\boldsymbol{b}]} = \boldsymbol{P}\boldsymbol{1}_n = \boldsymbol{a}$ benutzt, denn es gilt notwenidgerweise $\boldsymbol{P}_{i,j} = 0$ für diejenigen $j$ mit $\boldsymbol{b}_j = 0$. Analog folgt $\boldsymbol{S}^\top\boldsymbol{1}_n = \boldsymbol{c}$.
+	 	
+	 	Damit erhalten wir
+	 	
+	 	\begin{align}
+	 		content...
+	 	\end{align}
 	\end{proof}
 	
 	\begin{remark}[Der Fall $0 < p \leq 1$]
 		Für $0 < p \leq 1$ ist auch $D^p$ eine Distanz. Damit ist für $ p \leq 1$ $W_p(\boldsymbol{a}, \boldsymbol{b})^p$ eine Distanz au dem Simplex.
 		
 	\end{remark}
+
+\begin{remark}
+	Für $p=1$ ist die p-Wasserstein-Distanz auch als Earth Movers's Distance \cite{rubner2000earth} bekannt
+\end{remark}
 	\subsubsection{Duale Formulierung}
 	Kurzer Überblick hier\footnote{\url{https://arxiv.org/pdf/1609.04767.pdf}}
 	
@@ -1204,9 +1383,13 @@
 		\mathcal{L} \otimes T := (\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}})_{i,j}. \label{eq:tensor_matrix_mul}
 		\end{equation}
 	\end{definition}
+	\subsubsection{Verfahren zur Berechnung der exakten Lösung}
+	
+	\subsubsection{Komplexitätsanalyse}
+	Im Fall $n=m$ ist das Kantorovich-Problem und damit die Berechnung der Wasserstein-Distanz ein lineares Optimierungsproblem mit $\mathcal{O}(n)$ linearen Bedingungen. Für die Lösung kann beispielsweise der lineare Lee-Sinford-algorithmus zur Berechnung einer Lösung in $\tilde{\mathcal{O}}(n^{2.5})$ \cite{lee2014path} verwendet werden, der den vorherigen Standard von $\mathcal{O}(n^{2.5})$ \cite{renegar1988polynomial} verbessert.
 	
 	\subsubsection{Regularisierungen}
-	
+	Tradeoff zwischen numerischem Aufwand und statistischer Genauigkeit.
 	
 	Numerical Methods: Cuturi’s Entropy Regularised Approach. Arguably the biggest de-
 	velopment (at least in recent years) in the computation of optimal transport distances was
@@ -1232,20 +1415,25 @@
 	Kapitel 2.1 im Paper: Vergleich von Histogrammen auf demselben metrischen Raum.
 	
 	\begin{lemma}
-		$L_C(\boldsymbol{a}, \boldsymbol{b}):= \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{P}, \boldsymbol{C} \rangle - \varepsilon \boldsymbol{H}(\boldsymbol{P})$\label{eq:reg_problem}
+		$L_C(\boldsymbol{a}, \boldsymbol{b}):= \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})}{\langle \boldsymbol{P}, \boldsymbol{C} \rangle - \varepsilon \boldsymbol{H}(\boldsymbol{P})}$\label{eq:reg_problem}
 		
 		ist ein $\varepsilon$-streng konvexes Problem und besitzt deshalb eine eindeutige optimale Lösung
 		test
 	\end{lemma}
 	
 	\begin{proof}
-		todo.
+		Die Entropie H ist wegen der Hesse-Matrix $\partial ^2 H (P) = -diag(1/P_{i,j})$ und $P_{i,j} \leq 1$ stark konkav.
+		Durch die Multiplikation mit $\varepsilon$ und anschließender Subtraktion wir aus dem obigen Problem ein konvexes. 
 	\end{proof}
+
+	\begin{remark}
+		Für größere $\varepsilon$ wird mehr Entropi gefordert
+	\end{remark}
 	
 	\begin{proposition}[Konvergenz in $\varepsilon$]
 		Die eindeutige Lösung $P_\varepsilon$ von \autoref{eq:reg_problem} konvergiert gegen die optimale Lösung mit maximaler Entropie innerhalb der Menge aller optimalen Lösungen des Kantorovich Problems, d.h.
 		\begin{equation}
-		\boldsymbol{P}_\varepsilon \xrightarrow{\varepsilon \to 0} \argmin_{P} \lbrace -\boldsymbol{H}(\boldsymbol{P}) : \boldsymbol{P} \in \Pi (\boldsymbol{a}, \boldsymbol{b}), \langle \boldsymbol{P}, \boldsymbol{C} \rangle = L_{\boldsymbol{C}}(\boldsymbol{a}, \boldsymbol{b}) \rbrace, \label{eq:P_eps_0}
+		\boldsymbol{P}_\varepsilon \xrightarrow{\varepsilon \to 0} \argmin_{P} \lbrace -\boldsymbol{H}(\boldsymbol{P}) : \boldsymbol{P} \in \Pi (\boldsymbol{a}, \boldsymbol{b}), \langle \boldsymbol{P}, \boldsymbol{C} \rangle = L_{\boldsymbol{C}}(\boldsymbol{a}, \boldsymbol{b}) \rbrace, \label{eq:P_eps_0} 
 		\end{equation}
 		d.h. es gilt
 		\begin{equation}
@@ -1258,7 +1446,18 @@
 	\end{proposition}
 	
 	\begin{proof}
-		todo:Abend. s. COT, S.59
+		Sei eine Folge $\varepsilon_l)_l$ mit $\varepsilon_l \to 0$ und $\varepsilon_l > 0$ gegeben. Sei $P_l$ die Lösung von  \autoref{eq:reg_problem} für $\varepsilon = \varepsilon_l$. Da $\Pi(a,b)$ beschränkt ist, existiert eine Teilfolge $\varepsilon_k$ mit $P_k \to P^*$. Augfrund der Abgeschlossenheit von $\Pi(a,b)$ folgt $P^* \in \Pi(a,b)$.
+		
+		Sei $P \in \Pi (a,b)$ beliebig mit $\langle C, P \rangle = L_C(a,b)$. Aufgrund der Optimalität von $P$ und $P_l$ bezüglich $L_C(a,b)$ bzw. $L_C^{\varepsilon_l}(a,b)$ gilt
+		
+		\begin{equation}
+			0 \leq \langle C, P_l\rangle - \langle C, P_\rangle \leq \varepsilon_l (H(P_l)-H(P)). \label{eq:abschätzung1}
+		\end{equation}
+		Aufgrund der Stetigkeit von $H$ folgt für $l \to +\infty$ in \autoref{eq:abschätzung1} $\langle C, P^* \rangle = \langle C, P \rangle$, womit $P^*$ ein zulässiger Punkt ist. Division durch $\varepsilon_l$ in \autoref{eq:abschätzung1} und Übergang zum Grenzwert liefert $H(P)\leq H(P^*)$. Folglich ist $P^*$ eine Lösung von \autoref{eq:P_eps_0}.
+		
+		Da die Lösung $P_0^*$ aufgrund der strikten Konvexität von $-H$ eindeutig ist, gilt $P^* = P_0^*$ und die gesamte Folge konvergiert.
+		
+		
 	\end{proof}
 	
 	\begin{remark}
@@ -1276,7 +1475,7 @@
 	Wir definieren die Kullback-Leibler-Divergenz zwischen Kopplungen als
 	
 	\begin{equation}
-	\boldsymbol{KL}(\boldsymbol{P}|\boldsymbol{K}) := \sum_{i,j} \boldsymbol{P}_{i,j} \log \left(\frac{\boldsymbol{P}_{i,j}}{\boldsymbol{K}_{i,j}} \right) - \boldsymbol{P}_{i,j} + \boldsymbol{K}_{i,j}.
+	\boldsymbol{KL}(\boldsymbol{P}|\boldsymbol{K}) := \sum_{i,j} \boldsymbol{P}_{i,j} \log \left(\frac{\boldsymbol{P}_{i,j}}{\boldsymbol{K}_{i,j}} \right) - \boldsymbol{P}_{i,j} + \boldsymbol{K}_{i,j}. \label{eq:KL_div_discrete}
 	\end{equation}
 	Damit ist die eindeutige Lösung $\boldsymbol{P}_\varepsilon$ von \autoref{eq:reg_problem} eine Projektion des zur Kostenmatrix $\boldsymbol{C}$ gehörigen Gibbs-Kernels $\boldsymbol{K}_{i,j} := e^{-\frac{\boldsymbol{C}_{i,j}}{\varepsilon}}$ auf $\Pi (\boldsymbol{a}, \boldsymbol{b})$.
 	
@@ -1288,8 +1487,41 @@
 	
 	\subsubsection{Berechnung der Lösung: Sinkhorn}
 	In diesem Kapitel sehen wir, dass die Lösung des regularisierten Problems eine besondere Form besitzt, die wir über $m+n$ Variablen parametrisieren können.
+	\begin{comment}
 	
-	
+	\begin{remark}[Formulierung für allgemeine Maße]
+		Für beliebige Maße lässt sich ebenfalls eine regularisierte Formulierung \cite{COTcuturi} angeben. 
+		Dazu wird die diskrete Entropie durch die relative Entropie bezüglich des Produktmaße $d\alpha \otimes d\beta (x,y) := d\alpha (x) d\beta (y)$. Als regularisierte Version von \autoref{eq:kontorovich_allgemein} ergibt sich 
+		\begin{equation}
+			\min_{\pi \in \Pi (\alpha , \beta)} \int_{\mathcal{X}\times \mathcal{Y}}{c(x,y)d\pi (x,y) + \varepsilon KL(\pi |\alpha \otimes \beta)}, 
+		\end{equation}\label{eq:kantorovich_reg_allgemein}
+		wobei die relative Entropie eine Verallgemeinerung der diskreten Kullback-Leibler-Divergenz \autoref{eq:KL_div_discrete} ist und die folgende Form besitzt:
+		\begin{align}
+			KL(\pi |\xi) &:=\int_{\mathcal{X} \times \mathcal{Y}} \log \left(\frac{d\pi}{d\xi}(x,y)\right) d\pi (x,y) \\
+´			& + \int_{\mathcal{X} \times \mathcal{Y}}(d\xi (x,y) - d\pi (x,y)).			 
+		\end{align}
+		Hierbei wird $KL(\pi | \xi) = +\infty$ gesetzt, falls $\pi$ keine Dichte $\frac{d\pi}{d\xi}$ bezüglich $\xi$ besitzt.
+	\end{remark}
+
+		Die folgende Proposition zeigt, dass die Lösung von \autoref{eq:kantorovich_reg_allgemein} unabhängig von der Wahl des Referenzmaßes für die Definition von $KL(\cdot | \alpha \otimes \beta)$ ist.
+		
+	\begin{proposition}
+		Für $\pi \in \Pi(\alpha, \beta)$ und $(\alpha ', \beta ')$, mit den selben Nullmengen wie $(\alpha , \beta )$,
+		gilt
+		\begin{equation}
+			KL(\pi |  \alpha \otimes \beta) = KL( \pi |\alpha ' \otimes \beta ') - KL(\alpha \otimes \beta | \alpha ' \otimes \beta ')
+		\end{equation}
+	\end{proposition}
+
+\autoref{eq:kantorovich_reg_allgemein} kann äquivalent als Projektionsproblem
+\begin{equation}
+	\min_{\pi \in \Pi (\alpha, \beta)}{KL(\pi |\mathcal{K})} \label{eq:schrödinger}
+\end{equation}
+geschrieben werden, wobei $\mathcal{K}$ die Gibbs-Verteilung $d\mathcal{K}(x,y) := e^{-\frac{c(x,y)}{\varepsilon}}d\alpha (x) d\beta (y)$ besitzt.\\
+Diese Formulierung ist auch "Statisches Schrödinger Problem" bekannt.
+Für $\varepsilon  \to 0$ konvergiert die eindeutige Lösung von \autoref{eq:schrödinger} gegen die Lösung mit maximaler Entropie von \autoref{eq:kontorovich_allgemein} \cite{carlier2017convergence}.
+			\footnote{\url{https://hal.archives-ouvertes.fr/hal-00849930/document}}	
+\end{comment}
 	\begin{proposition}
 		Die Lösung des regularisierten Problems \autoref{eq:reg_problem} besitzt die Form
 		\begin{equation}
@@ -1340,16 +1572,117 @@
 		(IPFP) Deming and Stephan [1940] and RAS [Bacharach, 1965] methods [Idel, 2016].
 		The proof of their convergence is attributed to Sinkhorn \cite{sinkhorn1964relationship}, hence the name of the
 		algorithm.
+	\begin{remark}
+	Die Lösung zum regularisierten Problem lässt sich nach den Sinkhorn-Iterationen wie folgt angeben: $P_L = diag(U_L)K diag(v_L)$ Das ist  der optimal Transport plan für das Regularisierte Problem.Optimal Transport Caost lässt sich berechnen als:
+$\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}	
+	
+	
+		Für die globale Konvergenzanalayse der Sinkhorn-Algorithmus lässt sich ein Zusammenhang mit der Hilbertschen Projektionsmetrik benutzen, der erstmals in \cite{franklin_sinkhorn_convergence} vorgestellt wurde.
 		
-	\section{TODO: SINKHORN CONVERGENCE}
-	\begin{remark}[Konvergenz des Sinkhorn Algorithmus]
-		Elementar ist \cite{franklin_sinkhorn_convergence}\\
-		Hilbert (projective) metric
-		test
+		Diese ist wie folgt definiert:
 		
+		\begin{definition}[Projektive Hilbert-Metrik]
+			Seien $u,u' \in \mathbb{R}_{+,\star}^n$.
+			Dann ist die projektive Hilbert-Metrik $d_\mathcal{H}$ definiert durch
+			\begin{equation}
+				d_\mathcal{H}(u,u') := \log \max_{i,j}{\frac{u_iu_j'}{u_ju_i'}}.
+			\end{equation}
+		\end{definition}
+		
+		\begin{remark}
+			It can be shown to be a distance on the projective cone R n +,* / ~, where u ~ u 0
+			means that $\exists r > 0, u = ru 0$ (the vectors are equal up to rescaling, hence the
+			name “projective”). This means that d H satisfies the triangular inequality and
+			d H (u, u 0 ) = 0 if and only if u ~ u 0 . This is a projective version of Hilbert’s original
+			distance on bounded open convex sets [Hilbert, 1895]. The projective cone R n +,* / ~
+			is a complete metric space for this distance. By a logarithmic chan
+			
+			the Hilbert metric on the rays of the positive cone is isometric to the variation
+			seminorm (it is a norm between vectors that are defined up to an additive constant)
+			$dH(u,u_0) \log (u) -log(u_0)$
+			
+			where
+			(4.21)
+			var
+			def.
+			wobei $||f||_{var} := (\max_i f_i) -(\min_i f_i)$.
+		
+			This variation seminorm is closely related to the ` norm since one always has
+			$||f||_{var} \leq ||f||_{\infty}$  . If one imposes that f i = 0 for some fixed i, then a converse inequal-
+			ity also holds since $||f||_{\infty} \leq ||f||\_{var}$ . These bounds are especially useful to analyze
+			Sinkhorn convergence (see Remark 4.14 below), because dual variables f = log(u)
+			solving (4.14) are defined up to an additive constant, so that one can impose that
+			f i = 0 for some i. 
+		\end{remark}
+		
+		The Hilbert metric was introduced independently by [Birkhoff,
+		1957] and [Samelson et al., 1957]. They proved the following fundamental theorem,
+		which shows that a positive matrix is a strict contraction on the cone of positive
+		vectors.
+		
+		\begin{theorem}\label{theorem41}
+			Sei $K \in \mathbb{R}_{+,\star}^{n \times m}$. Dann gilt für $(v,v') \in (\mathbb{R}_{+, \star}^m)^2$
+			
+			\begin{equation}
+			d_\mathcal{H}(Kv,Kv') \leq \lambda (K) d_\mathcal{H}(v,v'), \text{ mit } \begin{cases}
+			\lambda (K) := \frac{\sqrt{\nu (K)} -1}{\sqrt{\nu (K)}+1}\\
+			\nu (K) := \max_{i,j,k,l} \frac{K_{i,k}K_{j,l}}{K_{j,k}K_{i,l}}
+			
+			\end{cases}
+			\end{equation}
+		\end{theorem}
+	
+	Visualisierung des Theorems vgl \cite{COTcuturi},Seite 70.
+	
+	Mit diesem Resultat lässt sich die Konvergenz des Verfahrens zeigen:
+	
+	\begin{theorem}
+		Es gilt $(u^{(l)}, v^{(l)})\to (u^\star, v^\star)$ und
+		\begin{equation}
+			d_{\mathcal{H}}(u^{(l)}, u^\star) = \mathcal{O}(\lambda(K)^{2l}), \qquad d_\mathcal{H}(v^{(l)},v^\star) = \mathcal{O}(\lambda (K)^{2l}) \label{eq:erstesResThm42}
+		\end{equation}
+		Es gelten außerdem die beiden folgenden Abschätzungen
+		\begin{align}
+			d_\mathcal{H} (u^{(l)}, u^\star) &\leq \frac{d_\mathcal{H}(P^{(l)}\boldsymbol{1}_m, a)}{1-\lambda(K)^2}, \label{eq:thm42zweiAbschätzungen1}\\
+			d_\mathcal{H} (v^{(l)}, v^\star) &\leq \frac{d_\mathcal{H}(P^{(l)\top}\boldsymbol{1}_n, b)}{1-\lambda(K)^2}, \label{eq:thm42zweiAbschätzungen}		
+		\end{align}
+		wobei \begin{equation}
+			P^{(l)} := diag(u^{(l)})K diag(v^{(l)}) \label{eq:reconstruction_TransportPlan}
+		\end{equation}
+		gilt. Desweiteren gilt die Abschätzung
+		\begin{equation}
+			|| \log(P^{(l)}) - \log (P^\star)||_\infty \leq d_\mathcal{H} (u^{(l)}, u^\star) + d_\mathcal{H} (v^{(l)}, v^\star), \label{eq:thm42letzteAbschätzung}
+		\end{equation}
+		wobei $P^\star$ die eindeutige Lösung zu \autoref{eq:kantorovich_reg_allgemein} ist.
+	\end{theorem}
+	\begin{proof}
+		Für ein beliebiges Paar $(v,v') \in (\mathbb{R}_{+,\star}^m)^2$ gilt
+		\begin{equation*}
+			d_\mathcal{H} (v,v') = d_\mathcal{H}(v/v',\boldsymbol{1}_m) = d_\mathcal{H}(\boldsymbol{1}_m/v,\boldsymbol{1}_m/v').
+		\end{equation*}
+		Mit dieser Beziehung und \autoref{theorem41} erhalten wir
+		\begin{align*}
+		d_\mathcal{H}(u^{(l+1)}, u^\star) &= d_\mathcal{H}\left(\frac{a}{Kv^{(l)},\frac{a}{Kv^\star}}\right)\\
+		&=d_\mathcal{H}(Kv^{(l)}, Kv^\star) \\
+		&\leq \lambda (K)d_\mathcal{H}(v^{(l),v^\star}).
+		\end{align*}
+		Dies zeigt \autoref{eq:erstesResThm42}. Mit Hilfe der Dreiecksungleichung erhalten wir
+		\begin{align*}
+			d_\mathcal{H}(u^{(l)}, u^\star) &\leq d_\mathcal{H}(u^{(l+1)},u^{(l)}) + d_\mathcal{H}(u^{(l+1)},u^\star)\\
+			& \leq d_\mathcal{H}\left(\frac{a}{Kv^{(l)}}, u^{(l)}\right) + \lambda (K)^2 d_\mathcal{H}(u^{(l),u^\star})\\
+			&= d_\mathcal{H}\left(a, u^{(l)} \odot (Kv^{(l)})\right) + \lambda (K)^2 d_\mathcal{H}(u^{(l)},u^\star)\\
+			&= d_\mathcal{H}\left(a, P^{(l)}\boldsymbol{1}_m \right) + \lambda (K)^2 d_\mathcal{H}(u^{(l)},u^\star)
+		\end{align*}
+		und damit nach Division durch $1-\lambda(K)^2$  \autoref{eq:thm42zweiAbschätzungen1}. Die zweite Abschätzung, \autoref{eq:thm42zweiAbschätzungen}, folgt analog. 
+		Die \autoref{eq:thm42letzteAbschätzung} gilt nach Lemma 3 in \cite{franklin_sinkhorn_convergence}.
+	\end{proof}
+
+	\begin{remark}
+		\leavevmode 
 		\begin{itemize}
-			\item Globale Konvergenz
-			\item Lokale Konvergenz
+			\item Konvergenzrate?
+			\item Berechnung der optimalen Transportpläne mit \autoref{eq:reconstruction_TransportPlan} im Zeitschritt $l$ und Berechnung der Transportkosten ...
+			\item Abbruchkriterien (vgl. mit der POT Implementierung)
 		\end{itemize}
 	\end{remark}
 	\begin{remark}[Allgemeine Formulierung des entropisch regularisierten Problems für beliebige Maße]
@@ -1359,7 +1692,14 @@
 			\item Referenzmaß ist unbedeutend, lediglichd er Support hat eine Bedeutung.
 		\end{itemize}
 	\end{remark}
-	\subsubsection{Verallgemeinerung}
+	\subsubsection{Komplexitätsanalyse}
+	\cite{altschuler2017near} liefert eine Komplexitätsanalyse für die Sinkhorn-Iterationen. Im Fall $n=m$ sind für die Wahl $\varepsilon = \frac{4 \log (n)}{\tau}$ $\mathcal{O}(||C||_\infty^3 \log (n)\tau ^{-3})$ Sinkhorn-Iterationen (inklusive eines Rundungsschrittes) notwendig, um eine zulässige Kopplung $\hat{\boldsymbol{P}} \in \Pi(\boldsymbol{a}, \boldsymbol{b})$ zu berechnen, die die Abschätzung $\langle \hat{\boldsymbol{P}}, \boldsymbol{C} \rangle \leq L_{\boldsymbol{C}}(\boldsymbol{a}, \boldsymbol{b} +  \tau)$ zu berechnen. Somit liefert das Sinkhorn-Verfahren eine $\tau$-Approximation des nicht regularisierten Optimal Transport-Problems in $\mathcal{O}(n^2 \log (n)\tau ^{-3})$ Operationen.
+	Gleichzeitig wir dort eine greedy Variante der Sinkhorn-Iterationen namens Greenkhorn präsentiert, die eine $\tau$-Approximation in $\mathcal{O}(n^2\tau^{-3})$ Operationen liefert.
+	\cite{dvurechensky2018computational} verbessert diese auf $\mathcal{O}(n^2\tau^{-2})$ Operationen.
+	
+	\section{TODO: Warum wir GW-Distanz brauchen}
+	\url{https://arxiv.org/pdf/1811.02834.pdf}
+	\subsubsection{Verallgemeinerung: Gromov-Wasserstein-Divergenz}
 	Der Vergleich zwischen Ähnlichkeits- bzw. Distanzmatrizen ist schwierig, da diese die innere Struktur eines Datensatzes beschreiben, die unabhängig von Rotationen und Translationen ist. Es existiert keine kanonische Ordnung der Reihen und Spalten.
 	Verallgemeinerung auf beliebige  Matrizen C, d.h. diese Distanzmatrizen müssen nicht notwendigerweise positiv sein und die Dreiecksungleichung erfüllen.
 	
@@ -1379,7 +1719,8 @@
 	Diese Definition der Gromov-Wasserstein-Distanz verallgemeinert die Version in \cite{gwd_averaging_kernels}, da nun beliebige Fehlerfunktionen betrachtet werden.\\
 	
 	Für $L=L_2 $ zeigt Memoli, 2011, dass $GW^{1/2}$ eine Distanz auf dem Raum metrischer Maßräume modulo Maß-erhaltender Isometrien (?, besser zitieren -> collständiges Resultat angeben) definiert.
-	
+\section{TODO: Beweis für L=L2}
+\cite{memoli2011gromov}
 	Durch die Definition 
 	\begin{equation}
 	\mathcal{L} (C, \bar{C}):= (L(C_{i,k}, \bar{C}_{j,l}))_{i,j,k,l}
@@ -1610,7 +1951,7 @@
 	iterations: (i) blockwise coordinate descent on (T s ) s and
 	C, (ii) projected gradient descent on each T s , and (iii)
 	Sinkhorn iterations to compute the projection.
-	\subsubsection{Numerische Approximationen}
+	\subsubsection{Komplexitätsanalyse}
 	
 	\begin{algorithm}
 		\caption{Algorithm caption}
@@ -1963,7 +2304,7 @@
 	\end{itemize}
 	
 	
-	\section{Zusammenfassung} \label{chapter_conclusion}
+	\section{Zusammenfassung und Ausblick} \label{chapter_conclusion}
 	Beobachtung: Je größer die Netzwerke sind, desto leichter lassen sich Poisoning-Angriffe realisieren.
 	
 	\printglossaries
