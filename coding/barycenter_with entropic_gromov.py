@@ -37,20 +37,24 @@ if __name__ == '__main__':
     max_iter = 5  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter:
     de = 18 # Paramter um das Auswahlfenster der Länge num_samples_to_check zu verschieben
-    eps_init = 0.02 #5e-4'MyFile5.txt'
-    eps_update = 0.02
+    eps_init = 0.1 #5e-4'MyFile5.txt'
+    eps_update = 0.1
 
     class_to_check = 5
     verbose = False
 
+
+
+
     # Ein- und Ausgabe
-    #'SPA_incV3_s2_pp015'
-    model_names = ['SPA_incV3_s2_pp01']#['SPA_incV3_s2_pp001']#
+    model_names = ['SPA_incV3_s1_pp033', 'SPA_incV3_s1_pp015', 'SPA_incV3_s1_pp01','SPA_incV3_s1_pp005', 'SPA_incV3_s1_pp002', 'SPA_incV3_s1_pp001']#['SPA_incV3_s2_pp001']#
     model_names = [s + 'e-rule' for s in model_names]
 
     for model_name in model_names:
         print(model_name)
-        file_name = 'clustering_' + model_name + '.txt'
+        time.sleep(5000)
+        print('waking up.')
+        file_name = 'clustering_regß1' + model_name + '.txt'
 
         # Erstelle Ordner für die Ausgaben
         path = os.getcwd()
@@ -341,13 +345,22 @@ if __name__ == '__main__':
             # Change clustering labels, if the bigger class is labeled with '1':
             if labels_pred.sum() > labels_pred.shape[0]/2:
                 labels_pred = 1 - labels_pred
-            a, b, c, d = confusion_matrix(poison_labels, labels_pred).ravel()
+            tn, fp, fn, tp = confusion_matrix(poison_labels, labels_pred).ravel()
             #print('(tn, fp, fn, tp): ', a, b, c, d)
-
+            acc = round(100*(tp+tn)/(tn+fn+tp+fp), 2)
+            tpr = round(100*tp/(tp+fn), 2)
+            tnr = round(100*tn/(tn+fp), 2)
             file_clustering = open(file_name,"a")
-            file_clustering.write('(tn, fp, fn, tp): ' + str(a) + ',' + str(b) + ',' + str(c) + ',' + str(d))
+            file_clustering.write('(tn, fp, fn, tp): ' + str(tn) + ',' + str(fp) + ',' + str(fn) + ',' + str(tp))
+            file_clustering.write('\n')
+            file_clustering.write('acc: ' + str(acc))
+            file_clustering.write('\n')
+            file_clustering.write('tpr: ' + str(tpr))
+            file_clustering.write('\n')
+            file_clustering.write('tnr: ' + str(tnr))
             file_clustering.write('\n')
             file_clustering.close()
+
             # Abbruchkriterium ---------------------------------------------------------------------------------------------
             if iter_kmeans > 0:
                 print('Old Clustering', clustering_old)
