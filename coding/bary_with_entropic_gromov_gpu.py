@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 import matplotlib
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-
+import time
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 from scipy.spatial import distance_matrix
 from numpy.random import choice
@@ -28,13 +28,14 @@ print("Is Cuda available: {}".format(torch.cuda.is_available()))
 
 
 if __name__ == '__main__':
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     seed = 0
     np.random.seed(seed)
     random.seed(seed) #seed=0 => idx1=24
     parallel_computation = False
     threshold = 0.99
-    num_samples_to_check = 0  #number of samples per class to check for poisoning attack. if ==0 => take all samples
-    max_iter = 20  # number of maximum iterations in kmeans algorithm
+    num_samples_to_check = 10  #number of samples per class to check for poisoning attack. if ==0 => take all samples
+    max_iter = 10  # number of maximum iterations in kmeans algorithm
     n_samples = 10  # number of points in barycenter:
     de = 18 # Paramter um das Auswahlfenster der Länge num_samples_to_check zu verschieben
     eps_init = 0.1 #5e-4'MyFile5.txt'
@@ -50,7 +51,7 @@ if __name__ == '__main__':
 
     for model_name in model_names:
         print(model_name)
-        file_name = 'clustering_reg001_' + model_name + '.txt'
+        file_name = 'clusteringGPUtest_' + model_name + '.txt'
 
         # Erstelle Ordner für die Ausgaben
         path = os.getcwd()
@@ -167,20 +168,16 @@ if __name__ == '__main__':
 
         CC = []
         pp = []
-        max_dim = 0
-        min_dim = np.square(heatmap_array[0].shape[0])
+
 
         for i in range(n):
             c_, p_ = heatmap_to_distance_matrix(heatmap_array[i])
-            CC.append(c_)
-            pp.append(p_)
-            if c_.shape[0] > max_dim:
-                max_dim = c_.shape[0]
-            if c_.shape[0] < min_dim:
-                min_dim = c_.shape[0]
+            CC.append(torch.tensor(c_).to(device))
+            pp.append(torch.tensor(p_).to(device))
 
-        CC = np.asarray(CC)
-        pp = np.asarray(pp)
+
+
+
 
 
         #print('max_dim: ', max_dim)
@@ -222,7 +219,7 @@ if __name__ == '__main__':
             for i in range(0, n):
                 print('i: ', i)
 
-                gw, log = ot.gromov.entropic_gromov_wasserstein2(
+                gw, log = entropic_gromov_wasserstein2_torch(
                         CC[idx_1], CC[i],
                         pp[idx_1], pp[i], 'square_loss', epsilon=eps_init, log=True)
                 #print(log['gw_dist'])
@@ -230,14 +227,14 @@ if __name__ == '__main__':
 
                 #distances.append(1.0)
 
-            distances = np.asarray(distances)
+            distances = torch.tensor(distances, dtype=torch.float64)
             distances_for_iter0 = distances
             distances /= distances.sum()
         print("--- %s seconds ---" % (time.time() - start_time))
         print(' ==> Distances computed.')
 
         # Choose probabilities of choosing next k-1 centers:
-        p = np.square(distances)
+        p = torch.square(distances)
         p /= p.sum()
         #print(p)
 
@@ -299,12 +296,10 @@ if __name__ == '__main__':
                     else:
                         # Die Abstände zwischen idx2 und allen anderen Punkten muss noch berechnet werden
                         # Auch für iter_kmeans > 0 müssen die Distanzen neu berechnet werden
-                        gw, log = ot.gromov.entropic_gromov_wasserstein2(
-                                cc[j]['dist_m'], CC[i],
-                                cc[j]['weights'], pp[i], 'square_loss', epsilon=eps_update, log=True, verbose=verbose)#method=method_update
+
+                        gw, log = entropic_gromov_wasserstein2_torch(cc[j]['dist_m'], CC[i],
+                                cc[j]['weights'], pp[i], 'square_loss', epsilon=eps_update, log=True, verbose=verbose)#method=method_update)
                         distances_to_cluster_centers[i][j] = log['gw_dist']
-
-
 
                 #print('Distances to centers: ', distances_to_cluster_centers)
 
@@ -383,14 +378,21 @@ if __name__ == '__main__':
 
             for j in range(num_cluster_kmeans):
                 idd = np.where(clustering==id)
-                print('idd:', idd[0], end=" ")
-                bary = compute_barycenter_from_Cp(CC, pp, clustering=clustering, id=j, n_samples=n_samples, entropic=True, eps=eps_update)
+                if idd[0].shape[0] < 2:
+                    # Es gibt nur ein Datenpunkt, der dem CLuster zugeordnet ist, das Baryzentrum ist einfach genau dieser Punkt
+                    #       ==> Es muss kein neues Baryzentrum berechnet werden
+                    # Update:
+                    cc[j]['dist_m'] = CC[0]
+                    cc[j]['weights'] = pp[0]
+                    continue
+                print('idddddddddddddd', idd[0])
+                bary = compute_barycenter_from_Cp_torch(CC, pp, id=idd, n_samples=n_samples, entropic=True, eps=eps_update)
                 p = ot.unif(bary.shape[0])
 
                 cc[j]['dist_m'] = bary
                 cc[j]['weights'] = p
 
-            iter_kmeans +=1
+            iter_kmeans += 1
 
             print("--- %s seconds ---" % (time.time() - start_time))
 

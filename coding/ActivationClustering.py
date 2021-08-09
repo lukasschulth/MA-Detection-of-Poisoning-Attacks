@@ -324,6 +324,8 @@ class ActivationClustering:
             print('Nicht verdächtige DAten in Retraining kopiert ...')
             """
             return acc, tpr, tnr
+
+
     def run_retraining(self,verbose=True):
 
         train_dir_retraining = self.root_dir + "Retraining_Data/Training"
