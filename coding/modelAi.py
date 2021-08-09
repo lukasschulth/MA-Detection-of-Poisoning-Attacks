@@ -30,6 +30,8 @@ class modelAi:
         self.path = []
         self.num_classes = num_classes
         self.BDSR_classwise = np.zeros((self.num_classes,))
+        self.bdsr = 0
+        self.GUD = 0  #Qualität auf unkorrumpierten Daten
         self.isPretrained = isPretrained
 
         #self.logger = Logger("../logs")
