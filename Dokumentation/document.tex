@@ -39,7 +39,7 @@
 %-------------------------------------------------------------------------------------------------------
 
 % --- Algorithmen ---------------------------
-% TODO: Richtiges Paket wählen, \listofalgorithms klappt nur mit algorithm, nicht mit algorithmicx
+
 \usepackage{algorithm} 
 \usepackage{algorithmic}
 %\usepackage[ruled,algosection,algo2e]{algorithm2e} 
@@ -317,10 +317,7 @@
 	
 	
 	
-	\begin{algorithm} 
-		\caption{Foo bar} 
-		... 
-	\end{algorithm} 
+
 	\section{Einführung}
 	Datengewinnung(LRP)
 	Datenverarbeitung(kMeans, Gromov Wasserstein)
@@ -1918,7 +1915,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 		\end{equation}
 		für $f_1, f_2,h_1, h_2:\mathbb{R} \to \mathbb{R}$. Dann gilt für $T \in \mathcal{C}_{p,q}$:
 		\begin{equation}
-		\mathcal{L} (C, \bar{C}) \otimes T = c_{C, \bar{C}} - h_1(C)Th_2(\bar{C})^T,
+		\mathcal{L} (C, \bar{C}) \otimes T = c_{C, \bar{C}} - h_1(C)Th_2(\bar{C})^T, \label{eq:berechnung_tensorprodukt}
 		\end{equation}
 	\end{proposition} 
 	wobei $c_{C, \bar{C}}:= f_1(C)p \boldsymbol{1}_{N_2}^T + \boldsymbol{1}_{N_1}q^Tf_2(\bar{C})^T$ unabhängig von $T$ ist.
@@ -2098,20 +2095,30 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	C \leftarrow \left(\frac{1}{pp^\top}\sum_s{\lambda_s T_s^\top log(C_s)T_s}\right).
 	\end{equation}
 	\begin{algorithm}
-		\hspace*{\algorithmicindent} \textbf{Input: } $(C_s,p_s), p.$ Initialisiere $C$. 
-		
+		\hspace*{\algorithmicindent} \textbf{Input: } $(C_s,p_s), p.$ \newline
 		\hspace*{\algorithmicindent} \textbf{Output: } $C$. 
 		\caption{Berechnung der $GW\_{\varepsilon}$ Baryzentren}
 		\label{alg:GWB_computation}
 		\begin{algorithmic}
-			
-			\IF{some condition is true}
-			\STATE do some processing
-			\ELSIF{some other condition is true}
-			\STATE do some different processing
-			\ELSE
-			\STATE do the default actions
-			\ENDIF
+		\STATE{Initialize $C$.} 
+		\REPEAT 
+			\STATE// minimize over $(T_s)_s$
+			\FOR{$s=1$ \textbf{to }S}
+				\STATE Initialize $T_s$.
+				\REPEAT
+				\STATE // Compute $c_s = \mathcal{L}(C,C_s)\otimes T_s$ using \autoref*{eq:berechnung_tensorprodukt}
+				\STATE $c_s \leftarrow f_1(C) + f_2(C_s)^\top -h_1(C)T_sh_2(C_s)^\top$
+				\STATE // Sinkhorn iterations to compute $\mathcal{T}(c_s,p,q)$
+				\STATE Initialize $a \leftarrow \boldsymbol{1}$, set $K \leftarrow e^{-c_s/\varepsilon}.$
+				\REPEAT 
+				\STATE $a \leftarrow \frac{p}{Kb}, b \leftarrow  \frac{q}{K^\top a}.$
+				\UNTIL{convergence}
+		 		\STATE $T_s \leftarrow diag(a)Kdiag(b).$
+				\UNTIL{convergence}
+			\ENDFOR 
+			\STATE // Minimize over C 
+			\STATE $C \leftarrow \left( \frac{f_1'}{h_1'} \right)^{-1}\left( \frac{\sum_s{\lambda_sT_s^\top h_2(C_s)T_s}}{pp^\top} \right)$ 
+			\UNTIL{convergence}
 		\end{algorithmic}
 	\end{algorithm}
 	
@@ -2130,18 +2137,22 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	
 	\subsubsection{Implementierung}
 	\begin{algorithm}
-		\caption{Algorithm caption}
-		\label{alg:algorithm-label}
+		\hspace*{\algorithmicindent} \textbf{Input: } $\boldsymbol{a}, \boldsymbol{b}, \boldsymbol{C}, \varepsilon > 0$		\newline
+		\hspace*{\algorithmicindent} \textbf{Output: } Optimal Coupling $P*$. 
+	
+		\caption{Sinkhorn-Algorithmus}
+		\label{alg:sinkhorn}
+		%TODO: Beschreibung der Algorithmen
 		\begin{algorithmic}
-			\IF{some condition is true}
-			\STATE do some processing
-			\ELSIF{some other condition is true}
-			\STATE do some different processing
-			\ELSE
-			\STATE do the default actions
-			\ENDIF
+			\STATE{Initialize $\boldsymbol{u}^{(0)}, \boldsymbol{v}^{(0)} = \boldsymbol{1}, \boldsymbol{K}= exp(-\frac{\boldsymbol{C}}{\varepsilon}).$}
+			\REPEAT
+				\STATE{$\boldsymbol{u}^{(i)} = \boldsymbol{a} \oslash \boldsymbol{K}^\top \boldsymbol{v}^{(-1)}$}
+				\STATE{$\boldsymbol{v}^{(i)} = \boldsymbol{b} \oslash \boldsymbol{K} \boldsymbol{u}^{(-1)}$}
+			\UNTIL{convergence}
 		\end{algorithmic}	
 	\end{algorithm}
+
+
 	\ref*{alg:algorithm-label}
 	\section{(Numerische) Ergebnisse/Vergleich mit anderen Verfahren} \label{chapter_comparisons}
 	
