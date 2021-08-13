@@ -13,7 +13,6 @@
 \usepackage{caption}[2011/11/10]
 
 
-
 % --------Figures ------------------------------------------------------
 \newcommand{\figsource}[1]{%
 	\addtocounter{figure}{-1}
@@ -37,7 +36,7 @@
 %-------------------------------------------------------------------------------------------------------
 
 % --- Algorithmen ---------------------------
-% TODO: Richtiges Paket wählen, \listofalgorithms klappt nur mit algorithm, nicht mit algorithmicx
+
 \usepackage{algorithm} 
 \usepackage{algorithmic}
 %\usepackage[ruled,algosection,algo2e]{algorithm2e} 
@@ -295,9 +294,8 @@
 	\begin{abstract}deutsch\end{abstract}
 	TODO:
 	\begin{itemize}
-		\item Algorithmen aufschreiben
-		\item Dreicksungleich und Metrik Beweis Wp(a,b) fertigstellen
-		\item Verallgemeinerung auf  verschiedene Räume \cite{vayer2020fused}
+		\item Algorithmen aufschreiben kmeans
+
 	\end{itemize}
 	\keywords{one, two, three, four}
 	\newpage
@@ -312,14 +310,6 @@
 	\newpage
 	\tableofcontents
 	\newpage
-	
-	
-	
-	
-	\begin{algorithm} 
-		\caption{Foo bar} 
-		... 
-	\end{algorithm} 
 	\section{Einführung}
 	Allein für Deutschland wird erwartet, dass mit Dienstleistungen und Produkten, die auf dem
 	Einsatz von Künstlicher Intelligenz (KI) basieren, im Jahr 2025 Umsätze in Höhe von 488 Milliar­
@@ -1393,7 +1383,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 
 
 \begin{definition}[\cite{gromov2007metric}]
-	Ein metrischer Maßraum ist ein Tripel $(X, d_X, \mu_X)$ mit
+	Ein \emph{metrischer Maßraum} ist ein Tripel $(X,d_X,\mu_X)$ mit
 	\begin{itemize}
 		\item $(X, d_X)$ ist ein kompakter metrischer Raum
 		\item $\mu_X$ ist ein Borel-Maß auf $X$ mit vollem Support, d.h. 
@@ -1402,16 +1392,49 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 		\end{equation} 
 	\end{itemize}
 
-\begin{definition}[pushforward-Maß]
+\begin{definition}[Isometrie]
+	Seien zwei metrische Räume $(X, d_X)$ und $(Y,d_Y)$ gegeben. Wir nennen die Abbildung $\phi:X \to Y$ Isometrie, falls $\phi$ surjektiv ist und $d_X(x,x')= d_Y(\phi(x),\phi(x'))$ f.a. $x, x' \in X$ gilt. Für den Fall, dass eine solche Abbildung $\phi$ existiert, nennen wir $X$ und $Y$ isometrisch.
+\end{definition}
+
+\begin{definition}[Isomorphie]
+	Zwei MMR $(X,d_X,\mu_X)$ und $(Y,d_Y,\mu_Y)$ heißen isomorph, falls eine Maß-erhaltende Abbildung $f:X \to Y$ existiert, die $f_\#\mu_X = \mu_Y$ erfüllt.
+\end{definition}
+
+Mit $\mathcal{G}_\mathcal{W}$ bezeichnen wir die Menge aller metrischen Maßräume.
+
+\begin{example}
+	Wir betrachten die beiden metrischen Maßräume $(\lbrace a,b \rbrace, (\begin{pmatrix}
+	0 & 1\\
+	1 & 0 \\
+	\end{pmatrix}), \lbrace \frac{1}{2},\frac{1}{2})$ und 
+		$(\lbrace a',b' \rbrace, (
+	\begin{pmatrix}
+		0 & 1\\
+		1 & 0 \\
+	\end{pmatrix}, \lbrace \frac{1}{4},\frac{3}{4})$
+	Dann sind diese Räume isometrisch, jedoch nicht isomorph, vergleich dazu \autoref{im:example_mmspaces}
+\end{example}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.3\textheight]{example_mmspaces.png}
+	\caption[Beispiel isometrischer metrischer Maßräume]{Die beiden metrischen Maßräume sind ismetrisch, aber nicht isomorph.}
+	\source{\cite{COTcuturi}}
+	\label{im:example_mmspaces}
+\end{figure}
+
+\begin{definition}[pushforward-Maß/Bildmaß]
 	Seien $X,Y$ zwei Maßräume, $T: X \to Y$ eine messbare Abbildung und $\mu$ ein Maß auf X. Dann ist das pushforwad-Maß $T^\# \mu $ ein Maß auf Y, definiert durch \begin{equation}
 	T^\# \mu (A) = \mu (T^{-1}(A))
 	\end{equation}
 	für alle $A \subset Y$.
 \end{definition}
-	
+\begin{definition}[Kopplung]
+	Ein Wahrscheinlichkeitsmaß $\mu$ auf $X \times Y$ heißt Kopplung zwischen $\mu_x$ und $\mu_Y$, falls $(\mu_1)_\#\mu = \mu_X$ und $(\mu_2)_\#\mu = \mu_Y$ gilt. Wir benzeichnen mit $\Pi(\mu_X,\mu_Y)$ die Menge aller Kopplungen ziwschen $\mu_X$ und $\mu_Y$.
 \end{definition}
 	
-	Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henze/media/wt-ss15-henze-handout.pdf}}
+	
+Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henze/media/wt-ss15-henze-handout.pdf}}
 	\begin{definition}[Kopplungen zwischen Histogrammen]
 		Seien die beiden Histogramme $p \in \Sigma_{N_1}$ und $q \in \Sigma_{N_2}$ gegeben.
 		Als Menge der Kopplungen zwischen beiden Histogrammen definieren wir
@@ -1454,9 +1477,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 		
 	\end{definition}
 	
-	%\begin{figure}
-	%	\includegraphics{Hausdorff_distance_sample}
-	%\end{figure}
+	
 	\begin{definition}[Metrischer Maßraum]
 		Ein \emph{metrischer Maßraum} ist ein Tripel $(X,d_x,\mu_X)$, wobei $(X,d_X)$ ein metrischer Raum und $\mu_X$ ein borelsches W-Maß auf $X$ ist.
 	\end{definition}
@@ -1477,12 +1498,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	
 	$\Gamma_{X,Y}(x,y,x',y'):= |d_X(x,x') - d_Y(y,y')|$.
 	
-	\begin{definition}[Gromov-Hausdorff-Distanz]
-		Für die metrischen Räume $(X,d_X)$ und $(Y,d_Y)$ ist die \emph{Gromov-Hausdorff-Distanz} definiert als
-		\begin{equation}
-		d_{\mathcal{G}\mathcal{H}} = \frac{1}{2}\inf_{R}||\Gamma_{X,Y}||_{L^\infty(R \times R)}.
-		\end{equation}
-	\end{definition}
+	
 	\begin{definition}[Entropischer Optimaler Transport]
 		Wir definieren den $n$-dimensionalen Zufalls-Simplex als $\Sigma_n := \lbrace a \in \mathbb{R}_+^n: \sum_{i=1}^{n}{a_1} = 1$. Ein Element $a \in \Sigma_n$ bezeichnen wir als Histogramm oder Zufallsvektor.
 		
@@ -1502,29 +1518,66 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 		\end{equation}
 	\end{remark}
 	\begin{remark}[Fehlende Eindeutigkeit]
-		
+	
+	
 	\end{remark}
 	
-	\begin{definition}[Push-forward Operator]
-		$\beta (B) = \alpha (\lbrace x \in \mathcal{X}: T(x) \in B \rbrace) = \alpha(T^{-1}(B))$ \label{eq_pushforward}
-		
-	\end{definition}
-	Wir könne das Monge Problem wie folgt auf den Fall zweier beliebiger W-Maße $(\alpha, \beta )$ erweitern.
+	Dieses Problem wurde zuerst von Gaspard Monge im Jahr 1781 formuliert. In dieser Formulierung wurde Abbildung gesucht, die jedem Punkt in der Ausgangsverteilung einen Punkt in der Zielverteiliung zuordnet. Dabei wird die gesamte Masse eines Punktes in der Startverteilung an einen Punkt in der Zielverteilung verschoben. Eine solche Abbildung ist in \autoref{im:monge_mapping} dargestellt.
 	
-	\begin{definition}[Monge Problem zwischen beliebigen Maßen]
-		Seien $\alpha$ und $ \beta$ zwei W-Maße mit Support auf den Räumen $\mathcal{X}$ bzw. $\mathcal{Y}$, die durch $T:\mathcal{X} \to 	\mathcal{Y}$ verknüpft(? Fomulierung) sind.
-		Dann ist das Monge Problem gegeben durch
-		\begin{equation}
-		\min_T \lbrace \int_\mathcal{X}{c(x,T(x)) d\alpha (x)} : T_\#\alpha = \beta \rbrace.
-		\end{equation}
+	\begin{figure}[ht]
+		\centering
+	
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=0.3\textheight]{monge_mapping.png}
+		\caption[Monge-Abbildung]{\textbf{Links:} Fehlende Eindutigkeit in der Zuordnung. Die beiden Punkte $x_1$ und $x_2$ können sowohl den Punkten $y_1$ bzw. $y_2$ zugeordnet werden, um eine zulässige Abbildung zu erhalten. \textbf{Rechts:} Die Monge-Abbildung assoziiert das blaue Maße $\boldsymbol{\alpha}$ mit dem roten Maß $\boldsymbol{\beta}$. Dabei ist die Masse in den jeweiligen Punkten über den Flächeninhalt der Kreise dargestellt.}
+		\source{\cite{COTcuturi}}
+		\label{im:monge_mapping}
+	\end{figure}
+
+	Für die exakte Forumlierung im diskreten Fall benötigen wir die folgende Definiton.
+	
+	\begin{definition}[Bildmaß]
+		Für zwei Maßräume $(X,\Sigma_X)$ und $(Y,\Sigma_Y)$ und eine messbare Abbildung $f:X\to Y$ ist das Bildmaß $f_\#\mu$ auf $(Y,\Sigma_Y)$ definiert als $f_\#\mu = \mu (f^{-1(B)})$ für alle $B \in \Sigma_Y$.
 	\end{definition}
-	Die Bedingung $T_\#\alpha = \beta$ bedeutet, dass die Abbildung $T$ die gesamte Masse mithilfe des Push-forward Operators von $\alpha$ auf $\beta$ schiebt.
+
+	Für den Fall zweier diskreter Maße
+	
+	\begin{equation}
+		\alpha = \sum_{i=1}^n{\boldsymbol{a}_i\delta_{x_i}} \text{ und } \beta \sum_{j=1}^m{\boldsymbol{b}_j\delta_{y_j}}
+	\end{equation}
+	können wir das Monge-Problem dann wie folgt formulieren:
+	
+	Gesucht ist eine Abbildung $T:\lbrace x_1, ..., x_n \rbrace \to \lbrace y_1,...,y_m \rbrace$, die die Bedingung 
+	\begin{equation}
+		\forall j \in \lbrace 1,...,m \rbrace \boldsymbol{b}_j= \sum_{i:T(x_i)=y_i}{\boldsymbol{a}_i}
+	\end{equation}
+	erfüllt, die wir in Kurzform als $T_\#\alpha = \beta$ schreiben. Aufgrund der Positivität von $\boldsymbol{b}$ ist die Abbildung notwendigerweise surjektiv.
+	Als weitere Forderung gilt, dass die Abbildung $T$ minimal bezüglich einer Transportkostenfuktion $c(x,y)$ für $x,y \in \mathbb{R} \times \mathbb{R}$ sein soll:
+	\begin{equation}
+		\min_T{\sum_i{c(x_i, t(x_i)) : T_\#\alpha =  \beta}}.
+	\end{equation} 
+	
+	Neben der fehlenden Eindeutigkeit einer solchen Abbildung ist auch die Existenz nicht immer gegeben.
+			
 	\subsubsection{Optimaler Transport nach Kantorovich}
 	\cite{santambrogio2010introduction} ist eine gute, einfache Einführung. Damit kann ich vermutlich Monge und Kantorovich beschreiben.
 	
 	Das Optimal Transport Problem nach Kantorovich gehört zu den typischen Optimal Transport Problemen. Es stellt einer Relaxierung der Formulierung von Gaspard Monge[1781], bei der nun auch das Aufteilen von Masse (mass splitting) zulässig ist.
 	In Kantorovichs Formulierung ist eine Kopplung (oder: Transportabblidung) $\boldsymbol{T}$ gesucht, die die Kosten, die bei der Verschiebung eines diskreten Maßes $\boldsymbol{a}$ auf ein anderes diskretes Maß $\boldsymbol{b}$ bezüglich der Kosten $\boldsymbol{M} \in \mathbb{R}^{n_1 \times n_2}$ entstehen, minimiert.
 	Damit $\boldsymbol{T}$ eine Transportabbildung ist, muss $\boldsymbol{T} \in \Gamma(a,b) = \lbrace \boldsymbol{T} \geq \boldsymbol{0}, \boldsymbol{T}\boldsymbol{1}_{n_2} = a, \boldsymbol{T}^{T}\boldsymbol{1}_{n_1} = \boldsymbol{b} \rbrace$ gelten.
+	
+	Ein solcher Transportplan ist für drei verschiedene Ausgangssituationen in \autoref{im:coupling_cont_disc} dargestellt.
+	
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=0.4\textheight]{coupling_disc_semid_cont.png}
+		\caption[Transportpläne im diskreten, semi-diskreten und kontinuierlichen Fall]{\textbf{Links: }Kopplung ziwschen zwei diskreten Wahrscheinlichkeitsverteilungen. \textbf{ Mitte: }Kopplung zwischen einer konitnuierlichen W-Verteilung $\boldsymbol{\alpha}$ und einer diskreten W-Verteilung $\boldsymbol{\beta}$. \textbf{Rechts: }Kopplung im kontnuierlichen Fall.}
+		\source{\cite{COTcuturi}}
+		\label{im:couplings}
+	\end{figure}
+	
+	
 	
 	Für den Fall, dass die Grundkosten eine Metrik darstellen, ist auch die optimale Lösung des Optimal Transport Problems wieder eine Metrik \cite{cuturi2014ground} und definiert die \textit{Wasserstein Distanz}. Das OT Problem ist definiert als
 	\begin{equation}
@@ -1548,11 +1601,8 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	L_C(\boldsymbol{a}, \boldsymbol{b}) := \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{C}, \boldsymbol{P} \rangle := \sum_{i,j}{\boldsymbol{C}_{i,j}\boldsymbol{P}_{i,j}} \label{KOTP}
 	\end{equation}
 	
-	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig. In fact Kantorovich is considered as the inventor of linear pro-
-	gramming. \footnote{OTNotes\_campride.pdf}
-	
-	EXISTENZ \& Eindeutigkeit => vgl. Kapitel 3 in \cite{computationalOT}
-	
+	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig. Kantorovich gilt als Erfinder der linearen Optimierung\footnote{OTNotes\_campride.pdf}.
+	\begin{comment}
 	
 	
 	\begin{definition}[Formulierung für beliebige Maße]
@@ -1561,14 +1611,15 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 		\begin{equation}
 		\Pi(\alpha, \beta) := \lbrace \pi \in \mathcal{M}_+^1(\mathcal{X} \times \mathcal{Y}): P_{\mathcal{X}_\#} \pi = \alpha \text{ und } P_{\mathcal{Y}_\#} \pi = \beta \rbrace,
 		\end{equation}
-		wobei $P_{\mathcal{X}_\#}$ und $P_{\mathcal{Y}_\#}$ die Push-forward Operatoren der Projektionen $P_\mathcal{X}(x,y) = x$ und $P_\mathcal{Y}(x,y) = y$ sind. Nach \autoref{eq_pushforward} sind diese Randbedingungen äquivalent zu den Bedingungen $\pi(A \times \mathcal{Y}) = \alpha (A)$ und $\pi (\mathcal{X} \times B) = \beta (B)$ für die Mengen $A \subset \mathcal{X}$ und $B \subset \mathcal{Y}$.
+		wobei $P_{\mathcal{X}_\#}$ und $P_{\mathcal{Y}_\#}$ die Bildmaße der Projektionen $P_\mathcal{X}(x,y) = x$ und $P_\mathcal{Y}(x,y) = y$ sind. Nach \autoref{eq_pushforward} sind diese Randbedingungen äquivalent zu den Bedingungen $\pi(A \times \mathcal{Y}) = \alpha (A)$ und $\pi (\mathcal{X} \times B) = \beta (B)$ für die Mengen $A \subset \mathcal{X}$ und $B \subset \mathcal{Y}$.
 		Als Verallgemeinerung erhalten wir dann
 		\begin{equation}
 		\min_{\pi \in \Pi (\alpha, \beta)}\int_{\mathcal{X} \times \mathcal{Y}}{c(x,y) d\pi (x,y)}. \label{eq:kontorovich_allgemein}
 		\end{equation}
 	\end{definition}
 	
-	Problem \autoref{eq_kontorovich_allgemein} ist ein unendlich-dimensionales lineares Programm über einem Raum von Maßen. Falls $(\mathcal{X}, \mathcal{Y})$ kompakt und $c$ stetig ist, existiert immer eine Lösung.
+	
+Problem \autoref{eq_kontorovich_allgemein} ist ein unendlich-dimensionales lineares ProgramO über einem Raum von Maßen. Falls $(\mathcal{X}, \mathcal{Y})$ kompakt und $c$ stetig ist, existiert immer eine Lösung.
 	
 	\begin{example}
 		Beispiele von Kopplungen
@@ -1637,18 +1688,9 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	\subsubsection{Komplexitätsanalyse}
 	Im Fall $n=m$ ist das Kantorovich-Problem und damit die Berechnung der Wasserstein-Distanz ein lineares Optimierungsproblem mit $\mathcal{O}(n)$ linearen Bedingungen. Für die Lösung kann beispielsweise der lineare Lee-Sinford-algorithmus zur Berechnung einer Lösung in $\tilde{\mathcal{O}}(n^{2.5})$ \cite{lee2014path} verwendet werden, der den vorherigen Standard von $\mathcal{O}(n^{2.5})$ \cite{renegar1988polynomial} verbessert.
 	\subsubsection{Wasserstein-Baryzentren}
-	
-	\subsubsection{Andere Regularisierungen}
-	Tradeoff zwischen numerischem Aufwand und statistischer Genauigkeit.
-	
-	Mehrere Möglichkeiten einer Regularisierung der GW-Distanz\footnote{\url{https://www.youtube.com/watch?v=cPVMHWF8fmE&t=2532s}}:
-	\begin{itemize}
-		\item Entropic regularization [Cuturi, 2013]\\
-		\item Group Lasso [Courty et al., 2016a]\\
-		\item KL, Itakura Saito, $\beta$-divergences,
-		[Dessein et al., 2016]
-	\end{itemize} 
-	
+	\cite{bary_wasserstein_space}
+	\url{https://optimaltransport.github.io/slides-peyre/CourseOT.pdf}
+		Fast Computation of Wasserstein Barycenters\footnote{\url{https://arxiv.org/pdf/1310.4375.pdf}}
 	
 	\subsection{Entropisch regularisierte Wasserstein-Distanz}
 	In diesem Abschnitt betrachten wir regularisierte Version der Wasserstein-Distanz mithilfe von Entropie. 
@@ -1656,7 +1698,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	Andere Arten der Regularisierung sind Group Lasso [Courty et al., 2016a] und KL, Itakura Saito, $\beta$-divergences,
 	[Dessein et al., 2016].\footnote{\url{https://www.damtp.cam.ac.uk/research/cia/files/teaching/Optimal_Transport_Syllabus.pdf}}
 	
- 	Wir definieren die diskrete Entropie eine Kopplungsmatrix wie folgt.
+ 	Die Entropie einer Matrix ist wie folgt definiert:
  	
 	\begin{definition}[Entropie]
 		Für $T \in \mathbb{R}_{+}^{n \times n}$ definieren wir die Entropie als
@@ -1731,7 +1773,8 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 		(as we study in Abschnitt 4.2) and leading to faster statistical convergence (as shown in Abschnitt 8.5)
 	\end{remark}
 	
-	Wir definieren die Kullback-Leibler-Divergenz zwischen Kopplungen als
+	
+Wir definieren die Kullback-Leibler-Divergenz zwischen Kopplungen als
 	
 	\begin{equation}
 	\boldsymbol{KL}(\boldsymbol{P}|\boldsymbol{K}) := \sum_{i,j} \boldsymbol{P}_{i,j} \log \left(\frac{\boldsymbol{P}_{i,j}}{\boldsymbol{K}_{i,j}} \right) - \boldsymbol{P}_{i,j} + \boldsymbol{K}_{i,j}. \label{eq:KL_div_discrete}
@@ -1746,6 +1789,9 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	
 	\subsubsection{Algorithmus von Sinkhorn und Variationen}
 	In diesem Kapitel sehen wir, dass die Lösung des regularisierten Problems eine besondere Form besitzt, die wir über $m+n$ Variablen parametrisieren können.
+	
+	Matrix Scaling + einige Theoreme und Bemerkungen zu Kullback-Leibler und mehr Info \cite{vialard2019elementary}
+	
 	\begin{comment}
 	
 	\begin{remark}[Formulierung für allgemeine Maße]
@@ -1831,6 +1877,9 @@ Für $\varepsilon  \to 0$ konvergiert die eindeutige Lösung von \autoref{eq:sch
 		(IPFP) Deming and Stephan [1940] and RAS [Bacharach, 1965] methods [Idel, 2016].
 		The proof of their convergence is attributed to Sinkhorn \cite{sinkhorn1964relationship}, hence the name of the
 		algorithm.
+		
+		
+		
 	\begin{remark}
 	Die Lösung zum regularisierten Problem lässt sich nach den Sinkhorn-Iterationen wie folgt angeben: $P_L = diag(U_L)K diag(v_L)$ Das ist  der optimal Transport plan für das Regularisierte Problem.Optimal Transport Caost lässt sich berechnen als:
 $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}	
@@ -1944,13 +1993,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 			\item Abbruchkriterien (vgl. mit der POT Implementierung)
 		\end{itemize}
 	\end{remark}
-	\begin{remark}[Allgemeine Formulierung des entropisch regularisierten Problems für beliebige Maße]
-		\leavevmode 
-		\begin{itemize}
-			\item Benutze Relative Entropie als Verallgemeinerung der diskreten Kullback-Leibler-Divergenz
-			\item Referenzmaß ist unbedeutend, lediglichd er Support hat eine Bedeutung.
-		\end{itemize}
-	\end{remark}
+
 	\subsubsection{Komplexitätsanalyse}
 	\cite{altschuler2017near} liefert eine Komplexitätsanalyse für die Sinkhorn-Iterationen. Im Fall $n=m$ sind für die Wahl $\varepsilon = \frac{4 \log (n)}{\tau}$ $\mathcal{O}(||C||_\infty^3 \log (n)\tau ^{-3})$ Sinkhorn-Iterationen (inklusive eines Rundungsschrittes) notwendig, um eine zulässige Kopplung $\hat{\boldsymbol{P}} \in \Pi(\boldsymbol{a}, \boldsymbol{b})$ zu berechnen, die die Abschätzung $\langle \hat{\boldsymbol{P}}, \boldsymbol{C} \rangle \leq L_{\boldsymbol{C}}(\boldsymbol{a}, \boldsymbol{b} +  \tau)$ zu berechnen. Somit liefert das Sinkhorn-Verfahren eine $\tau$-Approximation des nicht regularisierten Optimal Transport-Problems in $\mathcal{O}(n^2 \log (n)\tau ^{-3})$ Operationen.
 	Gleichzeitig wir dort eine greedy Variante der Sinkhorn-Iterationen namens Greenkhorn präsentiert, die eine $\tau$-Approximation in $\mathcal{O}(n^2\tau^{-3})$ Operationen liefert.
@@ -1970,7 +2013,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	\begin{definition}[Tensor-Matrix-Multiplikation]
 		Für einen Tensor $\mathcal{L} = (\mathcal{L}_{i,j,k,l})_{i,j,k,l}$ und eine Matrix $(T_{i,j})_{i,j}$ definieren wir die Tensor-Matrix-Multiplikation als
 		\begin{equation}
-		\mathcal{L} \otimes T := (\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}})_{i,j}. \label{eq:tensor_matrix_mul}
+		\mathcal{L} \otimes T := \left(\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}}\right)_{i,j}. \label{eq:tensor_matrix_mul}
 		\end{equation}
 	\end{definition}
 	
@@ -1987,16 +2030,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	Der Vergleich zwischen Ähnlichkeits- bzw. Distanzmatrizen ist schwierig, da diese die innere Struktur eines Datensatzes beschreiben, die unabhängig von Rotationen und Translationen ist. Es existiert keine kanonische Ordnung der Reihen und Spalten.
 	Verallgemeinerung auf beliebige  Matrizen C, d.h. diese Distanzmatrizen müssen nicht notwendigerweise positiv sein und die Dreiecksungleichung erfüllen.
 	
-	Definiere die verallgemeinerte Gromov-Wasserstein-Distanz (vGWD) wie folgt:
-	
-	\begin{definition}[Verallgemeinerte Gromov-Wasserstein-Distanz]
-		Seien zwei gewichtete Ähnlichkeitsmatrizen $(C,p) \in \mathbb{R}^{N_1 \times N_1} \times \Sigma_{N_1}$ und $(\bar{C},q) \in \mathbb{R}^{N_2 \times N_2} \times \Sigma_{N_2}$ gegeben. Sei $T$ eine Kopplung zwischen den beiden Räumen, auf denen die Matrizen $C$ und $\bar{C}$ definiert sind. Sei $L$ eine Fehlerfunktion. Dann definieren wir die verallgemeinerte Gromov-Wasserstein-Distanz als
-		\begin{equation} \label{GWD_definition}
-		GW(C, \bar{C}, p, q) := \min_{T \in \mathcal{C}_{p, q}}{\mathcal{\varepsilon}_{C,\bar{C}}(T)},
-		\end{equation}
-		wobei gilt $\mathcal{\varepsilon}_{C,\bar{C}}(T) := \sum_{i,j,k,l}{L(C_{i,k}, \bar{C}_{j,l})T_{i,j}T_{k,l}}.$
-		
-	\end{definition}
+
 	
 	\noindent Häufig verwendete Fehlerfunktionen sind die quadratische Fehlerfunktion $L(a,b) = L_2(a,b) := \frac{1}{2}|a-b|^2$ und die Kullback-Leibler-Divergenz $L(a,b)  = KL(a|b) := a\log(a/b) -a+b$.
 	
@@ -2051,14 +2085,12 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 		Für $L=KL$ sind die Funktionen $f_1(a) = a \log (a) -a, f_2(b) = b, h_1(a) =a $ und $h_2(b) = \log (b)$ notwendig.
 	\end{remark}
 	
-	Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
 	
-	\begin{definition}
-		Für $C, \bar{C}, p, q$, wie oben, definieren wir die entropisch regularisierte Gromov-Wasserstein-Diskrepanz als 
-		\begin{equation}
-		GW_{\varepsilon}(C,\bar{C}, p, q):=\min_{T \in \mathcal{C}_{p, q}} \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T).
-		\end{equation}
-	\end{definition}
+Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
+	
+	%Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
+	
+
 	
 	Wir erhalten damit ein nicht-konvexes Optimierungsproblem. Für dessen Lösung benutzen wir ein projiziertes Gradienten-Verfahren, bei dem sowohl die Schrittweite als auch die Projektion bezüglich der KL-Metrik berechnet werden.
 	
@@ -2087,7 +2119,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 		(? Wo steht das genau in dem Paper?)
 		Es gilt außerdem
 		\begin{equation}
-		\nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T) = blub
+		\nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T) = \mathcal{L}(C,\bar{C}) \otimes T + \varepsilon\log (T).
 		\end{equation}
 		Durch Umordnen der Terme in \autoref{iteration_projection} erhalten wir für $\tau \varepsilon = 1$ die angegebene Vorschrift.
 	\end{proof}
@@ -2104,7 +2136,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	
 	
 	\begin{remark}
-		content...
+		Für gewöhnlich wählt man die Schrittweite $ \tau$ im Gradientenverfahren nicht zu groß, um Konvergenz des Verfahrens zu erhalten. Da die Schrittweite $\tau$ hier jedoch antiproportional zum Regularisierungs-Parameter $\varepsilon$ ist, gibt es einen Trade-off zwischen Konvergenz des Verfahrens und einer Unschärfe in der optimalen Lösung. 
 	\end{remark}
 	
 	\begin{remark}[Wahl von $\varepsilon$]
@@ -2214,14 +2246,25 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 		\caption{Berechnung der $GW\_{\varepsilon}$ Baryzentren}
 		\label{alg:GWB_computation}
 		\begin{algorithmic}
-			
-			\IF{some condition is true}
-			\STATE do some processing
-			\ELSIF{some other condition is true}
-			\STATE do some different processing
-			\ELSE
-			\STATE do the default actions
-			\ENDIF
+		\STATE{Initialize $C$.} 
+		\REPEAT 
+			\STATE// minimize over $(T_s)_s$
+			\FOR{$s=1$ \textbf{to }S}
+				\STATE Initialize $T_s$.
+				\REPEAT
+				\STATE // Compute $c_s = \mathcal{L}(C,C_s)\otimes T_s$ using \autoref*{eq:berechnung_tensorprodukt}
+				\STATE $c_s \leftarrow f_1(C) + f_2(C_s)^\top -h_1(C)T_sh_2(C_s)^\top$
+				\STATE // Sinkhorn iterations to compute $\mathcal{T}(c_s,p,q)$
+				\STATE Initialize $a \leftarrow \boldsymbol{1}$, set $K \leftarrow e^{-c_s/\varepsilon}.$
+				\REPEAT 
+				\STATE $a \leftarrow \frac{p}{Kb}, b \leftarrow  \frac{q}{K^\top a}.$
+				\UNTIL{convergence}
+		 		\STATE $T_s \leftarrow diag(a)Kdiag(b).$
+				\UNTIL{convergence}
+			\ENDFOR 
+			\STATE // Minimize over C 
+			\STATE $C \leftarrow \left( \frac{f_1'}{h_1'} \right)^{-1}\left( \frac{\sum_s{\lambda_sT_s^\top h_2(C_s)T_s}}{pp^\top} \right)$ 
+			\UNTIL{convergence}
 		\end{algorithmic}
 	\end{algorithm}
 	
@@ -2240,8 +2283,12 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	
 	\subsubsection{Implementierung}
 	\begin{algorithm}
-		\caption{Algorithm caption}
-		\label{alg:algorithm-label}
+		\hspace*{\algorithmicindent} \textbf{Input: } $\boldsymbol{a}, \boldsymbol{b}, \boldsymbol{C}, \varepsilon > 0$		\newline
+		\hspace*{\algorithmicindent} \textbf{Output: } Optimal Coupling $P*$. 
+	
+		\caption{Sinkhorn-Algorithmus}
+		\label{alg:sinkhorn}
+		%TODO: Beschreibung der Algorithmen
 		\begin{algorithmic}
 			\IF{some condition is true}
 			\STATE do some processing
@@ -2396,7 +2443,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 		Für größere Netzwerke ist es einfacher, erfolgreiche Angriffe zu implementieren, auch schon mit weniger korrumpierten Daten.\\
 		Vermutung: Die Detektion mittels Clustering funktioniert für eine größere Anzahl an korrumpierten Daten besser. Wenn wir also nur perfekte Angriffe verteidigen wollen, d.h AER=100.00 funktioniert das bei kleineren Netzwerken besser.
 	\end{remark}
-	\subsubsection{Label-konsistente Poisoning-Angriffe}
+	\subsion{Label-konsistente Poisoning-Angriffe}
 
 	
 	\begin{remark}
@@ -2499,6 +2546,34 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	
 	------------------------------------
 	\subsection{Activation Clustering}
+	
+	\subsection{Auswertung der CLPA}
+	Wir werten heir die Angriffe und Verteidigungen bei CLPA aus:
+	
+	Alle Rotationen: 33 Prozent korrumpierte Daten
+	[0.9        0.85416667 0.93066667 1.         0.9969697         nan
+	1.         1.         1.         0.97083333 0.99393939 0.93333333
+	0.74057971 0.95277778 0.98888889 0.83333333 0.99333333 0.725
+	0.96666667 1.         0.94444444 0.97777778 0.95       0.98666667
+	1.         0.90625    1.         1.         0.98       1.
+	0.94       1.         1.         0.8        0.30833333 0.88717949
+	0.75833333 0.98333333 0.81449275 0.37777778 1.         0.81666667
+	1. ]
+	
+	AC:(tn, fp, fn, tp):  1106 0 15 529
+	ACC: 99.09
+	TPR:  97.24
+	TNR:  100.0
+	
+	HC: (tn, fp, fn, tp): 1106,0,7,537
+	acc: 99.58
+	tpr: 98.71
+	tnr: 100.0
+	
+	
+	
+	
+	       
 	\subsection{Räumliche Transformationen}
 	\begin{itemize}
 		\item ASR ist sehr stark vom Ort des Triggers abhängig.
