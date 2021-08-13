@@ -1212,46 +1212,38 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 		\item Backward pass wird modifiziert, um Heatmaps zu erhalten.
 		\item VGG- und ResNet-Beispiel
 	\end{itemize}
-	\section{Detektion von Poisoning-Angriffen basierend auf LRP} \label{chapter_algorithm}
-	
-	Super Einführung in Wasserstein und OT: \cite{altschuler2017near}\\
-	Computing distances between probability measures on metric spaces, or more
-	generally between point clouds, plays an increasingly preponderant role in ma-
-	chine learning [SL11, MJ15, LG15, JSCG16, ACB17], statistics [FCCR16, PZ16,
-	SR04, BGKL17] and computer vision [RTG00, BvdPPH11, SdGP+15]. A promi-
-	nent example of such distances is the earth mover’s distance introduced in [WPR85]
-	(see also [RTG00]), which is a special case of Wasserstein distance, or optimal
-	transport (OT) distance [Vil09].
-	While OT distances exhibit a unique ability to capture geometric features of
-	the objects at hand, they suffer from a heavy computational cost that had been
-	prohibitive in large scale applications until the recent introduction to the ma-
-	chine learning community of Sinkhorn Distances by Cuturi [Cut13]. Combined
-	with other numerical tricks, these recent advances have enabled the treatment
-	of large point clouds in computer graphics such as triangle meshes [SdGP+15]
-	and high-resolution neuroimaging data [GPC15]. Sinkhorn Distances rely on the
-	idea of entropic penalization, which has been implemented in similar problems
-	at least since Schrdinger [Sch31, Leo14]. This powerful idea has been success-
-	fully applied to a variety of contexts not only as a statistical tool for model
-	
-	
-	How Well Do WGANs Estimate the
-	Wasserstein Metric? \cite{mallasto2019well}
+	\section{Detektion von Poisoning-Angriffen basierend auf LRP} 
+	In diesem Kapitel stellen wir
 	\subsection{Idee}
+	
 	Die Idee zur Detektion von Poisoning-Angriffen besteht aus den folgenden Schritten:
 	
 	\begin{itemize}
-		\item Berechnung der Heatmaps mit Hilfe der LRP
+		\item Berechnung der Heatmaps mithilfe der LRP
 		\item Berechnung einer Distanzmatrix basierend auf $L^2-$ oder GMW-Distanz
 		\item Spektrale Relevanzanalyse (Bestimmung der verschiedenen Cluster innerhalb einer Klasse)
+		\item kMeans-Clustering zur Bestimmung der korrumpierten Datenpunkte
 	\end{itemize}
+
+	Diese werden wir im Folgenden näher betrachten.
 	
-	\noindent  \textbf{Bemerkung:} Anstatt das Clustering nur auf den Heatmaps durchzuführen, könnten die LRP-Ausgaben und/oder Aktivierungen bestimmer NEtzwerkschichten hinzugenommen werden.\\
+	\noindent\textbf{Berechnung der Heatmaps mithilfe der LRP}.	Für die LRP wählen wir innmodel = InnvestigateModel(model.net, lrpexponent=2,
+	method='e-rule', beta=0.5) und normalisieren die Heatmap anschließend.
+	
+	
 	
 	The theory of optimal transport generalizes thatintuition in the case where, instead of moving only one item at a time, one is concernedwith the problem of moving simultaneously several items (or a continuous distributionthereof) from one configuration onto another.\cite{computationalOT}
 	\subsection{k-means / k-means++ -Clustering}
+	Das k-means-Clustering gehört zu den unüberwachten Clustering-Verfahren. In der ursprünglichen Formulierung sind $n$ Datenpunkte $x_1,...,x_n \in \mathbb{R}^d$ und $k \in \mathbb{Z}_{>0}$ gegeben. Die Datenpunkte sollen so auf, die einzelnen Cluster verteilt werden, dass die $L^2$-Distanzen innerhalb eines Clusters zum Cluster-Zentrum minimal sind. 
 	
-	Beispiel-Implementierung\footnote{\url{https://towardsdatascience.com/k-means-implementation-in-python-and-spark-856e7eb5fe9b}}\\
-	\\
+	
+	In Lloyd's Formulierung \cite{lloyd1982least} wird mit einer gleich-verteilten zufälligen Initialisierung von $k$ Cluster-Zentren begonnen. Jeder Punkt im Datensatz wird anschließend dem nächstgelegenen Cluster-Zentrum zugeordnet. Für jedes Cluster wird anschließend ein neues Zentrum als Mittelwert berechnet.
+	Diese beiden Schritte aus Zuordnung und Mittelpunktberechnung werden so lange wiederholt, bis sich die CLuster-Zentren nicht mehr ändern oder eine maximale Iterationszahl erreicht ist. Dieses Vorgehen wird als $k$-Means bezeichnet.
+	
+	Eine Variation des k-Means-Algorithmus, der sowohl die LAufzeit als auch die Genauigkeit verbessert, ist der sogenannte $k-means++$-Algorithmus. Dabei wird 
+
+
+
 	Baryzentrische Koordinaten \footnote{\url{https://de.wikipedia.org/wiki/Baryzentrische_Koordinaten}}
 	
 	\subsection{Spektrales Clustering}
@@ -1318,7 +1310,30 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	Wir normalisieren die Relevanzen zusätzlich auf das Intervall $[0,1]$.\\
 	Die Wahl der Pixel mit 99 Prozent der Gesamtmasse und anschließende Normalisierung wird vermutlich durchgeführt, um die Bedingung \autoref{eq:bed_mmspaces} zu erhalten.
 	\section{Optimal Transport}
+	\label{chapter_algorithm}
 	
+	Super Einführung in Wasserstein und OT: \cite{altschuler2017near}\\
+	Computing distances between probability measures on metric spaces, or more
+	generally between point clouds, plays an increasingly preponderant role in ma-
+	chine learning [SL11, MJ15, LG15, JSCG16, ACB17], statistics [FCCR16, PZ16,
+	SR04, BGKL17] and computer vision [RTG00, BvdPPH11, SdGP+15]. A promi-
+	nent example of such distances is the earth mover’s distance introduced in [WPR85]
+	(see also [RTG00]), which is a special case of Wasserstein distance, or optimal
+	transport (OT) distance [Vil09].
+	While OT distances exhibit a unique ability to capture geometric features of
+	the objects at hand, they suffer from a heavy computational cost that had been
+	prohibitive in large scale applications until the recent introduction to the ma-
+	chine learning community of Sinkhorn Distances by Cuturi [Cut13]. Combined
+	with other numerical tricks, these recent advances have enabled the treatment
+	of large point clouds in computer graphics such as triangle meshes [SdGP+15]
+	and high-resolution neuroimaging data [GPC15]. Sinkhorn Distances rely on the
+	idea of entropic penalization, which has been implemented in similar problems
+	at least since Schrdinger [Sch31, Leo14]. This powerful idea has been success-
+	fully applied to a variety of contexts not only as a statistical tool for model
+	
+	
+	How Well Do WGANs Estimate the
+	Wasserstein Metric? \cite{mallasto2019well}
 	Optimal Transport is an interesting topic which connects many fields and has
 	interesting applications
 	Applications in image analysis
@@ -1368,11 +1383,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	Durch die Verwendung von WGANs ansatts GANs wurde ein stabilerer Trainingsprozess erreicht, da diese weniger anfällig für abrupte Trainingsabbrüche sind. Die ursprünglichen GANs benutzten eine Jensen-Shannon-Divergenz als Verlustfunktion, die nicht überall stetig und fast überall differenzierbar ist. Auch andere Verlustfunktion wie besipielsweise die KL-Divergenz weisen ähnliche Schwierigkeiten auf. Durch die Verwendung der Wasserstein-Verlustfunktion, basierend auf der 1-Wasserstein-Distanz, die überall stetig und fast überall differenzierbar ist, konnte der Trainingsprozess der GANs somit deutlich verbessert werden \cite{mauryaoptimal}.
 	
 	
-	
-	\begin{definition}
-		
-	\end{definition}
-	
+
 	\begin{definition}[Histogramm]
 		Als Histogramm (oder: Wahrscheinlichkeitsvektor) bezeichnen wir ein Element $\boldsymbol{a} \in \Sigma_n$, das zum folgenden Wahrscheinlichkeits-Simplex gehört:
 		
@@ -1391,7 +1402,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 			supp[\mu_X] = X.\label{eq:bed_mmspaces}
 		\end{equation} 
 	\end{itemize}
-
+\end{definition}
 \begin{definition}[Isometrie]
 	Seien zwei metrische Räume $(X, d_X)$ und $(Y,d_Y)$ gegeben. Wir nennen die Abbildung $\phi:X \to Y$ Isometrie, falls $\phi$ surjektiv ist und $d_X(x,x')= d_Y(\phi(x),\phi(x'))$ f.a. $x, x' \in X$ gilt. Für den Fall, dass eine solche Abbildung $\phi$ existiert, nennen wir $X$ und $Y$ isometrisch.
 \end{definition}
@@ -1523,9 +1534,7 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 	\end{remark}
 	
 	Dieses Problem wurde zuerst von Gaspard Monge im Jahr 1781 formuliert. In dieser Formulierung wurde Abbildung gesucht, die jedem Punkt in der Ausgangsverteilung einen Punkt in der Zielverteiliung zuordnet. Dabei wird die gesamte Masse eines Punktes in der Startverteilung an einen Punkt in der Zielverteilung verschoben. Eine solche Abbildung ist in \autoref{im:monge_mapping} dargestellt.
-	
-	\begin{figure}[ht]
-		\centering
+
 	
 	\begin{figure}[ht]
 		\centering
@@ -2282,27 +2291,10 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	
 	
 	\subsubsection{Implementierung}
-	\begin{algorithm}
-		\hspace*{\algorithmicindent} \textbf{Input: } $\boldsymbol{a}, \boldsymbol{b}, \boldsymbol{C}, \varepsilon > 0$		\newline
-		\hspace*{\algorithmicindent} \textbf{Output: } Optimal Coupling $P*$. 
 	
-		\caption{Sinkhorn-Algorithmus}
-		\label{alg:sinkhorn}
-		%TODO: Beschreibung der Algorithmen
-		\begin{algorithmic}
-			\IF{some condition is true}
-			\STATE do some processing
-			\ELSIF{some other condition is true}
-			\STATE do some different processing
-			\ELSE
-			\STATE do the default actions
-			\ENDIF
-		\end{algorithmic}	
-	\end{algorithm}
-	\ref*{alg:algorithm-label}
 	\section{(Numerische) Ergebnisse/Vergleich mit anderen Verfahren} \label{chapter_comparisons}
 	
-	\subsubsection{Standard Poisoning-Angriffe}
+	Wir konnten beobachten, dass die Qualität des angegriffenen Netzwerkes auf nicht korrumpierten Daten für alle durchgeführten Angriffe über 96 Prozent beträgt. Deshalb werden wir diese Kennzahl als Qualität des Angriffs nicht jeweils zusätzlich angeben.
 	
 	\subsection{Clustering auf den Rohdaten}
 	Für das Clustering auf den Rohdaten bei einem Anteil von 15 Prozent und einer Stickergröße von 3x3 erhalten wir die \autoref{tab:clustering_raw} in dargestellten Werte unter Verwendung der L2-Distanz. Dazu werden die Bilder als Graustufenbild eingelesen und anschließend in der Dimension auf 10 reduziert.
@@ -2323,8 +2315,8 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 		\end{center}
 	\end{table}
 	
+	\subsubsection{Standard Poisoning-Angriffe}
 	
-	Wir konnten beobachten, dass die Qualität des angegriffenen Netzwerkes auf unkorrumpierten Daten für alle durchgeführten Angriffe über 96 Prozent beträgt. Deshalb werden wir diese Kennzahl als Qualität des Angriffs nicht jeweils zusätzlich angeben.
 	
 	\begin{table}[ht]
 		\begin{center}
@@ -2443,89 +2435,13 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 		Für größere Netzwerke ist es einfacher, erfolgreiche Angriffe zu implementieren, auch schon mit weniger korrumpierten Daten.\\
 		Vermutung: Die Detektion mittels Clustering funktioniert für eine größere Anzahl an korrumpierten Daten besser. Wenn wir also nur perfekte Angriffe verteidigen wollen, d.h AER=100.00 funktioniert das bei kleineren Netzwerken besser.
 	\end{remark}
-	\subsion{Label-konsistente Poisoning-Angriffe}
+	\subsection{Label-konsistente Poisoning-Angriffe}
 
 	
 	\begin{remark}
 		Für einen einzelnen Amplitudensticker mit d=10 ist das eigentlich identisch zu dem Angriff mit dem Sticker
 	\end{remark}
-	0.7        0.86111111 0.85066667 0.81111111 0.66666667        nan
-	0.42       0.72888889 0.60888889 0.77083333 0.40757576 0.46666667
-	0.69855072 0.88472222 0.53333333 0.74285714 0.39333333 0.67222222
-	0.75128205 0.11666667 0.58888889 0.32222222 0.425      0.18
-	0.44444444 0.44375    0.8        0.71666667 0.56       0.86666667
-	0.11333333 0.3        0.71666667 0.5047619  0.23333333 0.44358974
-	0.63333333 0.58333333 0.46666667 0.01111111 0.5        0.36666667
-	0.67777778
-	$CLP\_amplitudesticker4\_pp33\_eps1200\_d10amp32$
-	Jetzt dasselbe noch für nur !!!einen!!! Sticker mit derselben Amplitude am selben Ort
-	$'CLP_amplitudesticker_pp33_eps1200_d10amp32'$
-	[0.         0.00833333 0.00133333 0.03555556 0.01666667        nan
-	0.         0.         0.00222222 0.         0.         0.
-	0.05362319 0.00138889 0.0037037  0.         0.         0.025
-	0.         0.         0.         0.         0.         0.
-	0.         0.         0.         0.05       0.         0.
-	0.         0.         0.         0.         0.         0.00512821
-	0.         0.         0.         0.         0.         0.
-	0.        ]
-	
-	Dann noch mit amp=16 wieder 4 sticker mit d=10
-	$CLP_amplitudesticker4_pp33_eps1200_d10amp16$
-	0.11666667 0.23055556 0.26       0.55333333 0.43333333        nan
-	0.23333333 0.28444444 0.11555556 0.07708333 0.15       0.0952381
-	0.4173913  0.41527778 0.40740741 0.45238095 0.01333333 0.35833333
-	0.29487179 0.         0.         0.04444444 0.05       0.01333333
-	0.4        0.29791667 0.13888889 0.23333333 0.11333333 0.3
-	0.06       0.02962963 0.11666667 0.65714286 0.475      0.71794872
-	0.50833333 0.43333333 0.35652174 0.45555556 0.27777778 0.
-	0.51111111
-	Accuracy on test Dataset: 0.958 
-	
-	Jetzt: $CLP_amplitudesticker4_pp33_eps1200_d10amp255$
-	0.71666667 0.78333333 0.80266667 0.99333333 0.9469697         nan
-	0.96       0.97555556 0.98444444 1.         1.         0.25714286
-	0.98985507 0.86111111 0.94444444 0.99047619 0.91333333 0.51666667
-	0.84871795 0.86666667 0.52222222 0.57777778 0.75       0.67333333
-	0.95555556 0.725      0.98888889 0.88333333 0.45333333 0.82222222
-	0.81333333 1.         0.98333333 0.4952381  0.26666667 0.92820513
-	0.63333333 0.81666667 0.77681159 0.33333333 0.74444444 0.91666667
-	0.83333333
-	Accuracy on test Dataset: 0.959 
-	
-	$CLP_amplitudesticker4_pp33_dist10_amp64$ eps300
-	[0.8        0.98888889 0.99733333 1.         1.                nan
-	1.         1.         0.99555556 0.97916667 0.99545455 0.8047619
-	1.         0.99861111 0.92222222 1.         0.99333333 0.98888889
-	0.98717949 0.93333333 0.86666667 0.93333333 0.975      0.83333333
-	0.96666667 0.93958333 1.         1.         0.98       1.
-	0.98       0.97777778 1.         0.92380952 0.55       0.93076923
-	0.70833333 0.85       0.82173913 1.         0.8        1.
-	1.        
-	
-	$CLP_amplitudesticker4_pp33_dist10_amp32$
-	0.7        0.86111111 0.85066667 0.81111111 0.66666667        nan
-	0.42       0.72888889 0.60888889 0.77083333 0.40757576 0.46666667
-	0.69855072 0.88472222 0.53333333 0.74285714 0.39333333 0.67222222
-	0.75128205 0.11666667 0.58888889 0.32222222 0.425      0.18
-	0.44444444 0.44375    0.8        0.71666667 0.56       0.86666667
-	0.11333333 0.3        0.71666667 0.5047619  0.23333333 0.44358974
-	0.63333333 0.58333333 0.46666667 0.01111111 0.5        0.36666667
-	0.67777778
-	Accuracy on test Dataset: 0.959 
-	
-	
-	$CLP_amplitudesticker4_pp33_dist10_amp16$
-	0.11666667 0.23055556 0.26       0.55333333 0.43333333        nan
-	0.23333333 0.28444444 0.11555556 0.07708333 0.15       0.0952381
-	0.4173913  0.41527778 0.40740741 0.45238095 0.01333333 0.35833333
-	0.29487179 0.         0.         0.04444444 0.05       0.01333333
-	0.4        0.29791667 0.13888889 0.23333333 0.11333333 0.3
-	0.06       0.02962963 0.11666667 0.65714286 0.475      0.71794872
-	0.50833333 0.43333333 0.35652174 0.45555556 0.27777778 0.
-	0.51111111]
-	Performance of poisoned net on unpoisoned training data:
-	loss on test dataset: 0.19637071904851583
-	Accuracy on test Dataset: 0.958 
+
 	
 	\begin{figure}[h]
 		\begin{center}
@@ -2560,6 +2476,11 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	0.75833333 0.98333333 0.81449275 0.37777778 1.         0.81666667
 	1. ]
 	
+	
+	mAER:  90.98034373809526
+	min:  30.833333000000003
+	max2  100.0
+	
 	AC:(tn, fp, fn, tp):  1106 0 15 529
 	ACC: 99.09
 	TPR:  97.24
@@ -2569,7 +2490,103 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	acc: 99.58
 	tpr: 98.71
 	tnr: 100.0
+	--------------------------------------------------------------------------------------------
+	15 Prozent:
+	0.85       0.77361111 0.88       1.         0.96212121        nan
+	1.         0.97555556 1.         0.92708333 0.98030303 0.69761905
+	0.68405797 0.8875     0.86666667 0.71428571 0.87333333 0.55555556
+	0.85897436 0.9        0.93333333 0.77777778 0.81666667 0.86666667
+	1.         0.78541667 0.84444444 1.         0.89333333 0.66666667
+	0.84666667 1.         0.88333333 0.76666667 0.275      0.76666667
+	0.6        0.95       0.64782609 0.33333333 1.         0.88333333
+	1.       
 	
+	mAER:  83.15190128571427
+	min:  27.500000000000004
+	max2:  100.0
+	 
+	(tn, fp, fn, tp):  1106 0 59 485
+	ACC: 96.42
+	TPR:  89.15
+	TNR:  100.0
+	
+	(tn, fp, fn, tp): 1106,0,18,526
+	acc: 98.91
+	tpr: 96.69
+	tnr: 100.0
+	-------------------------------------------------------------------------------------
+	10 Prozent:
+	
+	[1.         0.85138889 0.96533333 1.         1.                nan
+	1.         0.99777778 1.         0.96875    0.98636364 0.87380952
+	0.6826087  0.925      0.92962963 0.88571429 1.         0.69166667
+	0.94102564 1.         0.97777778 0.86666667 0.94166667 1.
+	1.         0.85833333 0.97222222 1.         0.92       1.
+	0.88       1.         0.93333333 0.68571429 0.425      0.82820513
+	0.73333333 1.         0.87391304 0.44444444 1.         0.95
+	1.        ]
+	
+	
+	mAER:  90.45161504761903
+	min:  42.5
+	max2:  100.0
+	
+	(tn, fp, fn, tp):  1485 0 17 148
+	ACC: 98.97
+	TPR:  89.7
+	TNR:  100.0
+	
+	HC: (tn, fp, fn, tp): 1485,0,3,162
+	acc: 99.82
+	tpr: 98.18
+	tnr: 100.0
+	
+	-------------------------------------------------------------------------------------
+	5 Prozent:
+	[0.93333333 0.85       0.89466667 1.         0.95757576        nan
+	1.         0.99333333 1.         0.93541667 0.97575758 0.67380952
+	0.55072464 0.88472222 0.85555556 0.67142857 0.86666667 0.52222222
+	0.88974359 1.         0.93333333 0.86666667 0.825      0.89333333
+	1.         0.80416667 0.87777778 1.         0.94666667 0.9
+	0.9        1.         0.9        0.69047619 0.28333333 0.75384615
+	0.725      1.         0.81014493 0.33333333 1.         0.75
+	0.95555556]
+	
+	mAER:  84.77045302380954
+	min:  28.333333
+	max:  100.0
+	
+	(tn, fp, fn, tp):  1566 2 13 69
+	ACC: 99.09
+	TPR:  84.15
+	TNR:  99.87
+	
+	
+	(tn, fp, fn, tp): 1568,0,3,79
+	acc: 99.82
+	tpr: 96.34
+	tnr: 100.0
+	-------------------------------------------------------------
+	
+	2 Prozent:
+	
+	0.96666667 0.87222222 0.83866667 0.99777778 0.99090909        nan
+	1.         1.         1.         0.875      0.70151515 0.51190476
+	0.58550725 0.77777778 0.95555556 0.90952381 0.96666667 0.78055556
+	0.90512821 0.91666667 0.8        0.68888889 0.81666667 0.76
+	1.         0.5875     0.94444444 1.         0.94666667 0.97777778
+	0.81333333 1.         0.9        0.59047619 0.4        0.85128205
+	0.78333333 0.98333333 0.77681159 0.33333333 1.         0.7
+	0.86666667
+	
+	mAER5:  84.77045302380954
+	min:  28.333333
+	max  100.0
+	
+	(tn, fp, fn, tp):  896 721 0 33
+	ACC: 56.3
+	TPR:  100.0
+	TNR:  55.41
 	
 	
 	
