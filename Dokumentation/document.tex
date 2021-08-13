@@ -321,6 +321,27 @@
 		... 
 	\end{algorithm} 
 	\section{Einführung}
+	Allein für Deutschland wird erwartet, dass mit Dienstleistungen und Produkten, die auf dem
+	Einsatz von Künstlicher Intelligenz (KI) basieren, im Jahr 2025 Umsätze in Höhe von 488 Milliar­
+	den Euro generiert werden – damit würde ein Anteil von 13 Prozent am Bruttoinlandsprodukt
+	erreicht. Dabei ist die Erklärbarkeit von Entscheidungen, die durch KI getroffen werden, in
+	wichtigen Anwendungsbranchen eine Voraussetzung für die Akzeptanz bei den Nutzenden, für
+	Zulassungs- und Zertifizierungsverfahren oder das Einhalten der durch die DSGVO geforderten
+	Transparenzpflichten. Die Erklärbarkeit von KI-Produkten gehört damit, zumindest im europäi-
+	schen Kontext, zu den wichtigen Markterfolgsfaktoren.[STudieErklärbareKI]
+	
+	
+	
+	
+	RIght to be forgottten,  General Data Protection Regulation (GDPR) in
+	the European Union [5], \url{https://arxiv.org/pdf/2003.04247.pdf}, 5: G. D. P. Regulation, “Regulation (eu) 2016/679 of the
+	european parliament and of the council of 27 april 2016
+	on the protection of natural persons with regard to the
+	processing of personal data and on the free movement
+	of such data, and repealing directive 95/46,” Official
+	Journal of the European Union (OJ), vol. 59, no. 1-88,
+	p. 294, 2016.
+	
 	Datengewinnung(LRP)
 	Datenverarbeitung(kMeans, Gromov Wasserstein)
 	Pweave\footnote{\url{https://mpastell.com/pweave/}}
@@ -370,6 +391,7 @@
 	
 	Wir verwenden die Begriffe Bild und Datenpunkt äquivalent.
 	\subsubsection{CNNS}
+	s. MA Juliane Braunsmann (convolutions /cross correlations)
 	Idee, Abstraktion, high level, low level features, bekannte Netzwerke\\
 	
 	Ausführliche Einführung stanford Kurs\cite{cnn_stanford}. Unterschied zu FC layers: 
@@ -458,6 +480,7 @@
 	
 	
 	\section{Poisoning-Angriffe} \label{chapter_poisoningattacks}
+	Gute BEschreibung in 3.Method \url{https://arxiv.org/pdf/1910.00033.pdf}
 	Mithilfe eines manipulierten Datensatzes wird das Netzwerk manipuliert, sodass die Entscheidung des Netzwerkes abhängig von einem Auslöser ist.
 	
 	\noindent \textbf{Wer wird wie angegriffen?}: Der Angreifer erstellt einen Datensatz, sodass in den Netzwerken, die auf diesem Datensatz trainiert werden eine Hintertür implementiert wird. Damit ergibt sich die Annahme, dass der Angreifer volle Kontrolle über den Datensatz hat und somit Datenpunkte entfernen oder hinzufügen kann.
@@ -640,11 +663,261 @@
 	
 	Erklärbarkeit vs. Interpretierbarkeit, youtube talk?!
 	
+	
+	Den Kern von KI-basierten Anwendungen – womit hier im Wesentlichen Anwendungen des
+	maschinellen Lernens gemeint sind – bilden immer die jeweils zugrundeliegenden KI-Modelle.
+	Diese lassen sich in zwei Klassen einteilen: White- und Black-Box-Modelle. White-Box-Modelle,
+	wie bspw. auf nachvollziehbaren Eingangsgrößen basierende Entscheidungsbäume, erlauben
+	das grundsätzliche Nachvollziehen ihrer algorithmischen Zusammenhänge; sie sind somit
+	selbsterklärend in Bezug auf ihre Wirkmechanismen und die von ihnen getroffenen Entscheidun-
+	gen. Bei Black-Box-Modellen wie neuronalen Netzen ist es aufgrund ihrer Verflechtung und Viel-
+	schichtigkeit in der Regel nicht mehr möglich, die innere Funktionsweise des Modells nachzu-
+	vollziehen. Zumindest für die Erklärung von Einzelentscheidungen (lokale Erklärbarkeit) können
+	dann jedoch zusätzliche Erklärungswerkzeuge eingesetzt werden, um nachträglich die Nachvoll-
+	ziehbarkeit zu erhöhen. KI-Entwickler können für Entscheidungserklärungen je nach den
+	konkreten Anforderungen auf etablierte Erklärungswerkzeuge zurückgreifen, bspw. LIME, SHAP,
+	Integrated Gradients, LRP, DeepLift oder GradCAM, die allerdings Expertenwissen voraussetzen.
+	Für die Nutzenden existieren bislang nur wenig gute Werkzeuge, die intuitiv verständliche Ent-
+	scheidungserklärungen liefern (Saliency Maps, Counterfactual Explanations, Prototypen oder
+	Surrogat-Modelle).
+	
+	\noindent \textbf{Transparenz: }
+	Transparenz wird im Folgenden als eine Modelleigen-
+	schaft behandelt. Ist die Transparenz eines Modells
+	gegeben, so ist es unter der Annahme nachvollziehbarer
+	Eingangsgrößen selbsterklärend 4 . Die Eigenschaft der
+	Transparenz lässt sich weiter unterteilen in die drei un-
+	terschiedlichen Ausprägungen der „Simulierbarkeit“, der
+	„Unterteilbarkeit“ und der „Algorithmischen Transparenz“
+	(Lipton 2016). Dabei wird in der Literatur häufig von einer
+	hierarchischen Abhängigkeit ausgegangen (Arrieta et al.
+	2019), sodass die Simulierbarkeit eines Systems dessen
+	Unterteilbarkeit und dessen algorithmische Transparenz
+	impliziert. Entsprechend begründet die Unterteilbarkeit
+	eines Systems auch dessen algorithmische Transpa-
+	renz. Folglich gilt ein Modell – unter der Annahme erklär-
+	barer Eingangsdaten – bereits als transparent, wenn es
+	lediglich die Eigenschaft der algorithmischen Transpa-
+	renz erfüllt. Die höchste Transparenzstufe erreicht ein
+	Modell, wenn es die Eigenschaft der Simulierbarkeit und
+	somit auch die beiden anderen
+	Eigenschaften erfüllt.
+	
+	Ein System ist simulierbar, wenn
+	auch eine Person die Entschei-
+	dungen des zugrundeliegenden
+	Algorithmus in angemessener
+	Zeit nachvollziehen kann oder
+	könnte, indem sie die einzelnen
+	Schritte, die zur Herbeiführung
+	einer Entscheidung nötig sind,
+	manuell durchführt.	
+	
+	Beispiel: Beim manuellen
+	Durchlaufen unterschiedlicher
+	Pfade eines nicht allzu großen
+	Entscheidungsbaumes, der auf
+	nachvollziehbaren Eingangsgrö-
+	ßen beruht, kann eine Person in
+	jedem Knoten selbst überprüfen,
+	ob eine individuelle Eigenschaft
+	von Eingangsdaten bzw. ein Attribut erfüllt ist oder nicht.
+	Gibt es keine Attribute mehr zu prüfen, hat die Person
+	ein „Blatt“ des Entscheidungsbaums erreicht, welches
+	das Ergebnis repräsentiert. 
+	
+	\noindent \textbf{Erklärbarkeit: }Da Transparenz für diverse Modelle wie z. B. neuronale
+	Netze nicht erreichbar ist, diese folglich nicht selbst-
+	erklärend sind, kommt bei diesen das Konzept der „Er-
+	klärbarkeit“ zur Anwendung. Dabei ist zwar in der Regel
+	festgelegt, ob die Erklärbarkeit eine Entscheidung oder
+	ein Modell betrifft. Wie eine konkrete Erklärung dabei
+	ausgestaltet ist oder wieviel Erkenntnis sie der Zielper-
+	son gewährt, bleibt dabei jedoch zunächst unbestimmt.
+	Beim Beispiel der Bildverarbeitung mit neuronalen Net-
+	zen spricht man etwa bereits von einer Erklärung einer
+	Entscheidung, wenn bestimmte Bereiche im Eingabe-
+	bild, die zur Klassifikation eines konkreten Objektes ge-
+	führt haben, für die anwendende Person farblich hervor-
+	gehoben werden. In diesem Fall wird nicht jeder einzelne
+	Schritt des Algorithmus erklärt, sondern nur die für die
+	Entscheidungsfindung bedeutsamsten Daten hervor-
+	gehoben. Alternativ kann eine Erklärung auch durch eine
+	textliche Beschreibung repräsentiert werden, z. B. „Auf
+	diesem Bild ist ein Hund abgebildet, da vier Beine, eine
+	Schnauze, Fell und ein Schwanz erkannt wurden.“
+	
+	Grundsätzlich wird zwischen zwei Arten von Erklärungen unterschieden:
+	
+	\begin{itemize}
+		\item Erklärungen von Einzelentscheidungen bzw. Ent-
+		scheidungserklärungen, die dabei helfen, individuelle,
+		datenbezogene Entscheidungen konkret nachzuvoll-
+		ziehen (sogenannte lokale Erklärbarkeit oder Daten-
+		erklärbarkeit).
+		\item Erklärungen von Modellen bzw. Modellerklärungen,
+		die dabei helfen, Wirkzusammenhänge von KI-Mo-
+		dellen zu begreifen (sogenannte globale Erklärbarkeit
+		oder Modellerklärbarkeit), z. B. lineare oder allgemein
+		funktionale Zusammenhänge zwischen Eingangs-
+		und Ausgangsgrößen.
+	\end{itemize}
+
+In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden aus beiden Bereichen vor.
+
+
+	\noindent \textbf{text}
 	\subsection{Lokale Methoden}
+	Mithilfe sogenannter Attribution Methods wird der
+	negative oder positive Einfluss von Teilen oder Berei-
+	chen der Eingabe eines KI-Modells auf dessen Ausgabe
+	betrachtet (Sundararajan et al. 2017). Dieser Gruppe
+	können die folgenden konkreten Methoden zugeordnet
+	werden: Sensitivitätsanalyse, LRP, DeepLIFT, Integrated
+	Gradients, Grad-CAM, Guided Backpropagation und
+	Deconvolution. Anhand eines gemeinsamen Beispiels
+	wird die Funktionsweise erläutert. Die Unterschiede
+	sind in den nachfolgenden technischen Einzelheiten
+	beschrieben.
+	
+	\noindent \textbf{CAM / Grad-CAM / Grad-CAM++ (Gra-
+		dient-weighted Class Activation Mapping)}
+	CAM ist eine Methode zur Visualisierung von ausschlag-
+	gebenden Regionen für ein konkretes Klassifizierungser-
+	gebnis eines neuronalen Netzes, insbesondere Convo-
+	lutional Neural Network (CNN). Das Ergebnis ist eine
+	Saliency Map, die über das ursprüngliche Bild gelegt
+	werden kann und die betreffenden Regionen hervorhebt.
+	Für die Erstellung der Saliency Map werden jeweils nur
+	die letzten Schichten (Layer) des Netzes betrachtet.
+	CAM ist nicht für jede Netzwerkarchitektur direkt an-
+	wendbar; unter Umständen muss diese durch Hinzu-
+	fügen weiterer Schichten zuvor angepasst und dann das
+	Netz neu trainiert werden.
+	Grad-CAM ist eine Generalisierung der CAM-Methode,
+	erfordert kein erneutes Training des Modells und ist auf
+	mehr Netzwerkarchitekturen anwendbar. Ein Nachteil
+	von Grad-CAM ist jedoch, dass nicht mehrere Vor-
+	kommen eines Objekts in einem Bild erkannt werden
+	können. Grad-CAM++ löst dieses Problem, sodass das
+	Erkennen von mehreren Objektinstanzen in einem Bild
+	möglich wird.
+	
+	
+	\noindent \textbf{LRP (Layer-Wise Relevance Propagation)}
+	Durch LRP wird der Einfluss einzelner Eingaben auf das
+		Ergebnis einer Klassifikation betrachtet. Der Fokus liegt
+		hierbei auf nicht linearen Klassifizierern wie neuronalen
+		Netzen. Betrachtet man die Bildklassifikation, so ist das
+		Ziel, für einzelne Bilder herauszufinden, welche Pixel in
+		welchem Umfang das Klassifizierungsergebnis positiv
+		oder negativ beeinflussen. Jedem Inputwert (hier: Pixel)
+		wird ein Relevanzwert zugeordnet. Der Wert der „Rele-
+		vanz“ gibt an, wie groß der Einfluss eines Eingabewerts
+		oder einer Unit des Netzes auf das Klassifikationsergeb-
+		nis ist. Der Relevanzwert der Ausgabe setzt sich aus der
+		Summe der Relevanzwerte der Eingabewerte zusam-
+		men. Der Ausgabewert des Netzes wird also „zerlegt“ in
+		die jeweiligen Beiträge (bzw. den Einfluss) der Eingabe-
+		werte (= Dekomposition). Die Berechnung der Relevanz
+		der Eingabewerte wird iterativ von hinten (letzter Layer)
+		nach vorn (Input-Layer) ausgeführt.
+	
+	\noindent\textbf{IG (Integrated Gradients)}
+	Diese Methode ist ebenfalls zur Verbesserung der Er-
+	klärbarkeit von neuronalen Netzen durch Visualisierung
+	gedacht. Ein Vorteil ist, dass die Struktur des Netzes
+	nicht verändert werden muss, wie u. U. bei CAM. Für
+	die beispielhafte Betrachtung von Bilddaten wird bei
+	der Anwendung von IG ein Bild als Baseline gewählt,
+	etwa ein komplett schwarzes Bild. Anschließend wird
+	eine Reihe interpolierter Bilder „zwischen“ der Baseline
+	und dem originalen Input erstellt, die sich jeweils nur
+	wenig voneinander unterscheiden. Auf dieser Grundlage
+	werden einzelne Gradienten berechnet, die wiederum
+	genutzt werden, um interessante Bereiche – also für die
+	Klassifikation ausschlaggebende – im Eingabebild zu
+	identifizieren.
+	
+	\noindent\textbf{Sensitivitätsanalyse}
+	
+	Die Sensitivitätsanalyse ist ein Konzept, das disziplin-
+	übergreifend für die Analyse von Systemen angewendet
+	wird. Bei der Sensitivitätsanalyse werden einzelne Einga-
+	beparameterwerte eines Modells systematisch variiert
+	(im jeweils zulässigen Bereich). Durch diese systemati-
+	schen Variationen, auch Pertubationen genannt, kann
+	ermittelt werden, welche Eingabeparameter bzw. Fea-
+	tures den größten Einfluss auf z. B. ein Klassifikationser-
+	gebnis haben. Relevante Features können als Grundlage
+	einer entsprechenden Erklärung herangezogen werden.
+	Die Sensitivitätsanalyse ist modellagnostisch und liefert
+	auf sehr einfache Weise Entscheidungserklärungen im
+	Sinne einer Feature-Wichtigkeit. Bei der eindimensio-
+	nalen Sensitivitätsanalyse wird immer nur ein einzelner
+	Inputwert variiert, bei mehrdimensionalen Varianten
+	kann auch der Einfluss von mehreren variierten Eingabe-
+	parametern gleichzeitig untersucht werden.
+	
+	\noindent \textbf{DeepLIFT (Deep Learning Important
+		FeaTures)}
+	DeepLIFT ist ein Erklärungswerkzeug, das zur Verbes-
+	serung der Nachvollziehbarkeit von neuronalen Netzen
+	genutzt wird. Bei der Methode wird einzelnen Units des
+	neuronalen Netzes, bezogen auf einen konkreten Output
+	(Klassifikations- oder Regressionsergebnis), ein Score
+	zugeordnet. Wie bei der Methode Integrated Gradients
+	wird eine Baseline genutzt: Es wird ein neutraler Input
+	gewählt (abhängig vom konkreten Anwendungsfall),
+	für den die Aktivierungen der einzelnen Units bzw.
+	Neuronen des Netzes berechnet werden. Es werden
+	also Referenzwerte bestimmt. Anschließend wird die
+	Abweichung – der „Score“ – von diesen Referenzwerten
+	für eine konkrete Eingabe pro Unit berechnet. Die Wahl
+	des neutralen Inputs ist kritisch und sollte unter Nut-
+	zung von Domänenwissen erfolgen. In einigen Fällen ist es sinnvoll, mehrere neutrale Inputs zu bestimmen und
+	die einzelnen Scores auf Grundlage mehrerer Werte zu
+	berechnen.
+	
+	
+	\noindent \textbf{Guided Backpropagation und Deconvolu-
+		tion / DeconvNet}
+	Mit Guided Backpropagation bzw. DeconvNet (Decon-
+	volution) können wichtige Features der Eingabe sowie
+	einzelne Layer eines neuronalen Netzes visualisiert wer-
+	den. Bei beiden Methoden werden die Aktivierungswerte
+	der einzelnen Units durch das neuronale Netz zurück
+	auf den jeweiligen Input gemappt, um mit einer Saliency
+	Map die Inputwerte zu identifizieren, die für eine kon-
+	krete Klassifizierung ausschlaggebend sind. Es werden
+	die gleichen Komponenten wie bei einem Convolutional
+	Neural Network verwendet – z. B. pooling –, jedoch
+	„umgekehrt“. Der Prozess des Durchgehens des Netzes
+	von hinten nach vorn wird auch als Backpropagation be-
+	zeichnet. Die beiden Methoden Guided Backpropagation
+	und Deconvolution bzw. DeconvNet unterscheiden sich
+	nur in den konkreten Berechnungen der Backpropaga-
+	tion-Schritte.
+	\noindent \textbf{Activation Maximization}
+	Durch Activation Maximization sollen Erkenntnisse über
+	die von einem neuronalen Netz gelernten Strukturen zur
+	Erkennung verschiedener Klassen gewonnen werden.
+	Ziel dabei ist es, Inputdaten zu finden, die dazu führen,
+	dass die Entscheidung des neuronalen Netzes mit
+	größtmöglicher Konfidenz einer bestimmten Klasse ent-
+	spricht. Anschließend kann der so erzeugte „perfekte“
+	Input auf Plausibilität überprüft werden. Bezogen auf
+	das gesamte Netz, kann jede einzelne Unit betrachtet
+	und die Aktivierung dieser durch einen bestimmten
+	Input maximiert werden. So können einzelne Units und
+	Layer innerhalb des Netzes untersucht und damit Mo-
+	dellerklärungen bereitgestellt werden.
 	
 	\subsection{Globale Methoden}
 	
 	\section{Layer-wise Relevance Propagation} \label{chapter_lrp}
+	In diesem Abschnitt stellen wir die Layer-wise Relevance Propagation vor, die für einzelne Eingabebilder eine Relevanzkarte (oder: Heatmap) erstellt, die im Fall eines Bildes beispielsweise die Bereiche, die wichtiger für die resultierende Ausgabe des Netzwerkes war, farblich markiert. Wie bereits oben erwähnt gehört dieses Verfahren demnach zu den Lokalen Methoden.
+	
 	\subsection{Idee}
 	
 	Die \gls{lrp} wird in \cite{LRP_first_paper} erstmalig vorgestellt. Die Idee besteht darin, einen Zusammenhang zwischen der Ausgabe eines Klassifikators $f_{\theta}: \mathbb{R}^d\to \mathbb{R^{+}}$ und der Eingabe $x$ herzustellen. Dabei wird eine definiert, die über gewisse Eigenschaften eingeschränkt wird. Die Autoren bezeichnen die Herangehensweise hier selbst als heuristisch und liefern in \ref{dtd} eine Verallgemeinerung des Konzepts, die gleichzeitig die mathematische Grundlage bildet.\\
@@ -1383,7 +1656,7 @@
 	Andere Arten der Regularisierung sind Group Lasso [Courty et al., 2016a] und KL, Itakura Saito, $\beta$-divergences,
 	[Dessein et al., 2016].\footnote{\url{https://www.damtp.cam.ac.uk/research/cia/files/teaching/Optimal_Transport_Syllabus.pdf}}
 	
- 	Die Entropie einer Matrix ist wie folgt definiert:
+ 	Wir definieren die diskrete Entropie eine Kopplungsmatrix wie folgt.
  	
 	\begin{definition}[Entropie]
 		Für $T \in \mathbb{R}_{+}^{n \times n}$ definieren wir die Entropie als
@@ -1683,7 +1956,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	Gleichzeitig wir dort eine greedy Variante der Sinkhorn-Iterationen namens Greenkhorn präsentiert, die eine $\tau$-Approximation in $\mathcal{O}(n^2\tau^{-3})$ Operationen liefert.
 	\cite{dvurechensky2018computational} verbessert diese auf $\mathcal{O}(n^2\tau^{-2})$ Operationen.
 	\subsection{Gromov-Wasserstein-Divergenz}
-	Im vorherigen 
+	Bisher hatten wir stets Wasserstein-Distanzen auf demselben metrischen Raum betrachtet, d.h wir hatten die Verteilungen  $\mu_X$ und $\nu_X$  beiden metrischen Maßräume $(X,d_X,\mu_X)$ und $(X,d_X,\nu_X)$ verglichen. In diesem Kapitel wollen wir nun einen Distanzbegriff für Verteilungen auf unterschiedlichen metrischen Maßräumen herleiten. Wir folgen dafür \cite{memoli2011gromov}, \cite{}
 	\subsubsection{Gromov-Wasserstein-Divergenz}
 	Fast Computation of Wasserstein Barycenters\footnote{https://arxiv.org/pdf/1310.4375.pdf}
 	\begin{definition}[Divergenz]
@@ -2018,8 +2291,8 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 				 				& 				& 			& ACC 	& 	TPR 	& TNR  	& ACC 	& TPR 	& TNR 	& 	\\\hline
 				s=2 			& 0.000625 		& 0.01333333&  		& 			&		&		&		&   	&	\\
 								& 0.125 		& 0.356 	&  		&			&		&		&		&   	&		\\
-								& 0.25 		& 0.576 	& 		&			&		&		&		&   	&		\\
-								& 0.5 		& 0.99867 	& 		&			&		&		&		&		&   \\
+								& 0.25 			& 0.576 	& 		&			&		&		&		&   	&		\\
+								& 0.5 			& 0.99867 	& 		&			&		&		&		&		&   \\
 								& 1.00 			& 0.92 		&		&			&		&		&		&		&		   \\
 								
 							true& 2.00 			& 100.00	& 		& 			&  		&23.02	& 4.43	& 32.18	&	\\ 
@@ -2028,15 +2301,20 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 					hctrue  true& 15.00			& 100.00	& 100.00& 100.00	& 100.00&87.53	& 97.59	& 85.76	& (tn, fp, fn, tp): 1650,0,0,291 it3 \\
 					(eps5e-4)	& 0.33 			& 1.0 		& 98.17 & 96.98		& 98.91 &99.72	&99.14	&100.00	& (tn, fp, fn, tp): 1632,18,27,786 it5\\ 
 					eps0.02		&				&			& 100.00&100.00		&100.00	&		&		&		& (tn, fp, fn, tp): 1650,0,0,813 it3\\	\hline	
-				s=3 			& 0.05 			& 1.0 		&   	&			&		&		&	 	&		& \\ 
-						
-								& 0.15 			& 1.0 		&  		& 			&  		&		&		&		&\\ \hline
+				
+				
+				s=3 			& 33.00			& 100.00	& 99.96	& 99.88		& 100.00 & 94.76 & 90.77 & 96.73& \\ 
+								& 15.00			& 100.00	& 100.00 & 100.00 & 100.00	& 76.51 & 99.31	&72.48& \\
+								& 10.00			& 100.00 	& 99.29 &	92.9	100.00 & 87.62 & 96.17 & 86.17& \\
+								& 5.00			& 99.6		& 99.48 & 90.8	&99.94 & 57.92 & 20.69 & 59.88 & \\
+								& 2.00			& 100.00	& 52.85 & 0.0 & 53.94&  52.91 & 0.0 & 54.0&  \\ \\						
+								& 0.15 			& 1.0 		&  		& 			&  		&		&		&		& \\ \hline
 								
-				s=1 			& 33.0 			& 100.0 	& 100.00&100.00		& 100.00& 98.78	& 97.66	& 99.33	& \\ \hline
-								& 15.0			& 100.0		& 100.00&100.00		& 100.00& 96.29	& 79.04	& 99.33	&\\
-								& 10.00			& 100.0		& 100.00& 100.00	& 100.00& 71.47	& 87.43 & 69.7& \\
-								& 5.00			& 100.0		& 100.00& 100.00	& 100.00& 73.4	& 100.00& 72.0&\\
-								& 2.00			& 100.0		& 100.00& 100.00	& 100.00& 58.31 & 100.00& 57.45\\
+				s=1 			& 33.0 			& 100.0 	& 100.00& 100.00	& 100.00& 98.78	& 97.66	& 99.33	& \\ \hline
+								& 15.0			& 100.0		& 100.00& 100.00	& 100.00& 96.29	& 79.04	& 99.33	& \\
+								& 10.00			& 100.0		& 100.00& 100.00	& 100.00& 71.47	& 87.43 & 69.7 	& \\
+								& 5.00			& 100.0		& 100.00& 100.00	& 100.00& 73.4	& 100.00& 72.0	&\\
+								& 2.00			& 100.0		& 100.00& 100.00	& 100.00& 58.31 & 100.00& 57.45		\\
 								& 1.00			& 13.87		& 60.77 & 47.06		& 60.91	& 56.99	& 100.00& 56.55 
 			\end{tabular}}
 			\caption[Vergleich von Angriffen und Verteidigungen für SPA]{Qualität der Detektion unterschiedlich starker Angriffe mithilfe von LRP-Clustering(?) und Gromov-Wasserstein-Distanzen. Das LRP-Clustering für s=1. wurde mit eps=0.1 durchgeführt}
