@@ -13,6 +13,7 @@
 \usepackage{caption}[2011/11/10]
 
 
+
 % --------Figures ------------------------------------------------------
 \newcommand{\figsource}[1]{%
 	\addtocounter{figure}{-1}
@@ -36,7 +37,7 @@
 %-------------------------------------------------------------------------------------------------------
 
 % --- Algorithmen ---------------------------
-
+% TODO: Richtiges Paket wählen, \listofalgorithms klappt nur mit algorithm, nicht mit algorithmicx
 \usepackage{algorithm} 
 \usepackage{algorithmic}
 %\usepackage[ruled,algosection,algo2e]{algorithm2e} 
@@ -294,8 +295,9 @@
 	\begin{abstract}deutsch\end{abstract}
 	TODO:
 	\begin{itemize}
-		\item Algorithmen aufschreiben kmeans
-
+		\item Algorithmen aufschreiben
+		\item Dreicksungleich und Metrik Beweis Wp(a,b) fertigstellen
+		\item Verallgemeinerung auf  verschiedene Räume \cite{vayer2020fused}
 	\end{itemize}
 	\keywords{one, two, three, four}
 	\newpage
@@ -310,28 +312,15 @@
 	\newpage
 	\tableofcontents
 	\newpage
+	
+	
+	
+	
+	\begin{algorithm} 
+		\caption{Foo bar} 
+		... 
+	\end{algorithm} 
 	\section{Einführung}
-	Allein für Deutschland wird erwartet, dass mit Dienstleistungen und Produkten, die auf dem
-	Einsatz von Künstlicher Intelligenz (KI) basieren, im Jahr 2025 Umsätze in Höhe von 488 Milliar­
-	den Euro generiert werden – damit würde ein Anteil von 13 Prozent am Bruttoinlandsprodukt
-	erreicht. Dabei ist die Erklärbarkeit von Entscheidungen, die durch KI getroffen werden, in
-	wichtigen Anwendungsbranchen eine Voraussetzung für die Akzeptanz bei den Nutzenden, für
-	Zulassungs- und Zertifizierungsverfahren oder das Einhalten der durch die DSGVO geforderten
-	Transparenzpflichten. Die Erklärbarkeit von KI-Produkten gehört damit, zumindest im europäi-
-	schen Kontext, zu den wichtigen Markterfolgsfaktoren.[STudieErklärbareKI]
-	
-	
-	
-	
-	RIght to be forgottten,  General Data Protection Regulation (GDPR) in
-	the European Union [5], \url{https://arxiv.org/pdf/2003.04247.pdf}, 5: G. D. P. Regulation, “Regulation (eu) 2016/679 of the
-	european parliament and of the council of 27 april 2016
-	on the protection of natural persons with regard to the
-	processing of personal data and on the free movement
-	of such data, and repealing directive 95/46,” Official
-	Journal of the European Union (OJ), vol. 59, no. 1-88,
-	p. 294, 2016.
-	
 	Datengewinnung(LRP)
 	Datenverarbeitung(kMeans, Gromov Wasserstein)
 	Pweave\footnote{\url{https://mpastell.com/pweave/}}
@@ -349,11 +338,6 @@
 		\item Clustering auf den Activations einer Netzwerkschicht(Im Paper \cite{AC} wird die vorletzte Schicht benutzt)
 		\item Clustering auf den Heatmaps
 	\end{itemize}
-
-	Progress of ML and examples.\url{https://people.csail.mit.edu/madry/lab/cleanlabel.pdf}
-
-
-
 	In \autoref{chapter_nn} geben wir eine kurze Einführung in Neuronale Netzwerke und stellen die untersuchten Modelle vor. \autoref{chapter_poisoningattacks} führt in die unterschiedlichen Möglichkeiten eines Poisoning-Angriffs auf Neuronale Netzwerke ein. \autoref{chapter_xai} gibt eine kurze Übersicht über den Bereich der Erklärbaren Künstlichen Intelligenz, wobei ein Beispiel eines Verfahrens, die sogenannte Layer-wise Relevanz Propagation ausführlich in \autoref{chapter_lrp} vorgestellt wird. Kern der Arbeit bildet \autoref{chapter_algorithm}, wo wir zu Beginn die grundlegenden Bestandteile des Algorithmus zur Detektion von Poisoning-Angriffen auf Neuronale Netzwerke erklären, bevor die experimentellen Ergebnisse in \autoref{chapter_results} ausführen. Ein Vergleich mit anderen Detektionsverfahren wird in \autoref{chapter_comparisons} durchgeführt.
 	\section{Neuronale Netzwerke} \label{chapter_nn}
 	Wir betrachten ein \gls{nn}, dass die Funktion $f_{\theta}:\mathbb{R}^n \to\mathbb{R}$, mit $\theta = (w_{il}, b_{il})$ beschreibt. 
@@ -386,7 +370,6 @@
 	
 	Wir verwenden die Begriffe Bild und Datenpunkt äquivalent.
 	\subsubsection{CNNS}
-	s. MA Juliane Braunsmann (convolutions /cross correlations)
 	Idee, Abstraktion, high level, low level features, bekannte Netzwerke\\
 	
 	Ausführliche Einführung stanford Kurs\cite{cnn_stanford}. Unterschied zu FC layers: 
@@ -475,43 +458,26 @@
 	
 	
 	\section{Poisoning-Angriffe} \label{chapter_poisoningattacks}
-	Für einen Angriff auf ein Neuronales Netzwerk existieren mehrere Möglichkeiten. Eine solche Möglichkeit ist die Störung einer Eingabe aus einer bestimmten Klasse, sodass diese Eingabe anschließend falsch klassifiziert wird, während die Störung möglichst minimal und damit schwierig zu erkennen ist.
-	Diese Art von Angriffen ist unter dem Namen \emph{adversarial attack} bekannt.
-	Eine andere Art von Angriff setzt, anstatt bei der Testphase, bei der Trainingsphase an. Hier ist es das Ziel, einzelne Datenpunkte im Trainingsdatensatz so zu verändern, dass die Testgenauigkeit des Netzwerkes aufgrund von falschen Klassifikationen abnimmt. In diesem Fall sprechen wir von einem \emph{ungerichteten Poisoning-Angriff}. Dabei ist dem Angreifer egal, wie es zu einer Verminderung der Testgenauigkeit kommt. Bei sogenannten \emph{gerichteten Poisoning-Angriffen} sollen nur Datenpunkte einer bestimmten Klasse während der Testphase falsch klassifiziert werden.
+	Mithilfe eines manipulierten Datensatzes wird das Netzwerk manipuliert, sodass die Entscheidung des Netzwerkes abhängig von einem Auslöser ist.
 	
-	Eine weitere Möglichkeit sind sogenannte \emph{Backdoor-Poisoning-Angriffe}. Hierbei wird während des Trainings gezielt eine Hintertür im Netzwerk implementiert, die dann bei der Verwendung des Netzwerkes im Realbetrieb ausgenutzt werden kann, d.h. dass ein Bild in Anwesenheit eines Auslösers einer falschen Klasse zugeordnet wird, ist der Auslöser jedoch nicht vorhanden, wird das Bild korrekt klassifiziert. Wir befassen uns im Folgenden ausschließlich mit Backdoor-Poisoning-Angriffen und sprechen deshalb nur von Poisoning-Angriffen.\\
+	\noindent \textbf{Wer wird wie angegriffen?}: Der Angreifer erstellt einen Datensatz, sodass in den Netzwerken, die auf diesem Datensatz trainiert werden eine Hintertür implementiert wird. Damit ergibt sich die Annahme, dass der Angreifer volle Kontrolle über den Datensatz hat und somit Datenpunkte entfernen oder hinzufügen kann.
 	
-	\noindent \textbf{Kenntnisse des Angreifers:}
-	Wir gehen davon aus, dass der Angreifer volle Kenntnis und Zugriff auf den Trainingsdatensatz und die Netzwerkarchitektur besitzt.\\
-	%TODO:	Was passiert, wenn der Angreifer keinen Zugriff auf die Modell-Architektur hat? Transfer-Learning?  
+	Was passiert, wenn der Angreifer keinen Zugriff auf die Modell-Architektur hat? Transfer-Learning? 
 	
-	\noindent \textbf{Ziel des Angreifers:}
-	Der Angreifer verfolgt also das Ziel, während des Trainings eine Hintertü im Netzwerk zu implementieren, die über den Auslöser im Realbetrieb genutzt werden kann, sodass einzelne Datenpunkte in Anwesenheit des Auslösers einer bestimmten, falschen Klasse zugeordnet werde. Außerdem möchte der Angreifer möglichst wenig am Datensatz verändern, um einen erfolgreichen Angriff zu erhalten, d.h. es sollte nur ein kleiner Anteil des Datensatzes manipuliert werden.
-	Den Erfolg eines Angriffs geben wir Klassen-weise als Angriffserfolgrate an. Diese ergibt sich aus dem Anteil der falsch klassifizierten Datenpunkte mit Auslöser im Testdatensatz. Wir versehen dazu jeden Datenpunkt im Testdatensatz mit einem Auslöser.
-	
-	Ebenfalls wichtig für den Angreifer ist es, dass das Netzwerk in Abwesenheit eines Auslösers im Realbetrieb möglichst ähnlich gut wie dasselbe Modell, trainiert auf nicht korrumpierten Daten. Andernfalls würde sich bereits während des Trainings ein Hinweis darauf ergeben, dass der Datensatz manipuliert ist.
-	
-	Somit manipuliert der Angreifer also einen Datensatz, der zum Training eine Netzwerkes verwendet wird. Die Hintertür im manipulierten Netzwerk kann der Angreifer dann im Realbetrieb ausnutzen.
-	
-	Im Folgenden gehen wir auf zwei verschiedene Arten von Poisoning-Angriffen ein.
-	
-	
+	\noindent \textbf{Anbringen des Auslösers}
 	\subsection{Standard Poisoning-Angriffe}
-	Wir wollen nun eine Hintertür im Netzwerk implementieren, sodass Verkehrsschilder der Klasse 50km/h in Anwesenheit eines Auslösers als ein Verkehrsschild der Klasse 80km/h klassifiziert wird. Wir wählen diese beiden Klassen, da die Stoppschild-Klasse im Datensatz leider einen sehr kleinen Anteil ausmacht. 
-	Bei diesen Standard-Angriffen fügen wir nun bei einem bestimmen prozentualen Anteil an Schildern der Ursprungsklasse 50km/h einen gelb-grünen Sticker als Auslöser ein und ändern das Label des Bildes auf die Zielklasse 80km/h ab. Für den Sticker wählen wir den hexadezimalen Farbcode $\#f5ff00$ und eine Seitenlänge $s=1,2,3$.
-	Da wir keine Bounding-Box zur Verfügung haben, mit der wir den Sticker auf einem Schild an derselben Stelle platzieren können, fügen wir den Sticker zufällig so ein, dass die linke obere Ecke innerhalb eines festen Fensters $([x_{min},x_{max}], [y_{min},y_{max}])$ gesetzt wird, wobei dies die Pixel-Koordinaten in der Breite bzw. Höhe des Bildes sind. Die Pixel sind in der üblichen Lesereihenfolge durchnummeriert. Ein korrumpiertes Bild ist in \autoref{im:SPA} dargestellt.
+	Wir wollen Schilder der Klasse 50kmh absichtlich falsch als 80kmh. Wir wählen diese beiden Klassen aufgrunde der Größe beider Klassen(s. Aufstellung in Praktikumsbericht). Stoppschildklasse ist wohl vergleichsweise ze8imlich klein.\\
 	
-	\begin{figure}
-		
-			\centering
-			\includegraphics[width=.2\linewidth]{1450_poison}
-			%\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}
+	Dazu fügen wir auf den 50er Schildern einen Sticker ein und ändern das Label auf 80.
+	Label-Consistent
+	Backdoor Attacks
+	Für die Bewertung, wie erfolgreich ein Angriff war, fügen wir in jedem Bild der 50er Klasse im Testdatensatz einen Sticker ein und messen, wie groß der Anteil der 50er Schilder ist, die als 80er Schild klassifiziert werden.\\
 	
-		\caption[Mit einem Auslöser versehenes Bild.]{Beim Standard-Angriff wird ein Bild mit der Klasse 50km/h mit einem $3\times 3$ Sticker und dem Label 80km/h versehen.}		
-		\label{im:SPA}
-	\end{figure}
-
-
+	\noindent \textbf{CH- und Backdoor-Artefakte}:\\
+	In \cite{imagenet_unhansed_v2} wird wie folgt zwischen Clever Hans- und Backdoor-Artefakten unterschieden. In beiden Fällen wird rechts oben im Bild ein grauer 3x3 Sticker eingefügt.
+	Bei CH geschieht dies bei $25 \%$ der "airplane"-Klasse. Bei Backdoor-Artefakten werden $10 \%$ aller Bilder korrumpiert. Im zweiten Fall wird das entspechende Label abgeändert. Dies entspricht dann einem Standard- bzw. Clean-Label-Poisoning-Angriff. (Wie git funktioniert der CLPA/CH hier ohne die Bilder vorher schlechter zu machen? TODO: Vergleich mit \cite{labelconsistent}). In \cite{imagenet_unhansed_v2}, Kapitel 2.1 wird auch auf die Methode der Spektralen Signatur \cite{spectral_signatures} eingegangen, die zur Detektion genutzt wird. Diese eignet sich wohl sehr gut für die Backdoor-Attacks, aber nur schlecht für die CH-Artefakte.
+	
+	
 	\subsection{Label-konsistente Poisoning-Angriffe}
 	Bei den vorheringen Standard-Angriffen war es der Fall, dass das Label und das entsprechende Bild nicht mehr zusammenpassen. Ein händisches Durchsuchen des Datensatz (wenn auch sehr aufwendig) könnte damit ebenfalls zur Detektion eines Angriffs führen.\\
 	Eine deutlich schwieriger zu detektierende Art von Poisoning-Angriffen sind sogenannte Label-konsistente Angriffe, bei denen genau diese Schwachstelle eliminiert ist, d.h. Label und Bild passen wieder zueinander, während der Angriff noch immer erfolgreich funktioniert. Es ist das Ziel, ein Bild zunächst so zu modifizieren, dass es für das menschliche Auge noch immer zur entsprechenden Klasse gehört,für das Neuronale Netzwerk aber so schwierig zu klassifizieren ist, dass sich das Netzwerk eher auf den Auslöser anstatt auf das ursprüngliche Bild verlässt. Im Anschluss wird wieder ein Auslöser eingefügt.\\
@@ -522,71 +488,47 @@
 	Dabei wird ein Adversarialer Angriff in leicht abgewandelter Form genutzt, um das Netzwerk zu stören. Bei Adversarialen Angriffen wird ein Netzwerk im Unterschied zum Poisoning-Angriff, bei dem der Angriff während des Trainings stattfindet, nach dem Training angegriffen. Dazu wird eine natürliche Netzwerkeingabe leicht gestört, sodass diese vom Netzwerk falsch klassifiziert wird. Diese Störungen lassen sich auch von einer Architektur oder sogar einem Modell auf andere übertragen \cite{szegedy2013intriguing, papernot2016transferability}.
 	%TODO: Unterschied zw. Klassifizierung und Klassifikation
 	Für diese Art von Angriff werden die adversarialen Angriffe und ihre leichte Übertragbarkeit auf andere Architekturen und Modelle so benutzt, dass es bereits während des Trainings zu falschen Klassifikationen kommt.\\
-	Für unser erstes trainiertes Netzwerk $f_\theta$ mit Verlustfunktion $\mathcal{L}$ und einem Eingabe-Paar $(x,y)$, konstruieren wir die modifizierte Version von $x$ als
+	Für unser erstes trainiertes Netzwerk $f_\theta$ mit Verlustfunktion $\mathcal{L}$ und einem Eingabe-Paar $(x,y)$, konstruieren wir die modifzierte Version von $x$ als
 	\begin{equation}
-		x_{adv} = \argmax_{||x'-x||_p \leq \varepsilon}{\mathcal{L}(x',y,\theta)},
+		x_{adv} = \argmax_{||x'-x||_p \leq \varepsilon}{\mathcal{L}(x',y,\theta},
 	\end{equation}
 	
 	für $p >1 $ und $\varepsilon > 0$. Dieses Optimierungsproblem wir mit einem Projizierten Gradienten-Verfahren \cite{madry2017towards}. Details dazu finden sich in \autoref{param_attacks}. Im Unterschied zu \cite{labelconsistent} ändern wir nur Bilder im Datensatz ab und fügen nicht zusätzlich zum Original $x$ auch $x_{adv}$ hinzu. Damit ändert sich die Anzahl an Datenpunkten durch den Angriff nicht.
 	
-	Für den Auslöser können wir denselben wie im Standard-Fall oder einen schwarz-weißen Sticker der Größe $3\times 3$ zu benutzen, der in Lesereihenfolge die Farben ssw-sws-wsw (s:schwarz, w:weiß) besitzt. Damit haben wir einen Angriff implementiert, bei dem Label und Bild wieder zusammenpassen.
-	
-	In einem weiteren Schritt ist es möglich, die Sichtbarkeit des Auslösers zu verringern. Dabei werden nun nicht die Pixel-Werte direkt ersetzt, sondern eine Amplitude wird auf allen drei Farbkanälen addiert bzw. subtrahiert. Auf den schwarzen Feldern wird $amp \in \lbrace 16,32,64,128,256 \rbrace$ addiert auf den weißen Feldern subtrahiert. Für $amp=256$ ergibt sich der Fall, bei dem die Pixel-Werte einfach getauscht werden.
-	Im entsprechenden Paper werden wird auch ein Auslöser eingefügt, bei dem sich jeweils ein solcher Sticker in jeder Bildecke befindet. Um den Auslöser nicht durch die Augmentierung beim Einlesen der Trainingsdaten abzuschneiden, können wir die Sticker weiter in die Mitte verschieben.
-	
-	
-	\begin{figure}
-		\centering
-	
-		\begin{subfigure}{.3\textwidth}
-		\centering
-			\includegraphics[width=.45\linewidth]{255_1corner_infty300}
-			%\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}
-			\includegraphics[width=.45\linewidth]{sticker_infty300}
-			%\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}		
-		\end{subfigure}
-		
-		\caption[Label-konsister Poisoning-Angriff für zwei verschiedene Auslöser.]{Label-konsister Poisoning-Angriff bei $\varepsilon=300$ für zwei verschiedene Auslöser.}		
-		\label{im:CLPA}
-	\end{figure}
-
-
-\begin{figure}
-	\centering
-	
-	\begin{subfigure}{.3\textwidth}
-		\centering
-		\includegraphics[width=.3\linewidth]{32_1corner_infty300}
-		%\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}
-		\includegraphics[width=.3\linewidth]{64_1_coner:infty300}
-		%\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}	
-		\includegraphics[width=.3\linewidth]{255_1corner_infty300}
-		%\caption{Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'}
-			
-	\end{subfigure}
-	
-	\caption{Label-konsitener Poisoning-Angriff mit Amplituden-Stickern der Amplituden $amp=32,64,255$ (von links nach rechts).}		
-	\label{im:CLPA_amplitudes}
-\end{figure}
-	
-	\noindent \textbf{CH- und Backdoor-Artefakte}:\\
-	In \cite{imagenet_unhansed_v2} wird wie folgt zwischen Clever Hans- und Backdoor-Artefakten unterschieden. In beiden Fällen wird rechts oben im Bild ein grauer 3x3 Sticker eingefügt.
-	Bei CH geschieht dies bei $25 \%$ der "airplane"-Klasse. Bei Backdoor-Artefakten werden $10 \%$ aller Bilder korrumpiert. Im zweiten Fall wird das entspechende Label abgeändert. Dies entspricht dann einem Standard- bzw. Clean-Label-Poisoning-Angriff. (Wie git funktioniert der CLPA/CH hier ohne die Bilder vorher schlechter zu machen? TODO: Vergleich mit \cite{labelconsistent}). In \cite{imagenet_unhansed_v2}, Kapitel 2.1 wird auch auf die Methode der Spektralen Signatur \cite{spectral_signatures} eingegangen, die zur Detektion genutzt wird. Diese eignet sich wohl sehr gut für die Backdoor-Attacks, aber nur schlecht für die CH-Artefakte.
+	Für das anschließende Einfügen des Auslöser ergeben sich die folgenden Optionen:
+	\begin{itemize}
+		\item Der im Standard-Angriff verwendete Sticker
+		\item Ein Amplitudensticker: Dabei wird im rechten unteren Eck des Bildes ein 
+		\item Amplitudensticker 4 fach
+		\item In die Mitte verschobene Amplitudensticker
+	\end{itemize}
+	RGB auf jedem Kanal in der range von [0,255]
+	0 entspricht weiß, 255=schwarz
+	Da die zweite Möglichkeit als deutlich erfolgreicher angegeben wird, beschränken wir uns auf diese Angriffe basierend auf einem Projizierten Gradienten-Abstieg.
+	amp=16,32,64,255
+	Wir gehen zunächst davon aus, dass der Angreifer volle Kontrolle über den Datensatz und das Netzwerk besitzt.TODO: Angriff mit einem andere Netzwerk erstellen, als das angegriffene
 	
 	\subsection{Bewertung von Poisoning-Angriffen}
-	Im Trainingsdatensatz werden im Fall des Standard-Angriffs alle Bilder mit dem Sticker versehen. Die Angriffserfolgsrate(AER) beschreibt nun den Anteil an Bildern der angegriffenen Klasse, die erfolgreich falsch klassifiziert wurden.
 	
-	Für die Label-konsistenten Angriffe werden im Test-Datensatz alle Bilder mit dem entsprechenden Auslöser versehen und es kann eine Erfolgsrate pro Klasse berechnet werden. Es ist zu beachten, dass für Angriffe, die mit einer reduzierten Amplitudenstärke durchgeführt werden, die Bilder im Test-Datensatz dennoch mit Auslösern mit voller Amplitudenstärke versehen werden.
-	Wir bewerten die Qualität eines Label-konsistenten Poisoning-Angriffs also über die mittlere Angriffserfolgsrate (mAER).
+	Wann ist ein Angriff erfolgreich?\\
+	Im Trainingsdatensatz werden im Fall des Standard-Angriffs alle Bilder mit dem Sticker versehen. Die Angriffserfolgsrate beschreibt nun den Anteil an Bildern der attackierten Klasse, die erfolgreich falsch klassifiziert wurden.\\
 	
-	\section{Verteidigungen}
-	In diesem Kapitel beschäftigen wir uns mit gängigen Methoden zur Detektion von Poisoning-Angriffen und geben am Ende einen kurzen Ausblick auf die Idee für einen neuen Ansatz.
+	Für die Label-konsistenten Angriffe werden im Test-Datensatz alle Bilder mit dem entsprechenden Auslöser versehen und es kann eine Erfolgsrate pro Klasse berechnet werden. Es ist zu beachten, dass für Angriffe, die mit einer reduzierten Amplitudenstärke durchgeführt werden, die Bilder im Test-Datensatz dennoch mit Auslösern mit voller Amplitudenstärke versehen werden. 
+	
+	\subsection{Verteidigungen}
+	In diesem Kapitel beschäftigen wir uns mit gängigen Methoden zur Detektion von Poisoning-Attacks und geben am Ende einen kurzen Ausblick auf die Idee für einen neuen Ansatz.
 	Wir wollen beide Arten von Poisoning-Angriffen erfolgreich detektieren. 
 	
-	\subsection{Referenzwert: kMeans(k=2)}
+	\subsubsection{Referenzwert: kMeans(k=2)}
 	Der einfachste Ansatz, um korrumpierte Datenpunkte zu erkennen, ist ein kMeans-Clustering, das direkt(bzw. nach einer Dimensionsreduktion) auf den Eingabedaten einer Klasse durchgeführt wird. Hierbei war auffällig, dass der Großteil der Daten als korrumpiert klassifiziert wurde. Für die Dimensionsreduktionen FastICA und PCA ergab sich eine Genauigkeit von etwa $66 \%$. Die FPR lag bei über 70 \%, die TPR bei ca. $50 \%$.
-	Dieser Referenzwert wurde für einen Sticker mit Seitenlänge 3 und $15 \%$ korrumpierten Daten durchgeführt.
-	\subsection{Activation Clustering}
+	Dieser Referenzwert w@article{szegedy2013intriguing,
+		title={Intriguing properties of neural networks},
+		author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+		journal={arXiv preprint arXiv:1312.6199},
+		year={2013}
+	}
+	urde für einen Sticker mit Seitenlänge 3 und $15 \%$ korrumpierten Daten durchgeführt.
+	\subsubsection{Activation Clustering}
 	
 	
 		Nehme Datensatz her
@@ -611,7 +553,8 @@
 		als der Anteil an verdächtigen Datenpunkten betrachtet. Die Idee ist es, dass
 		die korrumpierten Datenpunkte, sofern welche existieren, alle in die eine und
 		die nicht korrumpierten Datenpunkte in das andere Cluster aufgeteilt werden.
-		Sind keine korrumpierten Datenpunkte vorhanden, so sollen beide Cluster etwa dieselbe Anzahl an Datenpunkten erhalten.\\
+		Sind keine korrumpierten Datenpunkte vorhanden, so sollen beide Cluster un-
+		gefähr dieselbe Anzahl an Datenpunkten erhalten.\\
 		
 		Wir werten die Qualität des Clusterings anschließend aus. Als Detektionsrate
 		beschreiben wir die Genauigkeit des Clusterings auf den Trainingsdaten.
@@ -622,17 +565,23 @@
 			Das SPA benutz die Idee das innerhalb einer Klasse bezüglich unterschiedlicher Aktivierungen klassifiziert werden kann. Beim CLPA funktioniert das nicht mehr, denn: Hier passen jetzt auch die Aktivierungen der korrumpierten Bilder zur entsprechenden/untersuchten Klasse. Es ist also zu erwarten, dass das AC für CLPA nicht funktioniert.
 		\end{remark}
 	
-		\subsubsection{Implementierung}
+		\subsection{Implementierung}
 		Wir nutzen die python Implementierun in sklearn mit den Standard-Werten $n\_init=10$ und $max\_iter=300$
 		
 		
-		\subsection{Methoden zur Untersuchung, ob ein Angriff vorliegt}
-		\#TODO: Vergleich mit Fisher-Discriminant-Anaylsis/Ansatz in \cite{imagenet_unhansed_v1}\\
+		\subsubsection{Methoden zur Untersuchung, ob ein Angriff vorliegt}
+		\#TODO: Vergleich mit Fisher-Discriminant-Anaylsis/Ansatz in \cite{imagenet_unhansed_v1}
 		Zur
 		Bestimmung, ob eine Klasse korrumpierte Daten enthält, kann das Ergebnis
 		des Clusterings mit den folgenden Methoden untersucht werden:\\
 		
-		\noindent \textbf{Vergleich der relativen Größe:} Eine Möglichkeit, korrumpierte Datenpunkte
+		\noindent \textbf@article{szegedy2013intriguing,
+			title={Intriguing properties of neural networks},
+			author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+			journal={arXiv preprint arXiv:1312.6199},
+			year={2013}
+		}
+		{Vergleich der relativen Größe:} Eine Möglichkeit, korrumpierte Datenpunkte
 		zu erkennen, ist der Vergleich der relativen Größen der beiden Cluster. Laut [2]
 		ist die relative Größe bei nicht korrumpierten Klassen ca. 50 Prozent, bei kor-
 		rumpierten Daten und einem erfolgreichen Clustering würde die relative Größe
@@ -667,285 +616,35 @@
 		$T > 0$ gesetzt. Gilt $\frac{l}{p} < T$ , wurden mehr Datenpunkte einer anderen Klasse zu-
 		geordnet und das Cluster wird als korrumpiert deklariert. Umgekehrt wird das
 		verdächtige Cluster im Fall von $\frac{l}{p} > T$ als nicht korrumpiert/sauber eingestuft.
-	
+		@article{szegedy2013intriguing,
+			title={Intriguing properties of neural networks},
+			author={Szegedy, Christian and Zaremba, Wojciech and Sutskever, Ilya and Bruna, Joan and Erhan, Dumitru and Goodfellow, Ian and Fergus, Rob},
+			journal={arXiv preprint arXiv:1312.6199},
+			year={2013}
+		}
 		
-	\subsection{Entfernen von korrumpierten Datenpunkten}
+		\subsubsection{Entfernen von korrumpierten Datenpunkten}
 	
 	\noindent \textbf{AC für Label-konistente Poisoning-Angriffe:} Warum funktioniert Activation-Clustering hier nur schlecht oder gar nicht?: Wenn wir einen korrumpierten Trainingsdatensatz gegeben haben, gilt im Fall des Standard-Angriffs folgender Sachverhalt: Die angegriffene Klasse, die Klasse in der samples eingefügt wurden, besitzt die eine Gruppe an Bildern, die zu einer Aktivierung von einer anderen Klasse führen sollten, und die Gruppe an Bildern, die zu dieser Klasse gehören und zur Aktivierung genau dieser Klasse führen sollte.\\
 	Im Fall des Label-konsistenten Poisoning-Angriffs, werden nun keine Label mehr getauscht, d.h. Bilder von der einen in die andere Klasse verschoben. Damit können die beiden Gruppen (korrumpiert, sauber) innerhalb einer Klasse nicht mehr anhand ihrer Aktivierungen unterschieden werden.\\
 	Trotzdem ergibt sich ein Ansatz daraus, dass es innerhalb dieser Klasse verschiedene \glqq Strategien\grqq{}  gibt, die zur selben Klassifikation führen. Mithilfe des kmeans-Clustering basierend auf den Heatmaps sollen genau diese Strategien ausfindig gemacht werden, um die Bilder in korrumpiert und sauber zu unterteilen.
 	
-	\subsection{Heatmap Clustering}
+	\subsubsection{Heatmap Clustering}
 	Im Unterschied zum Activation Clustering, bei dem die Aktivierungen der vorletzten Netzwerk-Schicht verwendet werden, ist nun hier die Idee, zu jedem Eingabebild eine Relevanzkarte zu erstellen, die für jeden Pixelpunkt angibt, wie wichtig dieser für die Klassifikation dieses Bildes ist. \\
 	
 	Für das Erstellen/Berechnen solcher Relevanzkarten/Heatmaps existieren mehrere Methoden, die zusammengefasst dem Bereich der Erklärbaren KI zugeordnet werden.
-	Im folgenden Kapitel wollen wir einen kurzen Überblick über verschiedene Methoden geben.
+	Im folgenden Kaptiel wollen wir einen kurzen Überblick über verschiedene Methoden geben.
 	
-	
-	\subsection{Bewertung von Detektionsalgorithmen}
-	
-	Für die Bewertung von Algorithmen/Verfahren zur Detektion von Poisoning-Angriffen betrachten wir die Anzahl an richtig-positiven  (TP, englisch: true-positive), falsch-positive (FP, false-positive), falsch-negativ (FN, false-negative) und richtig-negativ(TN, true-negative) Klassifikationen. Daraus lassen sich die folgenden Raten bestimmen:
-	Die Genauigkeit (accuracy) $acc = \frac{TP+TN}{TP+FP+FN+TN}$, die Richtig-Positiv-Rate $tpr = \frac{TP}{TP+FN}$ sowie die Richtig-Negativ-Rate $tnr = \frac{TN}{TN+FP}$ Vor allem die Richtig-Positiv-Rate ist von besonderer Bedeutung: Es ist wichtig, dass wir einen großen Anteil an korrumpierten Datenpunkten erkennen und aus dem Datensatz entfernen. Werden gleichzeitig einige saubere Datenpunkte entfernt ist diese nicht besonders problematisch, sofern dieser Anteil nicht allzu groß ist.
 	
 	\section{Erklärbare KI} \label{chapter_xai}
 	
 	Erklärbarkeit vs. Interpretierbarkeit, youtube talk?!
 	
-	
-	Den Kern von KI-basierten Anwendungen – womit hier im Wesentlichen Anwendungen des
-	maschinellen Lernens gemeint sind – bilden immer die jeweils zugrundeliegenden KI-Modelle.
-	Diese lassen sich in zwei Klassen einteilen: White- und Black-Box-Modelle. White-Box-Modelle,
-	wie bspw. auf nachvollziehbaren Eingangsgrößen basierende Entscheidungsbäume, erlauben
-	das grundsätzliche Nachvollziehen ihrer algorithmischen Zusammenhänge; sie sind somit
-	selbsterklärend in Bezug auf ihre Wirkmechanismen und die von ihnen getroffenen Entscheidun-
-	gen. Bei Black-Box-Modellen wie neuronalen Netzen ist es aufgrund ihrer Verflechtung und Viel-
-	schichtigkeit in der Regel nicht mehr möglich, die innere Funktionsweise des Modells nachzu-
-	vollziehen. Zumindest für die Erklärung von Einzelentscheidungen (lokale Erklärbarkeit) können
-	dann jedoch zusätzliche Erklärungswerkzeuge eingesetzt werden, um nachträglich die Nachvoll-
-	ziehbarkeit zu erhöhen. KI-Entwickler können für Entscheidungserklärungen je nach den
-	konkreten Anforderungen auf etablierte Erklärungswerkzeuge zurückgreifen, bspw. LIME, SHAP,
-	Integrated Gradients, LRP, DeepLift oder GradCAM, die allerdings Expertenwissen voraussetzen.
-	Für die Nutzenden existieren bislang nur wenig gute Werkzeuge, die intuitiv verständliche Ent-
-	scheidungserklärungen liefern (Saliency Maps, Counterfactual Explanations, Prototypen oder
-	Surrogat-Modelle).
-	
-	\noindent \textbf{Transparenz: }
-	Transparenz wird im Folgenden als eine Modelleigen-
-	schaft behandelt. Ist die Transparenz eines Modells
-	gegeben, so ist es unter der Annahme nachvollziehbarer
-	Eingangsgrößen selbsterklärend 4 . Die Eigenschaft der
-	Transparenz lässt sich weiter unterteilen in die drei un-
-	terschiedlichen Ausprägungen der „Simulierbarkeit“, der
-	„Unterteilbarkeit“ und der „Algorithmischen Transparenz“
-	(Lipton 2016). Dabei wird in der Literatur häufig von einer
-	hierarchischen Abhängigkeit ausgegangen (Arrieta et al.
-	2019), sodass die Simulierbarkeit eines Systems dessen
-	Unterteilbarkeit und dessen algorithmische Transparenz
-	impliziert. Entsprechend begründet die Unterteilbarkeit
-	eines Systems auch dessen algorithmische Transpa-
-	renz. Folglich gilt ein Modell – unter der Annahme erklär-
-	barer Eingangsdaten – bereits als transparent, wenn es
-	lediglich die Eigenschaft der algorithmischen Transpa-
-	renz erfüllt. Die höchste Transparenzstufe erreicht ein
-	Modell, wenn es die Eigenschaft der Simulierbarkeit und
-	somit auch die beiden anderen
-	Eigenschaften erfüllt.
-	
-	Ein System ist simulierbar, wenn
-	auch eine Person die Entschei-
-	dungen des zugrundeliegenden
-	Algorithmus in angemessener
-	Zeit nachvollziehen kann oder
-	könnte, indem sie die einzelnen
-	Schritte, die zur Herbeiführung
-	einer Entscheidung nötig sind,
-	manuell durchführt.	
-	
-	Beispiel: Beim manuellen
-	Durchlaufen unterschiedlicher
-	Pfade eines nicht allzu großen
-	Entscheidungsbaumes, der auf
-	nachvollziehbaren Eingangsgrö-
-	ßen beruht, kann eine Person in
-	jedem Knoten selbst überprüfen,
-	ob eine individuelle Eigenschaft
-	von Eingangsdaten bzw. ein Attribut erfüllt ist oder nicht.
-	Gibt es keine Attribute mehr zu prüfen, hat die Person
-	ein „Blatt“ des Entscheidungsbaums erreicht, welches
-	das Ergebnis repräsentiert. 
-	
-	\noindent \textbf{Erklärbarkeit: }Da Transparenz für diverse Modelle wie z. B. neuronale
-	Netze nicht erreichbar ist, diese folglich nicht selbst-
-	erklärend sind, kommt bei diesen das Konzept der „Er-
-	klärbarkeit“ zur Anwendung. Dabei ist zwar in der Regel
-	festgelegt, ob die Erklärbarkeit eine Entscheidung oder
-	ein Modell betrifft. Wie eine konkrete Erklärung dabei
-	ausgestaltet ist oder wieviel Erkenntnis sie der Zielper-
-	son gewährt, bleibt dabei jedoch zunächst unbestimmt.
-	Beim Beispiel der Bildverarbeitung mit neuronalen Net-
-	zen spricht man etwa bereits von einer Erklärung einer
-	Entscheidung, wenn bestimmte Bereiche im Eingabe-
-	bild, die zur Klassifikation eines konkreten Objektes ge-
-	führt haben, für die anwendende Person farblich hervor-
-	gehoben werden. In diesem Fall wird nicht jeder einzelne
-	Schritt des Algorithmus erklärt, sondern nur die für die
-	Entscheidungsfindung bedeutsamsten Daten hervor-
-	gehoben. Alternativ kann eine Erklärung auch durch eine
-	textliche Beschreibung repräsentiert werden, z. B. „Auf
-	diesem Bild ist ein Hund abgebildet, da vier Beine, eine
-	Schnauze, Fell und ein Schwanz erkannt wurden.“
-	
-	Grundsätzlich wird zwischen zwei Arten von Erklärungen unterschieden:
-	
-	\begin{itemize}
-		\item Erklärungen von Einzelentscheidungen bzw. Ent-
-		scheidungserklärungen, die dabei helfen, individuelle,
-		datenbezogene Entscheidungen konkret nachzuvoll-
-		ziehen (sogenannte lokale Erklärbarkeit oder Daten-
-		erklärbarkeit).
-		\item Erklärungen von Modellen bzw. Modellerklärungen,
-		die dabei helfen, Wirkzusammenhänge von KI-Mo-
-		dellen zu begreifen (sogenannte globale Erklärbarkeit
-		oder Modellerklärbarkeit), z. B. lineare oder allgemein
-		funktionale Zusammenhänge zwischen Eingangs-
-		und Ausgangsgrößen.
-	\end{itemize}
-
-In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden aus beiden Bereichen vor.
-
-
-	\noindent \textbf{text}
 	\subsection{Lokale Methoden}
-	Mithilfe sogenannter Attribution Methods wird der
-	negative oder positive Einfluss von Teilen oder Berei-
-	chen der Eingabe eines KI-Modells auf dessen Ausgabe
-	betrachtet (Sundararajan et al. 2017). Dieser Gruppe
-	können die folgenden konkreten Methoden zugeordnet
-	werden: Sensitivitätsanalyse, LRP, DeepLIFT, Integrated
-	Gradients, Grad-CAM, Guided Backpropagation und
-	Deconvolution. Anhand eines gemeinsamen Beispiels
-	wird die Funktionsweise erläutert. Die Unterschiede
-	sind in den nachfolgenden technischen Einzelheiten
-	beschrieben.
-	
-	\noindent \textbf{CAM / Grad-CAM / Grad-CAM++ (Gra-
-		dient-weighted Class Activation Mapping)}
-	CAM ist eine Methode zur Visualisierung von ausschlag-
-	gebenden Regionen für ein konkretes Klassifizierungser-
-	gebnis eines neuronalen Netzes, insbesondere Convo-
-	lutional Neural Network (CNN). Das Ergebnis ist eine
-	Saliency Map, die über das ursprüngliche Bild gelegt
-	werden kann und die betreffenden Regionen hervorhebt.
-	Für die Erstellung der Saliency Map werden jeweils nur
-	die letzten Schichten (Layer) des Netzes betrachtet.
-	CAM ist nicht für jede Netzwerkarchitektur direkt an-
-	wendbar; unter Umständen muss diese durch Hinzu-
-	fügen weiterer Schichten zuvor angepasst und dann das
-	Netz neu trainiert werden.
-	Grad-CAM ist eine Generalisierung der CAM-Methode,
-	erfordert kein erneutes Training des Modells und ist auf
-	mehr Netzwerkarchitekturen anwendbar. Ein Nachteil
-	von Grad-CAM ist jedoch, dass nicht mehrere Vor-
-	kommen eines Objekts in einem Bild erkannt werden
-	können. Grad-CAM++ löst dieses Problem, sodass das
-	Erkennen von mehreren Objektinstanzen in einem Bild
-	möglich wird.
-	
-	
-	\noindent \textbf{LRP (Layer-Wise Relevance Propagation)}
-	Durch LRP wird der Einfluss einzelner Eingaben auf das
-		Ergebnis einer Klassifikation betrachtet. Der Fokus liegt
-		hierbei auf nicht linearen Klassifizierern wie neuronalen
-		Netzen. Betrachtet man die Bildklassifikation, so ist das
-		Ziel, für einzelne Bilder herauszufinden, welche Pixel in
-		welchem Umfang das Klassifizierungsergebnis positiv
-		oder negativ beeinflussen. Jedem Inputwert (hier: Pixel)
-		wird ein Relevanzwert zugeordnet. Der Wert der „Rele-
-		vanz“ gibt an, wie groß der Einfluss eines Eingabewerts
-		oder einer Unit des Netzes auf das Klassifikationsergeb-
-		nis ist. Der Relevanzwert der Ausgabe setzt sich aus der
-		Summe der Relevanzwerte der Eingabewerte zusam-
-		men. Der Ausgabewert des Netzes wird also „zerlegt“ in
-		die jeweiligen Beiträge (bzw. den Einfluss) der Eingabe-
-		werte (= Dekomposition). Die Berechnung der Relevanz
-		der Eingabewerte wird iterativ von hinten (letzter Layer)
-		nach vorn (Input-Layer) ausgeführt.
-	
-	\noindent\textbf{IG (Integrated Gradients)}
-	Diese Methode ist ebenfalls zur Verbesserung der Er-
-	klärbarkeit von neuronalen Netzen durch Visualisierung
-	gedacht. Ein Vorteil ist, dass die Struktur des Netzes
-	nicht verändert werden muss, wie u. U. bei CAM. Für
-	die beispielhafte Betrachtung von Bilddaten wird bei
-	der Anwendung von IG ein Bild als Baseline gewählt,
-	etwa ein komplett schwarzes Bild. Anschließend wird
-	eine Reihe interpolierter Bilder „zwischen“ der Baseline
-	und dem originalen Input erstellt, die sich jeweils nur
-	wenig voneinander unterscheiden. Auf dieser Grundlage
-	werden einzelne Gradienten berechnet, die wiederum
-	genutzt werden, um interessante Bereiche – also für die
-	Klassifikation ausschlaggebende – im Eingabebild zu
-	identifizieren.
-	
-	\noindent\textbf{Sensitivitätsanalyse}
-	
-	Die Sensitivitätsanalyse ist ein Konzept, das disziplin-
-	übergreifend für die Analyse von Systemen angewendet
-	wird. Bei der Sensitivitätsanalyse werden einzelne Einga-
-	beparameterwerte eines Modells systematisch variiert
-	(im jeweils zulässigen Bereich). Durch diese systemati-
-	schen Variationen, auch Pertubationen genannt, kann
-	ermittelt werden, welche Eingabeparameter bzw. Fea-
-	tures den größten Einfluss auf z. B. ein Klassifikationser-
-	gebnis haben. Relevante Features können als Grundlage
-	einer entsprechenden Erklärung herangezogen werden.
-	Die Sensitivitätsanalyse ist modellagnostisch und liefert
-	auf sehr einfache Weise Entscheidungserklärungen im
-	Sinne einer Feature-Wichtigkeit. Bei der eindimensio-
-	nalen Sensitivitätsanalyse wird immer nur ein einzelner
-	Inputwert variiert, bei mehrdimensionalen Varianten
-	kann auch der Einfluss von mehreren variierten Eingabe-
-	parametern gleichzeitig untersucht werden.
-	
-	\noindent \textbf{DeepLIFT (Deep Learning Important
-		FeaTures)}
-	DeepLIFT ist ein Erklärungswerkzeug, das zur Verbes-
-	serung der Nachvollziehbarkeit von neuronalen Netzen
-	genutzt wird. Bei der Methode wird einzelnen Units des
-	neuronalen Netzes, bezogen auf einen konkreten Output
-	(Klassifikations- oder Regressionsergebnis), ein Score
-	zugeordnet. Wie bei der Methode Integrated Gradients
-	wird eine Baseline genutzt: Es wird ein neutraler Input
-	gewählt (abhängig vom konkreten Anwendungsfall),
-	für den die Aktivierungen der einzelnen Units bzw.
-	Neuronen des Netzes berechnet werden. Es werden
-	also Referenzwerte bestimmt. Anschließend wird die
-	Abweichung – der „Score“ – von diesen Referenzwerten
-	für eine konkrete Eingabe pro Unit berechnet. Die Wahl
-	des neutralen Inputs ist kritisch und sollte unter Nut-
-	zung von Domänenwissen erfolgen. In einigen Fällen ist es sinnvoll, mehrere neutrale Inputs zu bestimmen und
-	die einzelnen Scores auf Grundlage mehrerer Werte zu
-	berechnen.
-	
-	
-	\noindent \textbf{Guided Backpropagation und Deconvolu-
-		tion / DeconvNet}
-	Mit Guided Backpropagation bzw. DeconvNet (Decon-
-	volution) können wichtige Features der Eingabe sowie
-	einzelne Layer eines neuronalen Netzes visualisiert wer-
-	den. Bei beiden Methoden werden die Aktivierungswerte
-	der einzelnen Units durch das neuronale Netz zurück
-	auf den jeweiligen Input gemappt, um mit einer Saliency
-	Map die Inputwerte zu identifizieren, die für eine kon-
-	krete Klassifizierung ausschlaggebend sind. Es werden
-	die gleichen Komponenten wie bei einem Convolutional
-	Neural Network verwendet – z. B. pooling –, jedoch
-	„umgekehrt“. Der Prozess des Durchgehens des Netzes
-	von hinten nach vorn wird auch als Backpropagation be-
-	zeichnet. Die beiden Methoden Guided Backpropagation
-	und Deconvolution bzw. DeconvNet unterscheiden sich
-	nur in den konkreten Berechnungen der Backpropaga-
-	tion-Schritte.
-	\noindent \textbf{Activation Maximization}
-	Durch Activation Maximization sollen Erkenntnisse über
-	die von einem neuronalen Netz gelernten Strukturen zur
-	Erkennung verschiedener Klassen gewonnen werden.
-	Ziel dabei ist es, Inputdaten zu finden, die dazu führen,
-	dass die Entscheidung des neuronalen Netzes mit
-	größtmöglicher Konfidenz einer bestimmten Klasse ent-
-	spricht. Anschließend kann der so erzeugte „perfekte“
-	Input auf Plausibilität überprüft werden. Bezogen auf
-	das gesamte Netz, kann jede einzelne Unit betrachtet
-	und die Aktivierung dieser durch einen bestimmten
-	Input maximiert werden. So können einzelne Units und
-	Layer innerhalb des Netzes untersucht und damit Mo-
-	dellerklärungen bereitgestellt werden.
 	
 	\subsection{Globale Methoden}
 	
 	\section{Layer-wise Relevance Propagation} \label{chapter_lrp}
-	In diesem Abschnitt stellen wir die Layer-wise Relevance Propagation vor, die für einzelne Eingabebilder eine Relevanzkarte (oder: Heatmap) erstellt, die im Fall eines Bildes beispielsweise die Bereiche, die wichtiger für die resultierende Ausgabe des Netzwerkes war, farblich markiert. Wie bereits oben erwähnt gehört dieses Verfahren demnach zu den Lokalen Methoden.
-	
 	\subsection{Idee}
 	
 	Die \gls{lrp} wird in \cite{LRP_first_paper} erstmalig vorgestellt. Die Idee besteht darin, einen Zusammenhang zwischen der Ausgabe eines Klassifikators $f_{\theta}: \mathbb{R}^d\to \mathbb{R^{+}}$ und der Eingabe $x$ herzustellen. Dabei wird eine definiert, die über gewisse Eigenschaften eingeschränkt wird. Die Autoren bezeichnen die Herangehensweise hier selbst als heuristisch und liefern in \ref{dtd} eine Verallgemeinerung des Konzepts, die gleichzeitig die mathematische Grundlage bildet.\\
@@ -1166,7 +865,9 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 			%\caption{Zugehörige Heatmap bezüglich der Klasse 'Höchstgeschwindigkeit: 80km/h'}
 			
 		\end{subfigure}
-		\caption[(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap.]{(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap. Links: Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'. Rechts: Zugehörige Heatmap bezüglich der Klasse 'Höchstgeschwindigkeit: 80km/h'.}		
+		\caption[(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap.]{(Optischer) Vergleich von korrumpiertem Datenpunkt und berechnter Heatmap. Links: Verkehrsschild der Klasse 'Höchstgeschwindigkeit: 50km/h' versehen mit einem 3x3 Sticker und dem Label 'Höchstgeschwindigkeit: 80km/h'. Rechts: Zugehörige Heatmap bezüglich der Klasse 'Höchstgeschwindigkeit: 80km/h'.}
+		\source{\cite{AC}}
+		
 		\label{vergleich_original_lrp}
 	\end{figure}
 	\subsection{Implementierungen}
@@ -1248,44 +949,46 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 		\item Backward pass wird modifiziert, um Heatmaps zu erhalten.
 		\item VGG- und ResNet-Beispiel
 	\end{itemize}
-	\section{Heatmap-Clustering} 
-	In diesem Kapitel stellen wir eine neue Idee zur Detektion von Poisoning-Angriffen auf Neuronale Netzwerke vor. Dabei werden anders als beim Activation CLustering nicht die Aktivierungen der vorletzten Netzwerkschicht, sondern die durch die LRP erzeugten Heatmaps für das Clustering verwendet. Die Wahl von k für das kMeans-Clusterimng erfolgt über eine spektrale Relevanz-Analyse. Für das Clustering selbst vergleichen wir unterschiedliche Distanzbegriffe.
+	\section{Detektion von Poisoning-Angriffen basierend auf LRP} \label{chapter_algorithm}
 	
+	Super Einführung in Wasserstein und OT: \cite{altschuler2017near}\\
+	Computing distances between probability measures on metric spaces, or more
+	generally between point clouds, plays an increasingly preponderant role in ma-
+	chine learning [SL11, MJ15, LG15, JSCG16, ACB17], statistics [FCCR16, PZ16,
+	SR04, BGKL17] and computer vision [RTG00, BvdPPH11, SdGP+15]. A promi-
+	nent example of such distances is the earth mover’s distance introduced in [WPR85]
+	(see also [RTG00]), which is a special case of Wasserstein distance, or optimal
+	transport (OT) distance [Vil09].
+	While OT distances exhibit a unique ability to capture geometric features of
+	the objects at hand, they suffer from a heavy computational cost that had been
+	prohibitive in large scale applications until the recent introduction to the ma-
+	chine learning community of Sinkhorn Distances by Cuturi [Cut13]. Combined
+	with other numerical tricks, these recent advances have enabled the treatment
+	of large point clouds in computer graphics such as triangle meshes [SdGP+15]
+	and high-resolution neuroimaging data [GPC15]. Sinkhorn Distances rely on the
+	idea of entropic penalization, which has been implemented in similar problems
+	at least since Schrdinger [Sch31, Leo14]. This powerful idea has been success-
+	fully applied to a variety of contexts not only as a statistical tool for model
+	
+	
+	How Well Do WGANs Estimate the
+	Wasserstein Metric? \cite{mallasto2019well}
 	\subsection{Idee}
-	
 	Die Idee zur Detektion von Poisoning-Angriffen besteht aus den folgenden Schritten:
 	
 	\begin{itemize}
-		\item Berechnung der Heatmaps mithilfe der LRP
+		\item Berechnung der Heatmaps mit Hilfe der LRP
 		\item Berechnung einer Distanzmatrix basierend auf $L^2-$ oder GMW-Distanz
 		\item Spektrale Relevanzanalyse (Bestimmung der verschiedenen Cluster innerhalb einer Klasse)
-		\item kMeans-Clustering zur Bestimmung der korrumpierten Datenpunkte
 	\end{itemize}
-
-	Diese werden wir im Folgenden näher betrachten.
 	
-	\noindent\textbf{Berechnung der Heatmaps mithilfe der LRP}.	Für die LRP wählen wir innmodel = InnvestigateModel(model.net, lrpexponent=2,
-	method='e-rule', beta=0.5) und normalisieren die Heatmap anschließend.
-	
-	
+	\noindent  \textbf{Bemerkung:} Anstatt das Clustering nur auf den Heatmaps durchzuführen, könnten die LRP-Ausgaben und/oder Aktivierungen bestimmer NEtzwerkschichten hinzugenommen werden.\\
 	
 	The theory of optimal transport generalizes thatintuition in the case where, instead of moving only one item at a time, one is concernedwith the problem of moving simultaneously several items (or a continuous distributionthereof) from one configuration onto another.\cite{computationalOT}
 	\subsection{k-means / k-means++ -Clustering}
-	Das k-means-Clustering gehört zu den unüberwachten Clustering-Verfahren. In der ursprünglichen Formulierung sind $n$ Datenpunkte $x_1,...,x_n \in \mathbb{R}^d$ und $k \in \mathbb{Z}_{>0}$ gegeben. Die Datenpunkte sollen so auf, die einzelnen Cluster verteilt werden, dass die $L^2$-Distanzen innerhalb eines Clusters zum Cluster-Zentrum minimal sind. 
 	
-	
-	In Lloyd's Formulierung \cite{lloyd1982least} wird mit einer gleich-verteilten zufälligen Initialisierung von $k$ Cluster-Zentren begonnen. Jeder Punkt im Datensatz wird anschließend dem nächstgelegenen Cluster-Zentrum zugeordnet. Für jedes Cluster wird daraufhin ein neues Zentrum als Mittelwert berechnet.
-	Diese beiden Schritte aus Zuordnung und Mittelpunktberechnung werden so lange wiederholt, bis sich die CLuster-Zentren nicht mehr ändern oder eine maximale Iterationszahl erreicht ist. Dieses Vorgehen wird als $k$-Means bezeichnet.
-	
-	Eine Variation des k-Means-Algorithmus, der sowohl die Laufzeit als auch die Genauigkeit verbessert, ist der sogenannte $k-means++$-Algorithmus. Dabei wird die Initialisierungsphase in abgewandelter Form ausgeführt:
-	
-	Sei $k$ gegeben. Der erste Cluster-Mittelpunkt wird zufällig gleich-verteilt gewählt. Der nächste Mittelpunkt wird nun mit einer Wahrscheinlichkeit proportional zur quadratischen Distanz zwischen dem ersten Mittelpunkt und allen anderen Datenpunkten gewählt. Es wird so lange fortgefahren, bis alle $k$ ersten Mittelpunkte mit maximaler Distanz zu den vorherigen Mittelpunkten gewählt wurden.
-	
-	
-	Wichtig sind für die Durchführung des kMeans-Clusterings also die Bestimmung von $k$ sowie die Wahl einer "passenden" Metrik.
-
-
-
+	Beispiel-Implementierung\footnote{\url{https://towardsdatascience.com/k-means-implementation-in-python-and-spark-856e7eb5fe9b}}\\
+	\\
 	Baryzentrische Koordinaten \footnote{\url{https://de.wikipedia.org/wiki/Baryzentrische_Koordinaten}}
 	
 	\subsection{Spektrales Clustering}
@@ -1296,7 +999,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	
 	Alternative Repräsentation der Daten mithilfe eines Ähnlichkeitsgraphen $G=(V,E)$ möglich.
 	
-	Umformulierung des Clustering-Problems mithilfe des Ähnlichkeitsgraphen: Finde Partitionierung des Graphen, sodass die Kanten-Gewichte innerhalb einer Gruppe niedrig (niedriges Gesamtgewicht?) und außerhalb einer Gruppe große sind.\\
+	Umformulierung des Clustering-Problems mithilfe des Ähnlichkeitsgraphen: Finde Pertitionierung des Graphen, sodass die Kanten-Gewichte innerhalb einer Gruppe niedrig (niedriges Gesamtgewicht?) und außerhalb einer Gruppe große sind.\\
 	
 	
 	Graph-Notationen:\\
@@ -1343,7 +1046,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	\noindent \textbf{k-Means-Clustering:}\\
 	\begin{remark}
 		In \cite{imagenet_unhansed_v1} Kapitel '2.3. Fisher Discriminant Analysis for Clever Hans
-		identification' wird ein Verfahren vorgestellt, mit dem verdächtige Klassen identifiziert werden können. Für diese würde man anschließend das obige Verfahren durchführen
+		identification' wird ein Verfahren vorgestellt, mit dem verdächtige Klassen indentifiziert werden können. Für diese würde man anschließend das obige Verfahren durchführen
 	\end{remark}
 	\subsection{Verwendete Distanzen \& Approximationen}
 	Um die Struktur innerhalb einer Klasse zu analysieren, benötigen wir eine Metrik.
@@ -1352,30 +1055,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	Wir normalisieren die Relevanzen zusätzlich auf das Intervall $[0,1]$.\\
 	Die Wahl der Pixel mit 99 Prozent der Gesamtmasse und anschließende Normalisierung wird vermutlich durchgeführt, um die Bedingung \autoref{eq:bed_mmspaces} zu erhalten.
 	\section{Optimal Transport}
-	\label{chapter_algorithm}
 	
-	Super Einführung in Wasserstein und OT: \cite{altschuler2017near}\\
-	Computing distances between probability measures on metric spaces, or more
-	generally between point clouds, plays an increasingly preponderant role in ma-
-	chine learning [SL11, MJ15, LG15, JSCG16, ACB17], statistics [FCCR16, PZ16,
-	SR04, BGKL17] and computer vision [RTG00, BvdPPH11, SdGP+15]. A promi-
-	nent example of such distances is the earth mover’s distance introduced in [WPR85]
-	(see also [RTG00]), which is a special case of Wasserstein distance, or optimal
-	transport (OT) distance [Vil09].
-	While OT distances exhibit a unique ability to capture geometric features of
-	the objects at hand, they suffer from a heavy computational cost that had been
-	prohibitive in large scale applications until the recent introduction to the ma-
-	chine learning community of Sinkhorn Distances by Cuturi [Cut13]. Combined
-	with other numerical tricks, these recent advances have enabled the treatment
-	of large point clouds in computer graphics such as triangle meshes [SdGP+15]
-	and high-resolution neuroimaging data [GPC15]. Sinkhorn Distances rely on the
-	idea of entropic penalization, which has been implemented in similar problems
-	at least since Schrdinger [Sch31, Leo14]. This powerful idea has been success-
-	fully applied to a variety of contexts not only as a statistical tool for model
-	
-	
-	How Well Do WGANs Estimate the
-	Wasserstein Metric? \cite{mallasto2019well}
 	Optimal Transport is an interesting topic which connects many fields and has
 	interesting applications
 	Applications in image analysis
@@ -1425,7 +1105,11 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 	Durch die Verwendung von WGANs ansatts GANs wurde ein stabilerer Trainingsprozess erreicht, da diese weniger anfällig für abrupte Trainingsabbrüche sind. Die ursprünglichen GANs benutzten eine Jensen-Shannon-Divergenz als Verlustfunktion, die nicht überall stetig und fast überall differenzierbar ist. Auch andere Verlustfunktion wie besipielsweise die KL-Divergenz weisen ähnliche Schwierigkeiten auf. Durch die Verwendung der Wasserstein-Verlustfunktion, basierend auf der 1-Wasserstein-Distanz, die überall stetig und fast überall differenzierbar ist, konnte der Trainingsprozess der GANs somit deutlich verbessert werden \cite{mauryaoptimal}.
 	
 	
-
+	
+	\begin{definition}
+		
+	\end{definition}
+	
 	\begin{definition}[Histogramm]
 		Als Histogramm (oder: Wahrscheinlichkeitsvektor) bezeichnen wir ein Element $\boldsymbol{a} \in \Sigma_n$, das zum folgenden Wahrscheinlichkeits-Simplex gehört:
 		
@@ -1436,7 +1120,7 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 
 
 \begin{definition}[\cite{gromov2007metric}]
-	Ein \emph{metrischer Maßraum} ist ein Tripel $(X,d_X,\mu_X)$ mit
+	Ein metrischer Maßraum ist ein Tripel $(X, d_X, \mu_X)$ mit
 	\begin{itemize}
 		\item $(X, d_X)$ ist ein kompakter metrischer Raum
 		\item $\mu_X$ ist ein Borel-Maß auf $X$ mit vollem Support, d.h. 
@@ -1444,50 +1128,17 @@ In den folgenden beiden Abschnitten stellen wir einige der bekanntesten Methoden
 			supp[\mu_X] = X.\label{eq:bed_mmspaces}
 		\end{equation} 
 	\end{itemize}
-\end{definition}
-\begin{definition}[Isometrie]
-	Seien zwei metrische Räume $(X, d_X)$ und $(Y,d_Y)$ gegeben. Wir nennen die Abbildung $\phi:X \to Y$ Isometrie, falls $\phi$ surjektiv ist und $d_X(x,x')= d_Y(\phi(x),\phi(x'))$ f.a. $x, x' \in X$ gilt. Für den Fall, dass eine solche Abbildung $\phi$ existiert, nennen wir $X$ und $Y$ isometrisch.
-\end{definition}
 
-\begin{definition}[Isomorphie]
-	Zwei MMR $(X,d_X,\mu_X)$ und $(Y,d_Y,\mu_Y)$ heißen isomorph, falls eine Maß-erhaltende Abbildung $f:X \to Y$ existiert, die $f_\#\mu_X = \mu_Y$ erfüllt.
-\end{definition}
-
-Mit $\mathcal{G}_\mathcal{W}$ bezeichnen wir die Menge aller metrischen Maßräume.
-
-\begin{example}
-	Wir betrachten die beiden metrischen Maßräume $(\lbrace a,b \rbrace, (\begin{pmatrix}
-	0 & 1\\
-	1 & 0 \\
-	\end{pmatrix}), \lbrace \frac{1}{2},\frac{1}{2})$ und 
-		$(\lbrace a',b' \rbrace, (
-	\begin{pmatrix}
-		0 & 1\\
-		1 & 0 \\
-	\end{pmatrix}, \lbrace \frac{1}{4},\frac{3}{4})$
-	Dann sind diese Räume isometrisch, jedoch nicht isomorph, vergleich dazu \autoref{im:example_mmspaces}
-\end{example}
-
-\begin{figure}[ht]
-	\centering
-	\includegraphics[width=0.3\textheight]{example_mmspaces.png}
-	\caption[Beispiel isometrischer metrischer Maßräume]{Die beiden metrischen Maßräume sind ismetrisch, aber nicht isomorph.}
-	\source{\cite{COTcuturi}}
-	\label{im:example_mmspaces}
-\end{figure}
-
-\begin{definition}[pushforward-Maß/Bildmaß]
+\begin{definition}[pushforward-Maß]
 	Seien $X,Y$ zwei Maßräume, $T: X \to Y$ eine messbare Abbildung und $\mu$ ein Maß auf X. Dann ist das pushforwad-Maß $T^\# \mu $ ein Maß auf Y, definiert durch \begin{equation}
 	T^\# \mu (A) = \mu (T^{-1}(A))
 	\end{equation}
 	für alle $A \subset Y$.
 \end{definition}
-\begin{definition}[Kopplung]
-	Ein Wahrscheinlichkeitsmaß $\mu$ auf $X \times Y$ heißt Kopplung zwischen $\mu_x$ und $\mu_Y$, falls $(\mu_1)_\#\mu = \mu_X$ und $(\mu_2)_\#\mu = \mu_Y$ gilt. Wir benzeichnen mit $\Pi(\mu_X,\mu_Y)$ die Menge aller Kopplungen ziwschen $\mu_X$ und $\mu_Y$.
+	
 \end{definition}
 	
-	
-Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henze/media/wt-ss15-henze-handout.pdf}}
+	Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henze/media/wt-ss15-henze-handout.pdf}}
 	\begin{definition}[Kopplungen zwischen Histogrammen]
 		Seien die beiden Histogramme $p \in \Sigma_{N_1}$ und $q \in \Sigma_{N_2}$ gegeben.
 		Als Menge der Kopplungen zwischen beiden Histogrammen definieren wir
@@ -1530,7 +1181,9 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 		
 	\end{definition}
 	
-	
+	%\begin{figure}
+	%	\includegraphics{Hausdorff_distance_sample}
+	%\end{figure}
 	\begin{definition}[Metrischer Maßraum]
 		Ein \emph{metrischer Maßraum} ist ein Tripel $(X,d_x,\mu_X)$, wobei $(X,d_X)$ ein metrischer Raum und $\mu_X$ ein borelsches W-Maß auf $X$ ist.
 	\end{definition}
@@ -1551,7 +1204,12 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 	
 	$\Gamma_{X,Y}(x,y,x',y'):= |d_X(x,x') - d_Y(y,y')|$.
 	
-	
+	\begin{definition}[Gromov-Hausdorff-Distanz]
+		Für die metrischen Räume $(X,d_X)$ und $(Y,d_Y)$ ist die \emph{Gromov-Hausdorff-Distanz} definiert als
+		\begin{equation}
+		d_{\mathcal{G}\mathcal{H}} = \frac{1}{2}\inf_{R}||\Gamma_{X,Y}||_{L^\infty(R \times R)}.
+		\end{equation}
+	\end{definition}
 	\begin{definition}[Entropischer Optimaler Transport]
 		Wir definieren den $n$-dimensionalen Zufalls-Simplex als $\Sigma_n := \lbrace a \in \mathbb{R}_+^n: \sum_{i=1}^{n}{a_1} = 1$. Ein Element $a \in \Sigma_n$ bezeichnen wir als Histogramm oder Zufallsvektor.
 		
@@ -1571,64 +1229,29 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 		\end{equation}
 	\end{remark}
 	\begin{remark}[Fehlende Eindeutigkeit]
-	
-	
+		
 	\end{remark}
 	
-	Dieses Problem wurde zuerst von Gaspard Monge im Jahr 1781 formuliert. In dieser Formulierung wurde Abbildung gesucht, die jedem Punkt in der Ausgangsverteilung einen Punkt in der Zielverteiliung zuordnet. Dabei wird die gesamte Masse eines Punktes in der Startverteilung an einen Punkt in der Zielverteilung verschoben. Eine solche Abbildung ist in \autoref{im:monge_mapping} dargestellt.
-
-	
-	\begin{figure}[ht]
-		\centering
-		\includegraphics[width=0.3\textheight]{monge_mapping.png}
-		\caption[Monge-Abbildung]{\textbf{Links:} Fehlende Eindutigkeit in der Zuordnung. Die beiden Punkte $x_1$ und $x_2$ können sowohl den Punkten $y_1$ bzw. $y_2$ zugeordnet werden, um eine zulässige Abbildung zu erhalten. \textbf{Rechts:} Die Monge-Abbildung assoziiert das blaue Maße $\boldsymbol{\alpha}$ mit dem roten Maß $\boldsymbol{\beta}$. Dabei ist die Masse in den jeweiligen Punkten über den Flächeninhalt der Kreise dargestellt.}
-		\source{\cite{COTcuturi}}
-		\label{im:monge_mapping}
-	\end{figure}
-
-	Für die exakte Forumlierung im diskreten Fall benötigen wir die folgende Definiton.
-	
-	\begin{definition}[Bildmaß]
-		Für zwei Maßräume $(X,\Sigma_X)$ und $(Y,\Sigma_Y)$ und eine messbare Abbildung $f:X\to Y$ ist das Bildmaß $f_\#\mu$ auf $(Y,\Sigma_Y)$ definiert als $f_\#\mu = \mu (f^{-1(B)})$ für alle $B \in \Sigma_Y$.
+	\begin{definition}[Push-forward Operator]
+		$\beta (B) = \alpha (\lbrace x \in \mathcal{X}: T(x) \in B \rbrace) = \alpha(T^{-1}(B))$ \label{eq_pushforward}
+		
 	\end{definition}
-
-	Für den Fall zweier diskreter Maße
+	Wir könne das Monge Problem wie folgt auf den Fall zweier beliebiger W-Maße $(\alpha, \beta )$ erweitern.
 	
-	\begin{equation}
-		\alpha = \sum_{i=1}^n{\boldsymbol{a}_i\delta_{x_i}} \text{ und } \beta \sum_{j=1}^m{\boldsymbol{b}_j\delta_{y_j}}
-	\end{equation}
-	können wir das Monge-Problem dann wie folgt formulieren:
-	
-	Gesucht ist eine Abbildung $T:\lbrace x_1, ..., x_n \rbrace \to \lbrace y_1,...,y_m \rbrace$, die die Bedingung 
-	\begin{equation}
-		\forall j \in \lbrace 1,...,m \rbrace \boldsymbol{b}_j= \sum_{i:T(x_i)=y_i}{\boldsymbol{a}_i}
-	\end{equation}
-	erfüllt, die wir in Kurzform als $T_\#\alpha = \beta$ schreiben. Aufgrund der Positivität von $\boldsymbol{b}$ ist die Abbildung notwendigerweise surjektiv.
-	Als weitere Forderung gilt, dass die Abbildung $T$ minimal bezüglich einer Transportkostenfuktion $c(x,y)$ für $x,y \in \mathbb{R} \times \mathbb{R}$ sein soll:
-	\begin{equation}
-		\min_T{\sum_i{c(x_i, t(x_i)) : T_\#\alpha =  \beta}}.
-	\end{equation} 
-	
-	Neben der fehlenden Eindeutigkeit einer solchen Abbildung ist auch die Existenz nicht immer gegeben.
-			
+	\begin{definition}[Monge Problem zwischen beliebigen Maßen]
+		Seien $\alpha$ und $ \beta$ zwei W-Maße mit Support auf den Räumen $\mathcal{X}$ bzw. $\mathcal{Y}$, die durch $T:\mathcal{X} \to 	\mathcal{Y}$ verknüpft(? Fomulierung) sind.
+		Dann ist das Monge Problem gegeben durch
+		\begin{equation}
+		\min_T \lbrace \int_\mathcal{X}{c(x,T(x)) d\alpha (x)} : T_\#\alpha = \beta \rbrace.
+		\end{equation}
+	\end{definition}
+	Die Bedingung $T_\#\alpha = \beta$ bedeutet, dass die Abbildung $T$ die gesamte Masse mithilfe des Push-forward Operators von $\alpha$ auf $\beta$ schiebt.
 	\subsubsection{Optimaler Transport nach Kantorovich}
 	\cite{santambrogio2010introduction} ist eine gute, einfache Einführung. Damit kann ich vermutlich Monge und Kantorovich beschreiben.
 	
 	Das Optimal Transport Problem nach Kantorovich gehört zu den typischen Optimal Transport Problemen. Es stellt einer Relaxierung der Formulierung von Gaspard Monge[1781], bei der nun auch das Aufteilen von Masse (mass splitting) zulässig ist.
 	In Kantorovichs Formulierung ist eine Kopplung (oder: Transportabblidung) $\boldsymbol{T}$ gesucht, die die Kosten, die bei der Verschiebung eines diskreten Maßes $\boldsymbol{a}$ auf ein anderes diskretes Maß $\boldsymbol{b}$ bezüglich der Kosten $\boldsymbol{M} \in \mathbb{R}^{n_1 \times n_2}$ entstehen, minimiert.
 	Damit $\boldsymbol{T}$ eine Transportabbildung ist, muss $\boldsymbol{T} \in \Gamma(a,b) = \lbrace \boldsymbol{T} \geq \boldsymbol{0}, \boldsymbol{T}\boldsymbol{1}_{n_2} = a, \boldsymbol{T}^{T}\boldsymbol{1}_{n_1} = \boldsymbol{b} \rbrace$ gelten.
-	
-	Ein solcher Transportplan ist für drei verschiedene Ausgangssituationen in \autoref{im:coupling_cont_disc} dargestellt.
-	
-	\begin{figure}[ht]
-		\centering
-		\includegraphics[width=0.4\textheight]{coupling_disc_semid_cont.png}
-		\caption[Transportpläne im diskreten, semi-diskreten und kontinuierlichen Fall]{\textbf{Links: }Kopplung ziwschen zwei diskreten Wahrscheinlichkeitsverteilungen. \textbf{ Mitte: }Kopplung zwischen einer konitnuierlichen W-Verteilung $\boldsymbol{\alpha}$ und einer diskreten W-Verteilung $\boldsymbol{\beta}$. \textbf{Rechts: }Kopplung im kontnuierlichen Fall.}
-		\source{\cite{COTcuturi}}
-		\label{im:couplings}
-	\end{figure}
-	
-	
 	
 	Für den Fall, dass die Grundkosten eine Metrik darstellen, ist auch die optimale Lösung des Optimal Transport Problems wieder eine Metrik \cite{cuturi2014ground} und definiert die \textit{Wasserstein Distanz}. Das OT Problem ist definiert als
 	\begin{equation}
@@ -1652,8 +1275,11 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 	L_C(\boldsymbol{a}, \boldsymbol{b}) := \min_{P \in \Pi(\boldsymbol{a}, \boldsymbol{b})} \langle \boldsymbol{C}, \boldsymbol{P} \rangle := \sum_{i,j}{\boldsymbol{C}_{i,j}\boldsymbol{P}_{i,j}} \label{KOTP}
 	\end{equation}
 	
-	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig. Kantorovich gilt als Erfinder der linearen Optimierung\footnote{OTNotes\_campride.pdf}.
-	\begin{comment}
+	Diese Problem ist ein lineares Problem. Für diese Art von Problemen ist die optimale Lösung nicht notwendigerweise eindeutig. In fact Kantorovich is considered as the inventor of linear pro-
+	gramming. \footnote{OTNotes\_campride.pdf}
+	
+	EXISTENZ \& Eindeutigkeit => vgl. Kapitel 3 in \cite{computationalOT}
+	
 	
 	
 	\begin{definition}[Formulierung für beliebige Maße]
@@ -1662,15 +1288,14 @@ Einführung W-Theorie am KIT \footnote{\url{https://www.math.kit.edu/stoch/~henz
 		\begin{equation}
 		\Pi(\alpha, \beta) := \lbrace \pi \in \mathcal{M}_+^1(\mathcal{X} \times \mathcal{Y}): P_{\mathcal{X}_\#} \pi = \alpha \text{ und } P_{\mathcal{Y}_\#} \pi = \beta \rbrace,
 		\end{equation}
-		wobei $P_{\mathcal{X}_\#}$ und $P_{\mathcal{Y}_\#}$ die Bildmaße der Projektionen $P_\mathcal{X}(x,y) = x$ und $P_\mathcal{Y}(x,y) = y$ sind. Nach \autoref{eq_pushforward} sind diese Randbedingungen äquivalent zu den Bedingungen $\pi(A \times \mathcal{Y}) = \alpha (A)$ und $\pi (\mathcal{X} \times B) = \beta (B)$ für die Mengen $A \subset \mathcal{X}$ und $B \subset \mathcal{Y}$.
+		wobei $P_{\mathcal{X}_\#}$ und $P_{\mathcal{Y}_\#}$ die Push-forward Operatoren der Projektionen $P_\mathcal{X}(x,y) = x$ und $P_\mathcal{Y}(x,y) = y$ sind. Nach \autoref{eq_pushforward} sind diese Randbedingungen äquivalent zu den Bedingungen $\pi(A \times \mathcal{Y}) = \alpha (A)$ und $\pi (\mathcal{X} \times B) = \beta (B)$ für die Mengen $A \subset \mathcal{X}$ und $B \subset \mathcal{Y}$.
 		Als Verallgemeinerung erhalten wir dann
 		\begin{equation}
 		\min_{\pi \in \Pi (\alpha, \beta)}\int_{\mathcal{X} \times \mathcal{Y}}{c(x,y) d\pi (x,y)}. \label{eq:kontorovich_allgemein}
 		\end{equation}
 	\end{definition}
 	
-	
-Problem \autoref{eq_kontorovich_allgemein} ist ein unendlich-dimensionales lineares ProgramO über einem Raum von Maßen. Falls $(\mathcal{X}, \mathcal{Y})$ kompakt und $c$ stetig ist, existiert immer eine Lösung.
+	Problem \autoref{eq_kontorovich_allgemein} ist ein unendlich-dimensionales lineares Programm über einem Raum von Maßen. Falls $(\mathcal{X}, \mathcal{Y})$ kompakt und $c$ stetig ist, existiert immer eine Lösung.
 	
 	\begin{example}
 		Beispiele von Kopplungen
@@ -1739,9 +1364,18 @@ Problem \autoref{eq_kontorovich_allgemein} ist ein unendlich-dimensionales linea
 	\subsubsection{Komplexitätsanalyse}
 	Im Fall $n=m$ ist das Kantorovich-Problem und damit die Berechnung der Wasserstein-Distanz ein lineares Optimierungsproblem mit $\mathcal{O}(n)$ linearen Bedingungen. Für die Lösung kann beispielsweise der lineare Lee-Sinford-algorithmus zur Berechnung einer Lösung in $\tilde{\mathcal{O}}(n^{2.5})$ \cite{lee2014path} verwendet werden, der den vorherigen Standard von $\mathcal{O}(n^{2.5})$ \cite{renegar1988polynomial} verbessert.
 	\subsubsection{Wasserstein-Baryzentren}
-	\cite{bary_wasserstein_space}
-	\url{https://optimaltransport.github.io/slides-peyre/CourseOT.pdf}
-		Fast Computation of Wasserstein Barycenters\footnote{\url{https://arxiv.org/pdf/1310.4375.pdf}}
+	
+	\subsubsection{Andere Regularisierungen}
+	Tradeoff zwischen numerischem Aufwand und statistischer Genauigkeit.
+	
+	Mehrere Möglichkeiten einer Regularisierung der GW-Distanz\footnote{\url{https://www.youtube.com/watch?v=cPVMHWF8fmE&t=2532s}}:
+	\begin{itemize}
+		\item Entropic regularization [Cuturi, 2013]\\
+		\item Group Lasso [Courty et al., 2016a]\\
+		\item KL, Itakura Saito, $\beta$-divergences,
+		[Dessein et al., 2016]
+	\end{itemize} 
+	
 	
 	\subsection{Entropisch regularisierte Wasserstein-Distanz}
 	In diesem Abschnitt betrachten wir regularisierte Version der Wasserstein-Distanz mithilfe von Entropie. 
@@ -1824,8 +1458,7 @@ Problem \autoref{eq_kontorovich_allgemein} ist ein unendlich-dimensionales linea
 		(as we study in Abschnitt 4.2) and leading to faster statistical convergence (as shown in Abschnitt 8.5)
 	\end{remark}
 	
-	
-Wir definieren die Kullback-Leibler-Divergenz zwischen Kopplungen als
+	Wir definieren die Kullback-Leibler-Divergenz zwischen Kopplungen als
 	
 	\begin{equation}
 	\boldsymbol{KL}(\boldsymbol{P}|\boldsymbol{K}) := \sum_{i,j} \boldsymbol{P}_{i,j} \log \left(\frac{\boldsymbol{P}_{i,j}}{\boldsymbol{K}_{i,j}} \right) - \boldsymbol{P}_{i,j} + \boldsymbol{K}_{i,j}. \label{eq:KL_div_discrete}
@@ -1840,9 +1473,6 @@ Wir definieren die Kullback-Leibler-Divergenz zwischen Kopplungen als
 	
 	\subsubsection{Algorithmus von Sinkhorn und Variationen}
 	In diesem Kapitel sehen wir, dass die Lösung des regularisierten Problems eine besondere Form besitzt, die wir über $m+n$ Variablen parametrisieren können.
-	
-	Matrix Scaling + einige Theoreme und Bemerkungen zu Kullback-Leibler und mehr Info \cite{vialard2019elementary}
-	
 	\begin{comment}
 	
 	\begin{remark}[Formulierung für allgemeine Maße]
@@ -1915,11 +1545,11 @@ Für $\varepsilon  \to 0$ konvergiert die eindeutige Lösung von \autoref{eq:sch
 		\end{equation}  
 		wobei $\odot$ für die Element-weise Multiplikation zweier Vektoren steht. Dieses Problem ist als \textit{Matrix Scaling Problem} \cite{matrix_scaling} bekannt.\\
 		(? Sollte ich hier Bedingungen für die Lösbarkeit angeben?) \\
-		Eine Möglichkeit zur Lösung dieses Problems ist ein iteratives Vorgehen(?Verfahren), bei dem zunächst $\boldsymbol{u}$ so modifiziert wird, dass die linke Seite in \autoref{eq:sinkhorn_equations} erfüllt ist, und anschließend die Modifikation von $\boldsymbol{v}$ vorgenommen wird, sodass die rechte Seite in \autoref{eq:sinkhorn_equations} gilt. Mit diesen beiden Modifikationen erhalten wir den Algorithmus von Sinkhorn, der aus den beiden folgenden Updates besteht:
+		Eine Möglichkeit zur Lösung dieses Problems ist ein iteratives Vorgehen(?Verfahren), bei dem zunächst $\boldsymbol{u}$ so modifiziert wird, dass die linke Seite in \autoref{eq:sinkhorn_equations} erfüllt ist, und anschließend die Modifikation von $\boldsymbol{v}$ vorgenommen wird, sodass die rechte Seite in \autoref{eq:sinkhorn_equations} gilt. Mit diesen beiden Modifikationen erhalten wir den Algorithmus von Siknhorn, der aus den beiden folgenden Updates besteht:
 		
 		\begin{equation}
-		\boldsymbol{u}^{(l+1)}:= \frac{\boldsymbol{a}}{\boldsymbol{K}\boldsymbol{v}^{(l)}} \text{ und }
-		\boldsymbol{v}^{(l+1)}:= \frac{\boldsymbol{b}}{\boldsymbol{K}^\top \boldsymbol{u}^{(l+1)}},
+		\boldsymbol{u}^{l+1}:= \frac{\boldsymbol{a}}{\boldsymbol{K}\boldsymbol{v}^{(l)}} \text{ und }
+		\boldsymbol{v}^{l+1}:= \frac{\boldsymbol{b}}{\boldsymbol{K}^\top \boldsymbol{u}^{(l+1)}},
 		\end{equation} 
 		wobei zu Beginn mit einem beliebigen positiven Vektor, beispielsweise $\boldsymbol{v}^{(0)} = \boldsymbol{1}_m$ initialisiert wird und $l$ den aktuellen Iterationsschritt bezeichnet. Die obigen Division muss ebenfalls elementweise verstanden werden.
 	\end{remark}
@@ -1928,9 +1558,6 @@ Für $\varepsilon  \to 0$ konvergiert die eindeutige Lösung von \autoref{eq:sch
 		(IPFP) Deming and Stephan [1940] and RAS [Bacharach, 1965] methods [Idel, 2016].
 		The proof of their convergence is attributed to Sinkhorn \cite{sinkhorn1964relationship}, hence the name of the
 		algorithm.
-		
-		
-		
 	\begin{remark}
 	Die Lösung zum regularisierten Problem lässt sich nach den Sinkhorn-Iterationen wie folgt angeben: $P_L = diag(U_L)K diag(v_L)$ Das ist  der optimal Transport plan für das Regularisierte Problem.Optimal Transport Caost lässt sich berechnen als:
 $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}	
@@ -2044,13 +1671,19 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 			\item Abbruchkriterien (vgl. mit der POT Implementierung)
 		\end{itemize}
 	\end{remark}
-
+	\begin{remark}[Allgemeine Formulierung des entropisch regularisierten Problems für beliebige Maße]
+		\leavevmode 
+		\begin{itemize}
+			\item Benutze Relative Entropie als Verallgemeinerung der diskreten Kullback-Leibler-Divergenz
+			\item Referenzmaß ist unbedeutend, lediglichd er Support hat eine Bedeutung.
+		\end{itemize}
+	\end{remark}
 	\subsubsection{Komplexitätsanalyse}
 	\cite{altschuler2017near} liefert eine Komplexitätsanalyse für die Sinkhorn-Iterationen. Im Fall $n=m$ sind für die Wahl $\varepsilon = \frac{4 \log (n)}{\tau}$ $\mathcal{O}(||C||_\infty^3 \log (n)\tau ^{-3})$ Sinkhorn-Iterationen (inklusive eines Rundungsschrittes) notwendig, um eine zulässige Kopplung $\hat{\boldsymbol{P}} \in \Pi(\boldsymbol{a}, \boldsymbol{b})$ zu berechnen, die die Abschätzung $\langle \hat{\boldsymbol{P}}, \boldsymbol{C} \rangle \leq L_{\boldsymbol{C}}(\boldsymbol{a}, \boldsymbol{b} +  \tau)$ zu berechnen. Somit liefert das Sinkhorn-Verfahren eine $\tau$-Approximation des nicht regularisierten Optimal Transport-Problems in $\mathcal{O}(n^2 \log (n)\tau ^{-3})$ Operationen.
 	Gleichzeitig wir dort eine greedy Variante der Sinkhorn-Iterationen namens Greenkhorn präsentiert, die eine $\tau$-Approximation in $\mathcal{O}(n^2\tau^{-3})$ Operationen liefert.
 	\cite{dvurechensky2018computational} verbessert diese auf $\mathcal{O}(n^2\tau^{-2})$ Operationen.
 	\subsection{Gromov-Wasserstein-Divergenz}
-	Bisher hatten wir stets Wasserstein-Distanzen auf demselben metrischen Raum betrachtet, d.h wir hatten die Verteilungen  $\mu_X$ und $\nu_X$  beiden metrischen Maßräume $(X,d_X,\mu_X)$ und $(X,d_X,\nu_X)$ verglichen. In diesem Kapitel wollen wir nun einen Distanzbegriff für Verteilungen auf unterschiedlichen metrischen Maßräumen herleiten. Wir folgen dafür \cite{memoli2011gromov}, \cite{}
+	Im vorherigen 
 	\subsubsection{Gromov-Wasserstein-Divergenz}
 	Fast Computation of Wasserstein Barycenters\footnote{https://arxiv.org/pdf/1310.4375.pdf}
 	\begin{definition}[Divergenz]
@@ -2064,7 +1697,7 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	\begin{definition}[Tensor-Matrix-Multiplikation]
 		Für einen Tensor $\mathcal{L} = (\mathcal{L}_{i,j,k,l})_{i,j,k,l}$ und eine Matrix $(T_{i,j})_{i,j}$ definieren wir die Tensor-Matrix-Multiplikation als
 		\begin{equation}
-		\mathcal{L} \otimes T := \left(\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}}\right)_{i,j}. \label{eq:tensor_matrix_mul}
+		\mathcal{L} \otimes T := (\sum_{k,l}{\mathcal{L}_{i,j,k,l}T_{k,l}})_{i,j}. \label{eq:tensor_matrix_mul}
 		\end{equation}
 	\end{definition}
 	
@@ -2081,7 +1714,16 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 	Der Vergleich zwischen Ähnlichkeits- bzw. Distanzmatrizen ist schwierig, da diese die innere Struktur eines Datensatzes beschreiben, die unabhängig von Rotationen und Translationen ist. Es existiert keine kanonische Ordnung der Reihen und Spalten.
 	Verallgemeinerung auf beliebige  Matrizen C, d.h. diese Distanzmatrizen müssen nicht notwendigerweise positiv sein und die Dreiecksungleichung erfüllen.
 	
-
+	Definiere die verallgemeinerte Gromov-Wasserstein-Distanz (vGWD) wie folgt:
+	
+	\begin{definition}[Verallgemeinerte Gromov-Wasserstein-Distanz]
+		Seien zwei gewichtete Ähnlichkeitsmatrizen $(C,p) \in \mathbb{R}^{N_1 \times N_1} \times \Sigma_{N_1}$ und $(\bar{C},q) \in \mathbb{R}^{N_2 \times N_2} \times \Sigma_{N_2}$ gegeben. Sei $T$ eine Kopplung zwischen den beiden Räumen, auf denen die Matrizen $C$ und $\bar{C}$ definiert sind. Sei $L$ eine Fehlerfunktion. Dann definieren wir die verallgemeinerte Gromov-Wasserstein-Distanz als
+		\begin{equation} \label{GWD_definition}
+		GW(C, \bar{C}, p, q) := \min_{T \in \mathcal{C}_{p, q}}{\mathcal{\varepsilon}_{C,\bar{C}}(T)},
+		\end{equation}
+		wobei gilt $\mathcal{\varepsilon}_{C,\bar{C}}(T) := \sum_{i,j,k,l}{L(C_{i,k}, \bar{C}_{j,l})T_{i,j}T_{k,l}}.$
+		
+	\end{definition}
 	
 	\noindent Häufig verwendete Fehlerfunktionen sind die quadratische Fehlerfunktion $L(a,b) = L_2(a,b) := \frac{1}{2}|a-b|^2$ und die Kullback-Leibler-Divergenz $L(a,b)  = KL(a|b) := a\log(a/b) -a+b$.
 	
@@ -2136,12 +1778,14 @@ $\langle P_L, M_{XY}\rangle = u_L ^\top ( K \odot M_{XY})v_L$.	\end{remark}
 		Für $L=KL$ sind die Funktionen $f_1(a) = a \log (a) -a, f_2(b) = b, h_1(a) =a $ und $h_2(b) = \log (b)$ notwendig.
 	\end{remark}
 	
+	Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
 	
-Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
-	
-	%Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz \ref{GWD_definition} und definieren:
-	
-
+	\begin{definition}
+		Für $C, \bar{C}, p, q$, wie oben, definieren wir die entropisch regularisierte Gromov-Wasserstein-Diskrepanz als 
+		\begin{equation}
+		GW_{\varepsilon}(C,\bar{C}, p, q):=\min_{T \in \mathcal{C}_{p, q}} \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T).
+		\end{equation}
+	\end{definition}
 	
 	Wir erhalten damit ein nicht-konvexes Optimierungsproblem. Für dessen Lösung benutzen wir ein projiziertes Gradienten-Verfahren, bei dem sowohl die Schrittweite als auch die Projektion bezüglich der KL-Metrik berechnet werden.
 	
@@ -2170,7 +1814,7 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 		(? Wo steht das genau in dem Paper?)
 		Es gilt außerdem
 		\begin{equation}
-		\nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T) = \mathcal{L}(C,\bar{C}) \otimes T + \varepsilon\log (T).
+		\nabla \boldsymbol{\varepsilon}_{C, \bar{C}}(T) -\varepsilon H(T) = blub
 		\end{equation}
 		Durch Umordnen der Terme in \autoref{iteration_projection} erhalten wir für $\tau \varepsilon = 1$ die angegebene Vorschrift.
 	\end{proof}
@@ -2187,7 +1831,7 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	
 	
 	\begin{remark}
-		Für gewöhnlich wählt man die Schrittweite $ \tau$ im Gradientenverfahren nicht zu groß, um Konvergenz des Verfahrens zu erhalten. Da die Schrittweite $\tau$ hier jedoch antiproportional zum Regularisierungs-Parameter $\varepsilon$ ist, gibt es einen Trade-off zwischen Konvergenz des Verfahrens und einer Unschärfe in der optimalen Lösung. 
+		content...
 	\end{remark}
 	
 	\begin{remark}[Wahl von $\varepsilon$]
@@ -2291,31 +1935,20 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	C \leftarrow \left(\frac{1}{pp^\top}\sum_s{\lambda_s T_s^\top log(C_s)T_s}\right).
 	\end{equation}
 	\begin{algorithm}
-		\hspace*{\algorithmicindent} \textbf{Input: } $(C_s,p_s), p.$ 
+		\hspace*{\algorithmicindent} \textbf{Input: } $(C_s,p_s), p.$ Initialisiere $C$. 
 		
 		\hspace*{\algorithmicindent} \textbf{Output: } $C$. 
-		\caption{Berechnung der $GW_\varepsilon$ -Baryzentren}
+		\caption{Berechnung der $GW\_{\varepsilon}$ Baryzentren}
 		\label{alg:GWB_computation}
 		\begin{algorithmic}
-		\STATE{Initialize $C$.} 
-		\REPEAT 
-			\STATE// minimize over $(T_s)_s$
-			\FOR{$s=1$ \textbf{to }S}
-				\STATE Initialize $T_s$.
-				\REPEAT
-				\STATE // Compute $c_s = \mathcal{L}(C,C_s)\otimes T_s$ using \autoref*{eq:berechnung_tensorprodukt}
-				\STATE $c_s \leftarrow f_1(C) + f_2(C_s)^\top -h_1(C)T_sh_2(C_s)^\top$
-				\STATE // Sinkhorn iterations to compute $\mathcal{T}(c_s,p,q)$
-				\STATE Initialize $a \leftarrow \boldsymbol{1}$, set $K \leftarrow e^{-c_s/\varepsilon}.$
-				\REPEAT 
-				\STATE $a \leftarrow \frac{p}{Kb}, b \leftarrow  \frac{q}{K^\top a}.$
-				\UNTIL{convergence}
-		 		\STATE $T_s \leftarrow diag(a)Kdiag(b).$
-				\UNTIL{convergence}
-			\ENDFOR 
-			\STATE // Minimize over C 
-			\STATE $C \leftarrow \left( \frac{f_1'}{h_1'} \right)^{-1}\left( \frac{\sum_s{\lambda_sT_s^\top h_2(C_s)T_s}}{pp^\top} \right)$ 
-			\UNTIL{convergence}
+			
+			\IF{some condition is true}
+			\STATE do some processing
+			\ELSIF{some other condition is true}
+			\STATE do some different processing
+			\ELSE
+			\STATE do the default actions
+			\ENDIF
 		\end{algorithmic}
 	\end{algorithm}
 	
@@ -2333,13 +1966,26 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	
 	
 	\subsubsection{Implementierung}
-	
+	\begin{algorithm}
+		\caption{Algorithm caption}
+		\label{alg:algorithm-label}
+		\begin{algorithmic}
+			\IF{some condition is true}
+			\STATE do some processing
+			\ELSIF{some other condition is true}
+			\STATE do some different processing
+			\ELSE
+			\STATE do the default actions
+			\ENDIF
+		\end{algorithmic}	
+	\end{algorithm}
+	\ref*{alg:algorithm-label}
 	\section{(Numerische) Ergebnisse/Vergleich mit anderen Verfahren} \label{chapter_comparisons}
 	
-	Wir konnten beobachten, dass die Qualität des angegriffenen Netzwerkes auf nicht korrumpierten Daten für alle durchgeführten Angriffe über 96 Prozent beträgt. Deshalb werden wir diese Kennzahl als Qualität des Angriffs nicht jeweils zusätzlich angeben.
+	\subsubsection{Standard Poisoning-Angriffe}
 	
 	\subsection{Clustering auf den Rohdaten}
-	Für das Clustering auf den Rohdaten bei einem Anteil von $15$ Prozent und einer Stickergröße von $3 \times 3$ erhalten wir die \autoref{tab:clustering_raw} in dargestellten Werte unter Verwendung der L2-Distanz. Dazu werden die Bilder als Graustufenbild eingelesen und anschließend in der Dimension auf 10 reduziert.
+	Für das Clustering auf den Rohdaten bei einem Anteil von 15 Prozent und einer Stickergröße von 3x3 erhalten wir die \autoref{tab:clustering_raw} in dargestellten Werte unter Verwendung der L2-Distanz. Dazu werden die Bilder als Graustufenbild eingelesen und anschließend in der Dimension auf 10 reduziert.
 	\begin{table}[ht]
 		\begin{center}
 			%\resizebox{\textwidth}{!}{	
@@ -2350,56 +1996,50 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 					TNR	& 72.36 	&78.48 	 
 				\end{tabular}
 			%}	
-				\caption[Auswertung des Clusterings auf den rohen Bilddaten]{Auswertung des Clusterings auf den rohen Bilddaten bei 33 Prozent korrumpierten Daten mit einem Sticker der Größe $3 \times 3$. Alle numerischen Werte sind in Prozent angegeben.}	
+				\caption[Auswertung des Clusterings auf den rohen Bilddaten]{Auswertung des Clusterings auf den rohen Bilddaten bei 33 Prozent korrumpierten Daten mit einem Sticker der Größe 3x3. Alle numerischen Werte sind in Prozent angegeben.}	
 				\label{tab:clustering_raw}
 			
 			
 		\end{center}
 	\end{table}
 	
-	\subsection{Standard Poisoning-Angriffe}
 	
+	Wir konnten beobachten, dass die Qualität des angegriffenen Netzwerkes auf unkorrumpierten Daten für alle durchgeführten Angriffe über 96 Prozent beträgt. Deshalb werden wir diese Kennzahl als Qualität des Angriffs nicht jeweils zusätzlich angeben.
 	
 	\begin{table}[ht]
 		\begin{center}
 		\resizebox{\textwidth}{!}{
 		
 		
-			\begin{tabular}{|l|c|c|ccc|ccc|}
+			\begin{tabular}{|l|c|c|ccc|ccc|c|}
 				\hline
-				Seitenlänge s	& Prozentualer 	& AER  		& 		&	DR 		& 		& 		& DR 	& 		  \\
-				des Triggers 	& Anteil 		& 			& 		&	(HC) 	& 		& 	&(AC,PCA)	&		\\
-				 				& 				& 			& ACC 	& 	TPR 	& TNR  	& ACC 	& TPR 	& TNR 	 	\\\hline
-				 				
-				s=3 			& 33.00			& 100.00	& 99.96	& 99.88		& 100.00& 94.76 & 90.77 & 96.73 \\ 
-								& 15.00			& 100.00	& 100.00& 100.00 	& 100.00& 76.51 & 99.31	&72.48 \\
-								& 10.00			& 100.00 	& 99.29 & 92.9 		& 100.00& 87.62 & 96.17 & 86.17 \\
-								& 5.00			& 99.6		& 99.48 & 90.8		& 99.94 & 57.92 & 20.69 & 59.88  \\
-								& 2.00			& 100.00	& 52.85 & 0.0 		& 53.94	& 52.91 & 0.0 	& 54.0 \\ \hline	 				
-				 				
-				 				
-				 				
-				s=2 			& 33.00			& 1.0 		& 100.00& 100.00	& 100.00&99.72	& 99.14	&100.00		\\
-				 				& 15.00			& 100.00	& 100.00& 100.00	& 100.00&87.53	& 97.59	& 85.76	\\
-				 				& 10.00			& 100.00	& 99.72	& 100.00 	& 99.69	&67.21	& 93.99	& 64.24 \\
-				 				& 5.00 			& 100.00	&		&			&		&47.44	& 10.34	& 49.39 \\
-				 				& 2.00 			& 100.00	& 		& 			&  		&23.02	& 4.43	& 32.18	\\
-				 				& 1.00 			& 92.00 	&		&			&		&		&		&	 \\
-				 				& 0.5 			& 99.87 	& 		&			&		&		&		&	\\
-				 				& 0.25 			& 57.6 		& 		&			&		&		&		&  \\ \hline
-						
-				
-				
-						 
+				Seitenlänge s	& Prozentualer 	& AER  		& 		&	DR 		& 		& 		& DR 	& 		& Clustering HC \\
+				des Triggers 	& Anteil 		& 			& 		&	(HC) 	& 		& 		& (AC,PCA)	& 		&				\\
+				 				& 				& 			& ACC 	& 	TPR 	& TNR  	& ACC 	& TPR 	& TNR 	& 	\\\hline
+				s=2 			& 0.000625 		& 0.01333333&  		& 			&		&		&		&   	&	\\
+								& 0.125 		& 0.356 	&  		&			&		&		&		&   	&		\\
+								& 0.25 		& 0.576 	& 		&			&		&		&		&   	&		\\
+								& 0.5 		& 0.99867 	& 		&			&		&		&		&		&   \\
+								& 1.00 			& 0.92 		&		&			&		&		&		&		&		   \\
 								
-				s=1 			& 33.0 			& 100.0 	& 100.00& 100.00	& 100.00& 98.78	& 97.66	& 99.33	 \\ 
-								& 15.0			& 100.0		& 100.00& 100.00	& 100.00& 96.29	& 79.04	& 99.33	 \\
-								& 10.0			& 100.0		& 100.00& 100.00	& 100.00& 71.47	& 87.43 & 69.7 	 \\
-								& 5.00			& 100.0		& 100.00& 100.00	& 100.00& 73.4	& 100.00& 72.0	\\
-								& 2.00			& 100.0		& 100.00& 100.00	& 100.00& 58.31 & 100.00& 57.45		\\
-								& 1.00			& 13.87		& 60.77 & 47.06		& 60.91	& 56.99	& 100.00& 56.55 \\ \hline
+							true& 2.00 			& 100.00	& 		& 			&  		&23.02	& 4.43	& 32.18	&	\\ 
+							true& 5.00 			& 100.00	&		&			&		&47.44	& 10.34	& 49.39	&		   \\
+							true& 10.00			& 100.00	& 99.72	& 100.00 	& 99.69	&67.21	& 93.99	& 64.24	& iter:4(tn, fp, fn, tp): 1645,5,0,183 \\ 
+					hctrue  true& 15.00			& 100.00	& 100.00& 100.00	& 100.00&87.53	& 97.59	& 85.76	& (tn, fp, fn, tp): 1650,0,0,291 it3 \\
+					(eps5e-4)	& 0.33 			& 1.0 		& 98.17 & 96.98		& 98.91 &99.72	&99.14	&100.00	& (tn, fp, fn, tp): 1632,18,27,786 it5\\ 
+					eps0.02		&				&			& 100.00&100.00		&100.00	&		&		&		& (tn, fp, fn, tp): 1650,0,0,813 it3\\	\hline	
+				s=3 			& 0.05 			& 1.0 		&   	&			&		&		&	 	&		& \\ 
+						
+								& 0.15 			& 1.0 		&  		& 			&  		&		&		&		&\\ \hline
+								
+				s=1 			& 33.0 			& 100.0 	& 100.00&100.00		& 100.00& 98.78	& 97.66	& 99.33	& \\ \hline
+								& 15.0			& 100.0		& 100.00&100.00		& 100.00& 96.29	& 79.04	& 99.33	&\\
+								& 10.00			& 100.0		& 100.00& 100.00	& 100.00& 71.47	& 87.43 & 69.7& \\
+								& 5.00			& 100.0		& 100.00& 100.00	& 100.00& 73.4	& 100.00& 72.0&\\
+								& 2.00			& 100.0		& 100.00& 100.00	& 100.00& 58.31 & 100.00& 57.45\\
+								& 1.00			& 13.87		& 60.77 & 47.06		& 60.91	& 56.99	& 100.00& 56.55 
 			\end{tabular}}
-			\caption[Vergleich von Angriffen und Verteidigungen für SPA]{Qualität der Detektion unterschiedlich starker Angriffe mithilfe von LRP-Clustering(?) und Gromov-Wasserstein-Distanzen. Das LRP-Clustering für s=1. wurde mit eps=0.1 durchgeführt(seed=0).}
+			\caption[Vergleich von Angriffen und Verteidigungen für SPA]{Qualität der Detektion unterschiedlich starker Angriffe mithilfe von LRP-Clustering(?) und Gromov-Wasserstein-Distanzen. Das LRP-Clustering für s=1. wurde mit eps=0.1 durchgeführt}
 			\label{tab:SPA_def_inv3_gwclustering}	
 		\end{center}
 	\end{table}
@@ -2478,13 +2118,89 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 		Für größere Netzwerke ist es einfacher, erfolgreiche Angriffe zu implementieren, auch schon mit weniger korrumpierten Daten.\\
 		Vermutung: Die Detektion mittels Clustering funktioniert für eine größere Anzahl an korrumpierten Daten besser. Wenn wir also nur perfekte Angriffe verteidigen wollen, d.h AER=100.00 funktioniert das bei kleineren Netzwerken besser.
 	\end{remark}
-	\subsection{Label-konsistente Poisoning-Angriffe}
+	\subsubsection{Label-konsistente Poisoning-Angriffe}
 
 	
 	\begin{remark}
 		Für einen einzelnen Amplitudensticker mit d=10 ist das eigentlich identisch zu dem Angriff mit dem Sticker
 	\end{remark}
-
+	0.7        0.86111111 0.85066667 0.81111111 0.66666667        nan
+	0.42       0.72888889 0.60888889 0.77083333 0.40757576 0.46666667
+	0.69855072 0.88472222 0.53333333 0.74285714 0.39333333 0.67222222
+	0.75128205 0.11666667 0.58888889 0.32222222 0.425      0.18
+	0.44444444 0.44375    0.8        0.71666667 0.56       0.86666667
+	0.11333333 0.3        0.71666667 0.5047619  0.23333333 0.44358974
+	0.63333333 0.58333333 0.46666667 0.01111111 0.5        0.36666667
+	0.67777778
+	$CLP\_amplitudesticker4\_pp33\_eps1200\_d10amp32$
+	Jetzt dasselbe noch für nur !!!einen!!! Sticker mit derselben Amplitude am selben Ort
+	$'CLP_amplitudesticker_pp33_eps1200_d10amp32'$
+	[0.         0.00833333 0.00133333 0.03555556 0.01666667        nan
+	0.         0.         0.00222222 0.         0.         0.
+	0.05362319 0.00138889 0.0037037  0.         0.         0.025
+	0.         0.         0.         0.         0.         0.
+	0.         0.         0.         0.05       0.         0.
+	0.         0.         0.         0.         0.         0.00512821
+	0.         0.         0.         0.         0.         0.
+	0.        ]
+	
+	Dann noch mit amp=16 wieder 4 sticker mit d=10
+	$CLP_amplitudesticker4_pp33_eps1200_d10amp16$
+	0.11666667 0.23055556 0.26       0.55333333 0.43333333        nan
+	0.23333333 0.28444444 0.11555556 0.07708333 0.15       0.0952381
+	0.4173913  0.41527778 0.40740741 0.45238095 0.01333333 0.35833333
+	0.29487179 0.         0.         0.04444444 0.05       0.01333333
+	0.4        0.29791667 0.13888889 0.23333333 0.11333333 0.3
+	0.06       0.02962963 0.11666667 0.65714286 0.475      0.71794872
+	0.50833333 0.43333333 0.35652174 0.45555556 0.27777778 0.
+	0.51111111
+	Accuracy on test Dataset: 0.958 
+	
+	Jetzt: $CLP_amplitudesticker4_pp33_eps1200_d10amp255$
+	0.71666667 0.78333333 0.80266667 0.99333333 0.9469697         nan
+	0.96       0.97555556 0.98444444 1.         1.         0.25714286
+	0.98985507 0.86111111 0.94444444 0.99047619 0.91333333 0.51666667
+	0.84871795 0.86666667 0.52222222 0.57777778 0.75       0.67333333
+	0.95555556 0.725      0.98888889 0.88333333 0.45333333 0.82222222
+	0.81333333 1.         0.98333333 0.4952381  0.26666667 0.92820513
+	0.63333333 0.81666667 0.77681159 0.33333333 0.74444444 0.91666667
+	0.83333333
+	Accuracy on test Dataset: 0.959 
+	
+	$CLP_amplitudesticker4_pp33_dist10_amp64$ eps300
+	[0.8        0.98888889 0.99733333 1.         1.                nan
+	1.         1.         0.99555556 0.97916667 0.99545455 0.8047619
+	1.         0.99861111 0.92222222 1.         0.99333333 0.98888889
+	0.98717949 0.93333333 0.86666667 0.93333333 0.975      0.83333333
+	0.96666667 0.93958333 1.         1.         0.98       1.
+	0.98       0.97777778 1.         0.92380952 0.55       0.93076923
+	0.70833333 0.85       0.82173913 1.         0.8        1.
+	1.        
+	
+	$CLP_amplitudesticker4_pp33_dist10_amp32$
+	0.7        0.86111111 0.85066667 0.81111111 0.66666667        nan
+	0.42       0.72888889 0.60888889 0.77083333 0.40757576 0.46666667
+	0.69855072 0.88472222 0.53333333 0.74285714 0.39333333 0.67222222
+	0.75128205 0.11666667 0.58888889 0.32222222 0.425      0.18
+	0.44444444 0.44375    0.8        0.71666667 0.56       0.86666667
+	0.11333333 0.3        0.71666667 0.5047619  0.23333333 0.44358974
+	0.63333333 0.58333333 0.46666667 0.01111111 0.5        0.36666667
+	0.67777778
+	Accuracy on test Dataset: 0.959 
+	
+	
+	$CLP_amplitudesticker4_pp33_dist10_amp16$
+	0.11666667 0.23055556 0.26       0.55333333 0.43333333        nan
+	0.23333333 0.28444444 0.11555556 0.07708333 0.15       0.0952381
+	0.4173913  0.41527778 0.40740741 0.45238095 0.01333333 0.35833333
+	0.29487179 0.         0.         0.04444444 0.05       0.01333333
+	0.4        0.29791667 0.13888889 0.23333333 0.11333333 0.3
+	0.06       0.02962963 0.11666667 0.65714286 0.475      0.71794872
+	0.50833333 0.43333333 0.35652174 0.45555556 0.27777778 0.
+	0.51111111]
+	Performance of poisoned net on unpoisoned training data:
+	loss on test dataset: 0.19637071904851583
+	Accuracy on test Dataset: 0.958 
 	
 	\begin{figure}[h]
 		\begin{center}
@@ -2505,140 +2221,6 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	
 	------------------------------------
 	\subsection{Activation Clustering}
-	
-	\subsection{Auswertung der CLPA}
-	Wir werten heir die Angriffe und Verteidigungen bei CLPA aus:
-	
-	Alle Rotationen: 33 Prozent korrumpierte Daten
-	[0.9        0.85416667 0.93066667 1.         0.9969697         nan
-	1.         1.         1.         0.97083333 0.99393939 0.93333333
-	0.74057971 0.95277778 0.98888889 0.83333333 0.99333333 0.725
-	0.96666667 1.         0.94444444 0.97777778 0.95       0.98666667
-	1.         0.90625    1.         1.         0.98       1.
-	0.94       1.         1.         0.8        0.30833333 0.88717949
-	0.75833333 0.98333333 0.81449275 0.37777778 1.         0.81666667
-	1. ]
-	
-	
-	mAER:  90.98034373809526
-	min:  30.833333000000003
-	max2  100.0
-	
-	AC:(tn, fp, fn, tp):  1106 0 15 529
-	ACC: 99.09
-	TPR:  97.24
-	TNR:  100.0
-	
-	HC: (tn, fp, fn, tp): 1106,0,7,537
-	acc: 99.58
-	tpr: 98.71
-	tnr: 100.0
-	--------------------------------------------------------------------------------------------
-	15 Prozent:
-	0.85       0.77361111 0.88       1.         0.96212121        nan
-	1.         0.97555556 1.         0.92708333 0.98030303 0.69761905
-	0.68405797 0.8875     0.86666667 0.71428571 0.87333333 0.55555556
-	0.85897436 0.9        0.93333333 0.77777778 0.81666667 0.86666667
-	1.         0.78541667 0.84444444 1.         0.89333333 0.66666667
-	0.84666667 1.         0.88333333 0.76666667 0.275      0.76666667
-	0.6        0.95       0.64782609 0.33333333 1.         0.88333333
-	1.       
-	
-	mAER:  83.15190128571427
-	min:  27.500000000000004
-	max2:  100.0
-	 
-	(tn, fp, fn, tp):  1106 0 59 485
-	ACC: 96.42
-	TPR:  89.15
-	TNR:  100.0
-	
-	(tn, fp, fn, tp): 1106,0,18,526
-	acc: 98.91
-	tpr: 96.69
-	tnr: 100.0
-	-------------------------------------------------------------------------------------
-	10 Prozent:
-	
-	[1.         0.85138889 0.96533333 1.         1.                nan
-	1.         0.99777778 1.         0.96875    0.98636364 0.87380952
-	0.6826087  0.925      0.92962963 0.88571429 1.         0.69166667
-	0.94102564 1.         0.97777778 0.86666667 0.94166667 1.
-	1.         0.85833333 0.97222222 1.         0.92       1.
-	0.88       1.         0.93333333 0.68571429 0.425      0.82820513
-	0.73333333 1.         0.87391304 0.44444444 1.         0.95
-	1.        ]
-	
-	
-	mAER:  90.45161504761903
-	min:  42.5
-	max2:  100.0
-	
-	(tn, fp, fn, tp):  1485 0 17 148
-	ACC: 98.97
-	TPR:  89.7
-	TNR:  100.0
-	
-	HC: (tn, fp, fn, tp): 1485,0,3,162
-	acc: 99.82
-	tpr: 98.18
-	tnr: 100.0
-	
-	-------------------------------------------------------------------------------------
-	5 Prozent:
-	[0.93333333 0.85       0.89466667 1.         0.95757576        nan
-	1.         0.99333333 1.         0.93541667 0.97575758 0.67380952
-	0.55072464 0.88472222 0.85555556 0.67142857 0.86666667 0.52222222
-	0.88974359 1.         0.93333333 0.86666667 0.825      0.89333333
-	1.         0.80416667 0.87777778 1.         0.94666667 0.9
-	0.9        1.         0.9        0.69047619 0.28333333 0.75384615
-	0.725      1.         0.81014493 0.33333333 1.         0.75
-	0.95555556]
-	
-	mAER:  84.77045302380954
-	min:  28.333333
-	max:  100.0
-	
-	(tn, fp, fn, tp):  1566 2 13 69
-	ACC: 99.09
-	TPR:  84.15
-	TNR:  99.87
-	
-	
-	(tn, fp, fn, tp): 1568,0,3,79
-	acc: 99.82
-	tpr: 96.34
-	tnr: 100.0
-	-------------------------------------------------------------
-	
-	2 Prozent:
-	
-	0.96666667 0.87222222 0.83866667 0.99777778 0.99090909        nan
-	1.         1.         1.         0.875      0.70151515 0.51190476
-	0.58550725 0.77777778 0.95555556 0.90952381 0.96666667 0.78055556
-	0.90512821 0.91666667 0.8        0.68888889 0.81666667 0.76
-	1.         0.5875     0.94444444 1.         0.94666667 0.97777778
-	0.81333333 1.         0.9        0.59047619 0.4        0.85128205
-	0.78333333 0.98333333 0.77681159 0.33333333 1.         0.7
-	0.86666667
-	
-	mAER5:  84.77045302380954
-	min:  28.333333
-	max  100.0
-	
-	AC:(tn, fp, fn, tp):  896 721 0 33
-	ACC: 56.3
-	TPR:  100.0
-	TNR:  55.41
-	
-	HC: (tn, fp, fn, tp): 880,737,0,33
-	acc: 55.33
-	tpr: 100.0
-	tnr: 54.42
-	
-	
-	
-	       
 	\subsection{Räumliche Transformationen}
 	\begin{itemize}
 		\item ASR ist sehr stark vom Ort des Triggers abhängig.
@@ -2659,14 +2241,128 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	
 	\section{Zusammenfassung und Ausblick} \label{chapter_conclusion}
 	Beobachtung: Je größer die Netzwerke sind, desto leichter lassen sich Poisoning-Angriffe realisieren.
-	Angriffe mit AER <100 Prozent sehr schwierig zu erkennen.
-	
 	
 	\printglossaries
 	\newpage
 	\appendix
 	\section{Verwendete Netzwerke}
+	\subsection{Net}
 	
+	\begin{lstlisting}[language=Python, caption=Kleines Netzwerk]
+	
+	class Net(nn.Module):
+	
+	def __init__(self, ):
+	super(Net, self).__init__()
+	self.size = 64 * 4 * 4
+	self.conv1 = nn.Conv2d(in_channels=3, out_channels=12, kernel_size=5, padding=2)
+	self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+	self.conv1_in = nn.InstanceNorm2d(12)
+	self.conv2 = nn.Conv2d(in_channels=12, out_channels=32, kernel_size=5, padding=2)
+	
+	self.conv2_bn = nn.BatchNorm2d(32)
+	
+	self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, padding=2)
+	
+	self.fc1 = nn.Linear(self.size, 256)
+	self.fc1_bn = nn.BatchNorm1d(256)
+	self.fc2 = nn.Linear(256, 128)
+	self.fc3 = nn.Linear(128, 43)
+	
+	
+	def forward(self, x):
+	x = self.pool(F.relu(self.conv1_in(self.conv1(x))))
+	x = self.pool(F.relu(self.conv2_bn(self.conv2(x))))
+	x = self.pool(F.relu(self.conv3(x)))
+	x = x.view(-1, self.size)
+	x = F.relu(self.fc1_bn(self.fc1(x)))
+	x = F.dropout(x)
+	xx = F.relu(self.fc2(x))
+	x = F.dropout(xx)
+	x = self.fc3(x)
+	
+	return x, xx
+	
+	\end{lstlisting}
+	
+	\begin{lstlisting}[language=Python, caption=Einfachere Version von Inception v3]
+	InceptionNet3(
+	(features): Sequential(
+	(0): InceptionA(
+	(parallel_dummyA): New_parallel_chain_dummy()
+	(conv1x1): BatchConv(
+	(conv): Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1))
+	(bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(parallel_dummyB): New_parallel_chain_dummy()
+	(conv5x5_1): BatchConv(
+	(conv): Conv2d(3, 48, kernel_size=(1, 1), stride=(1, 1))
+	(bn): BatchNorm2d(48, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(conv5x5_2): BatchConv(
+	(conv): Conv2d(48, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+	(bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(parallel_dummyC): New_parallel_chain_dummy()
+	(conv3x3dbl_1): BatchConv(
+	(conv): Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1))
+	(bn): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(conv3x3dbl_2): BatchConv(
+	(conv): Conv2d(64, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+	(bn): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(conv3x3dbl_3): BatchConv(
+	(conv): Conv2d(96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+	(bn): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(parallel_dummyD): New_parallel_chain_dummy()
+	(pool): MaxPool2d(kernel_size=3, stride=1, padding=1, dilation=1, ceil_mode=False)
+	(pool1x1): BatchConv(
+	(conv): Conv2d(3, 32, kernel_size=(1, 1), stride=(1, 1))
+	(bn): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(parallel_dummyE): New_parallel_chain_dummy()
+	(cat): Cat()
+	)
+	(1): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+	(2): BatchConv(
+	(conv): Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1))
+	(bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(3): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+	(4): BatchConv(
+	(conv): Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1))
+	(bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(5): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+	(6): BatchConv(
+	(conv): Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1))
+	(bn): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+	(relu): ReLU()
+	)
+	(7): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+	)
+	(classifiers): Sequential(
+	(0): Linear(in_features=256, out_features=256, bias=True)
+	(1): ReLU(inplace=True)
+	(2): Dropout(p=0.5, inplace=False)
+	(3): Linear(in_features=256, out_features=128, bias=True)
+	(4): ReLU(inplace=True)
+	(5): Dropout(p=0.5, inplace=False)
+	(6): Linear(in_features=128, out_features=43, bias=True)
+	)
+	)
+	\end{lstlisting}
 	Aufbau dieses Netzwerkes:
 	1. Inception-Modul
 	2. [pool1, batchConv1, pool2, batchConv2, pool3, batchConv3, pool4]
@@ -2677,7 +2373,45 @@ Wir betrachten nun die regularisierte Version der Gromow-Wasserstein-Diskrepanz 
 	es geht direkt mit InceptionA los.
 	
 	Wie ähnlich sind sich InceptionA(hier) und das offizielle InceptionA-Modul?
+	\begin{lstlisting}[language=Python, caption=Reversed Model incv3]
 	
+	[Linear(in_features=128, out_features=43, bias=True), 
+	Dropout(p=0.5, inplace=False), 
+	ReLU(inplace=True), 
+	Linear(in_features=256, out_features=128, bias=True), 
+	Dropout(p=0.5, inplace=False), 
+	ReLU(inplace=True), 
+	Linear(in_features=256, out_features=256, bias=True), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False), 
+	ReLU(), 
+	BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1)), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False), 
+	ReLU(), 
+	BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1)), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False), 
+	ReLU(), BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), 
+	Conv2d(256, 256, kernel_size=(2, 2), stride=(1, 1)), 
+	MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False),
+	
+	[[Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU()], 
+	
+	[Conv2d(3, 48, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(48, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU(), Conv2d(48, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2)), BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU()], 
+	
+	[Conv2d(3, 64, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU(), 
+	Conv2d(64, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)), 
+	BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU(), 
+	Conv2d(96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)), 
+	BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), ReLU()], 
+	
+	[MaxPool2d(kernel_size=3, stride=1, padding=1, dilation=1, ceil_mode=False), Conv2d(3, 32, kernel_size=(1, 1), stride=(1, 1)), 
+	BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True), 
+	ReLU()], 
+	
+	[Cat()]]]
+	\end{lstlisting}
 	\section{Parameter für Training und Einlesen der Daten}\label{param_net}
 	Die in \cite{CH} gewählten Parameter wären ein guter Ausgangspunkt.\\
 	Für das Einlesen der Daten benutzen wir, sofern nicht weiter angegeben die folgenden Augmentierungen:
