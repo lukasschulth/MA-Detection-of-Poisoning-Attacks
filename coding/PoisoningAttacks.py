@@ -612,7 +612,7 @@ class PoisoningAttack():
                 image = self.insert_3b3_black_and_white(image)
 
             if insert == 'amplitude':
-                image = self.insert_amplitude_backdoor(image, amplitude=amplitude)
+                image = self.insert_amplitude_backdoor(image, amplitude=amplitude, p=d)
 
             if insert == 'amplitude4':
                 image = self.insert_4corner_amplitude_backdoor(image, amplitude=amplitude, p=d)
