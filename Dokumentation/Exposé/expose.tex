@@ -1,0 +1,246 @@
+\documentclass{article}
+% Damit die Verwendung der deutschen Sprache nicht ganz so umst\"andlich wird,
+% sollte man die folgenden Pakete einbinden: 
+%\usepackage[latin1]{inputenc}% erm\"oglich die direkte Eingabe der Umlaute 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} % das Trennen der Umlaute
+%\usepackage{ngerman}[babel] 
+\usepackage[english,ngerman]{babel} %Version in meinem Numerik Vortrag
+\usepackage{caption}[2011/11/10]
+
+\newcommand{\figsource}[1]{%
+	\addtocounter{figure}{-1}
+	\captionlistentry{source: #1}
+}
+\usepackage[multiple]{footmisc}
+%\usepackage{pythontex} % \inputpygments{python}{file_1.py}
+\usepackage{caption}
+\usepackage{verbatim}
+\usepackage{subcaption}
+\usepackage{amssymb}  
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{ntheorem}
+%\usepackage{mathsrfs}
+\usepackage{pbox}
+\theoremstyle{break}
+\usepackage[nottoc,numbib]{tocbibind} %add bibliography to table of contents
+\newtheorem{theorem}{Theorem}
+\title{%
+	\large Exposé für eine Masterarbeit zum Thema: \\
+	\LARGE \textbf{Untersuchung \& Entwicklung von Ansätzen zur Detektion von Poisoning-Angriffen}}
+%\title{Dokumentation Simulationen EBZ Ravensburg}
+\author{Schulth, Lukas\\
+	\texttt{lukas.schulth@uni.kn}
+}
+
+\date{\today}
+
+
+
+\begin{document}
+	\begin{titlepage}
+		\centering
+		
+		\vspace{1cm}
+		{\scshape\LARGE Universität Konstanz\\
+			Fachbereich Mathematik und Statistik\\ \& \\Bundesamt für Sicherheit in der Informationstechnik \par}
+		\vspace{1cm}
+		{\scshape\Large Exposé für eine Masterarbeit zum Thema:\par}
+		\vspace{0.5cm}
+		{\huge\bfseries Untersuchung \& Entwicklung von Ansätzen zur Detektion von Poisoning-Angriffen\par}
+		\vspace{2cm}
+		{\Large Lukas Schulth\\
+			\texttt{lukas.schulth@uni.kn}\par}
+		%\vfill
+		\vspace{2cm}
+		unter der Betreuung von\par
+		\begin{figure}[h]
+		
+		\makebox[1 \textwidth][c]{   
+			\begin{tabular}{ll}
+				\pbox{20cm}{Herr Prof. Dr. Johannes Schropp \\ \texttt{johannes.schropp@uni.kn}} & \pbox{20cm}{Herr Prof. Dipl.-Ing. Markus Ullmann\\
+				\texttt{markus.ullmann@bsi.bund.de}} \\ 
+				&\\
+				\pbox{20cm}{Herr Dr. Christian Berghoff \\ \texttt{christian.berghoff@bsi.bund.de}} & \pbox{20cm}{Herr Matthias Neu \\ \texttt{matthias.neu@bsi.bund.de}}
+				
+			\end{tabular}
+		}
+		\end{figure}
+		
+		\vfill
+		
+		% Bottom of the page
+		{\large \today\par}
+		
+		
+		
+	\end{titlepage}
+\newpage
+\tableofcontents
+
+\newpage
+
+\section{Forschungsthema}
+Heute gibt es kaum noch einen Bereich, in dem Anwendungen auf Basis von Künstlicher Intelligenz keine Rolle spielen, sei es in der Produktion, Werbung, Kommunikation, Biometrie oder Automotive. Viele Unternehmen nutzen KI-Systeme, etwa um präzise Nachfrageprognosen anzustellen und das Kundenverhalten exakt vorherzusagen. Auf diese Weise lassen sich beispielsweise Logistikprozesse regional anpassen. Auch im Gesundheitswesen bedient man sich spezifischer KI-Tätigkeiten wie dem Anfertigen von Prognosen auf Basis von strukturierten Daten. Hier betrifft das etwa die Bildverarbeitung: So werden Röntgenbilder als Input in ein KI-System gegeben, der Output ist eine Diagnose. Das Erfassen von Bildinhalten ist auch beim autonomen Fahren entscheidend, wo Verkehrszeichen, Bäume, Fußgänger und Radfahrer fehlerfrei erkannt werden müssen. In solch sensiblen Anwendungsfeldern wie der medizinischen Diagnostik oder in sicherheitskritischen Bereichen müssen KI-Systeme absolut zuverlässige Problemlösungsstrategien liefern \cite{fh1}.\\
+
+\noindent Ein neuronales Netzwerk als KI-System kann als die Verkettung von linearen Funktionen und nicht-linearen Aktivierungsfunktionen verstanden werden.
+Zum Lebenszyklus eines KI-Systems gehören die Datenerhebung und Datenaufbereitung, der Trainingsprozess, das Testen und die Inferenz, bei der das parametrisierte Netzwerk in der Anwendung genutzt wird. Häufig sind neuronale Netzwerke klassischen Verfahren deutlich überlegen, gleichzeitig fehlt es aber an der Interpretierbarkeit und damit an der Nachvollziehbarkeit getroffener Entscheidungen.
+
+\noindent Bei einem Entscheidungsbaum kann beispielsweise genau erklärt werden, aufgrund welcher Schwellenwerte welche Entscheidung zustande kommt. 
+Im Falle eines neuronalen Netzwerkes liegen Millionen von Parametern vor, die genau verstanden und interpretiert werden müssen. \\
+
+\noindent Genau diese Schwachstelle der fehlenden Interpretierbarkeit bietet auch die Möglichkeit, ein neuronales Netzwerk gezielt zu manipulieren.  
+Während der Angreifer bei einem adversarialen Angriff das fertig trainierte Netz während der Inferenz angreift, findet der Poisoning-Angriff vor bzw. zeitgleich zum Training statt.\\
+Dabei werden korrumpierte (verfälschte) Daten in den Trainingsdatensatz eingeschleust, um die Vorhersagequalität eines Netzwerkes zu verringern.
+Das Ziel des Angreifers ist es, im Fall eines Klassifikationsproblems beispielsweise, die Testgenauigkeit einer einzelnen Klasse zu verringern, während die Testgenauigkeit auf allen anderen Klassen gar nicht oder nur leicht verringert wird.\\
+Ein Spezialfall sind die sogenannten Backdoor-Poisoning-Angriffe, bei denen der Angreifer eine Art Hintertür im Datensatz implementiert, die während der Inferenz ausgenutzt werden kann.
+Diese Angriffe können in ihrer Detektion noch erschwert werden, indem das entsprechende Label nicht zusätzlich abgeändert wird. In diesem Fall sprechen wir von Label-konsistenten Poisoning-Angriffen. \\
+
+
+
+\noindent Es ist noch immer schwierig, die konzeptionell leicht umzusetzenden Poisoning-Angriffe erfolgreich zu detektieren.
+
+\section{Zielsetzung und Erkenntnisinteresse}
+Ziel ist es, einen Algorithmus zu entwickeln, der einen Backdoor-Poisoning-Angriff erkennen kann. Dieser soll mit state-of-the-art-Methoden konkurrieren können und gleichzeitig auch eine Antwort auf Label-konsistente Poisoning-Angriffe bieten. Zudem soll die Entscheidungsfindung Neuronaler Netzwerke besser verstanden werden.\\
+
+\noindent Als Datensatz soll \textit{The German Traffic Sign Recognition Benchmark} \footnote{\url{https://benchmark.ini.rub.de/gtsrb\_news.html}}, bestehend aus mehr als 50.000 Bildern in über 40 verschiedenen Klassen, verwendet werden. Das Klassifikationsproblem besteht darin, die Bilder von Verkehrsschildern ihren entsprechenden Klassen zuzuordnen.
+
+\section{Forschungsstand und theoretische Grundlagen}
+Im Allgemeinen verfolgen Poisoning-Angriffe das Ziel, die Vorhersagegenauigkeit eines Netzwerkes bei der Anwendung auf nicht-korrumpierten Daten zu verringern.
+
+\noindent Für den Fall eines Klassifikationsproblems kann zwischen gezielten und ungezielten Poisoning-Angriffen unterschieden werden. Erstere versuchen, die Vorhersagegenauigkeit nur auf einzelnen Klassen zu verringern, während die Vorhersagegenauigkeit auf allen anderen Klassen gar nicht oder nur leicht verringert wird.
+
+\noindent Bei sogenannten Backdoor-Poisoning-Angriffen (Hintertür-Angriffen) wird zunächst wieder eine spezielle Klasse angegriffen. Dabei platziert der Angreifer einen Trigger (Auslöser) innerhalb des Datenpunktes und ändert die zugehörigen Labels ab. Während des Trainings lernt das Netzwerk nun, Datenpunkte dieser speziellen Klasse in Anwesenheit eines Triggers, aus Sicht des Angreifers korrekt falsch zu klassifizieren. In der Abwesenheit eines Triggers funktioniert das Netz wie gewünscht und die Datenpunkte werden korrekt klassifiziert. Dieses Verhalten macht es schwierig, solche Angriffe selbst durch umfangreiche Tests zu erkennen.
+
+\noindent Im Unterschied zum Standard-Backdoor-Poisoning-Angriff, wird bei einem Label-konsistenten Poisoning-Angriff das zum Datenpunkt gehörige Label nicht zusätzlich abgeändert. Bevor ein Trigger implementiert wird, benutzt man ein zweites Neuronales Netz, um die Vorhersagegenauigkeit auf dem Datenpunkt ohne Trigger möglichst stark zu verringern, sodass sich das angegriffene Netzwerk später mehr auf den Trigger selbst anstatt auf den Datenpunkt verlässt.\\
+Zwei mögliche Verfahren zum Erstellen eines solchen Angriffs werden in \cite{labelconsistent} vorgestellt.
+Bei dem dort verwendeten Trigger wird bei neun ausgewählten Pixeln auf allen drei Farbkanälen eine Amplitude addiert bzw. subtrahiert. \\
+
+\noindent In ersten Untersuchungen im Rahmen eines Praktikums beim Bundesamt für Sicherheit in der Informationstechnik (BSI) von Januar bis April 2020  konnten wir feststellen, dass Standard-Poisoning-Angriffe auf mehreren Inception-Netzwerken\footnote{ \url{https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44903.pdf}} sehr gut funktionieren. Ein Angriff wird mit Hilfe einer Angriffserfolgsrate bewertet. Diese gibt den prozentualen Anteil der korrumpierten Daten im Testdatensatz an, die beim Testen auch erfolgreich falsch klassifiziert werden.
+
+\noindent Eine bereits untersuchte Gegenmaßname aus der Literatur ist das sogenannte Activation Clustering\cite{AC}. Dabei werden die Aktivierungen der vorletzten Netzwerkschicht als Merkmale der Eingabe betrachtet. Nach einer Dimensionsreduktion wird ein Clustering mit $K=2$ Clustern durchgeführt. Dabei sollen im Idealfall ein korrumpiertes und ein nicht-korrumpiertes Cluster entstehen. Die Verteilung auf beide Cluster wird mittels eines Silhouettenkoeffizienten bewertet. Dieser ist ein Maß dafür, wie gut ein Clustering bezüglich einer Distanz zu einem Datensatz passt. Anhand eines Schwellenwertes wird die Präsenz von korrumpierten Daten ermittelt.
+
+\noindent Eine im Anschluss mögliche Gegenmaßnahme ist das erneute Trainieren des Netzwerkes ohne den verdächtigen Anteil an Daten und der anschließende Vergleich der Testgenauigkeit. Dieser Ansatz funktioniert deutlich besser, ist jedoch mit sehr großem Aufwand verbunden.
+
+\noindent Des Weiteren zeigte sich, dass ein kleinerer Anteil an korrumpierten Daten die Angriffserfolgsrate verringert.
+Besonders diejenigen Angriffe, die eine hohe, aber nicht 100-prozentigen Angriffsrate besitzen, lassen sich kaum erkennen.
+Zudem bedeutet eine Rate von 100 Prozent nicht unbedingt, dass der Angriff auch detektiert wird.
+
+\noindent Bei den Label-konsisten-Angriffe konnten wir die Amplitudenstärke jedoch nicht so weit absenken, wie in \cite{labelconsistent} angegeben.
+Die Methode des erneuten Trainierens als Gegenmaßnahme funktioniert bei den Label-konsistenten Angriffen nicht, da die Label zum Datenpunkt passen.\\
+
+\noindent In \cite{transformation_defense} wird ein Verfahren zur Detektion vorgestellt, das darauf beruht die Testdatenpunkte einer Transformation zu unterziehen, bevor diese durch das Netzwerk ausgewertet werden. Vorteil davon ist der sehr geringe Rechenaufwand.
+
+\noindent Eine ausführliche zeitliche Entwicklung möglicher Poisoning-Angriffe und entsprechender Gegenmaßnahmen ist in \cite{review} gegeben.
+
+
+
+\section{Konzept}
+Mit Methoden aus dem Bereich \textit{explainable AI} (erklärbare Künstliche Intelligenz, kurz: XAI)  soll die Detektion von Poisoning-Angriffen verbessert werden. XAI beschreibt Methoden, die es ermöglichen, Entscheidungen eines neuronalen Netzes besser interpretieren zu können.
+Diese lassen sich in lokale und globale Methoden unterteilen. Ein Beispiel für einen lokalen Ansatz ist die sogenannte „Layer-wise Relevance Propagation“ (LRP)\cite{lrp_toolbox, lrp}, die sichtbar macht, aufgrund welcher Kriterien KI-Systeme Entscheidungen treffen. Dabei werden die einzelnen Bestandteile eines Datenpunktes nach ihrer Relevanz für die Entscheidung des Netzwerkes sortiert. Zu einem Bild als Datenpunkt entsteht eine sogenannte Heatmap. \\
+Anschließend wird eine Spektrale Relevanz-Analyse (SpRAy)\cite{spray} durchgeführt. Diese identifiziert und quantifiziert ein breites Spektrum erlernter Entscheidungsverhalten. So wird es möglich, auch in sehr großen Datensätzen unerwünschte Entscheidungen zu erkennen\cite{fh2}.\\
+Im Unterschied zum Activation-Clustering, bei welchem die Aktivierungen bestimmter Netzwerkschichten als Merkmale extrahiert werden, benutzt man hier die Heatmaps.\\
+Ausgehend von einer Metrik (Euklidische Distanz oder  Gromov-Wasserstein-Distanz\cite{gmd}) wird eine Affinitätsmatrix A aller paarweisen Netzwerkeingaben einer bestimmten Klasse berechnet. 
+Durch die Berechnung der Spektralen Einbettung kann Information über die Cluster-Struktur der Eingaben einer bestimmten Klasse gewonnen werden. Dabei liefert eine Eigenwertzerlegung der zu A gehörigen Laplace-Matrix L Aufschluss über die Anzahl an verschiedenen Clustern.
+Das Clustering findet auf den Heatmaps bzw. einer in der Dimension reduzierten Version davon statt.\\
+\noindent Diese Idee basiert auf \cite{ersteIdee} und könnte durch die neuere und deutlich umfangreichere Version des Papers \cite{Weiterentwicklung} ergänzt werden. Eine Verbesserung der LRP für Convolutional Neural Networks, die sogenannte Softmax Gradient Layer-wise Relevance Propagation, wird in \cite{nLRP} vorgestellt.
+
+\section{Vorläufiger Zeitplan}
+Ausgehend von einer Dauer von 24 Wochen unterteilen wir die einzelnen Schritte wie folgt:
+
+\begin{itemize}
+	\item Woche 1-3: Literaturrecherche
+	\item Woche 4-6: Implementierung des LRP-Algorithmus 
+	\item Woche 7-10: Implementierung der Spektralen Relevanz-Analyse
+	
+	\item Woche 11-14: Anwendung auf verschiedene Arten von Poisoning-Angriffe
+	
+	\item Woche 15-16: Vergleich mit bisher untersuchten Methoden 
+	\item Woche 17-23: Aufschreiben der Ergebnisse
+	\item Woche 24: Druck und Abgabe der Arbeit
+\end{itemize}
+\newpage
+\section{Vorläufige Gliederung}
+\begin{itemize}
+	\item Einführung
+	\item Theoretische Grundlagen
+	\item Methoden
+		\begin{itemize}
+			\item Linear Relevance Propagation
+			\item Spectral Relevance Analysis
+		\end{itemize}
+	\item Entwurf des Algorithmus
+	\item Anwendung auf bekannte Poisoning-Angriffe
+	\item Ergebnisse
+	\item Zusammenfassung/Fazit
+
+	
+\end{itemize}
+
+\newpage
+\begin{thebibliography}{9}
+	\bibitem{fh1}
+	Fraunhofer Gesellschaft, Forschung Kompakt. 1. Juli 2019. 
+	\textsl{Künstliche Intelligenz erklärbar machen - 
+		Der Blick in Neuronale Netze}. Zugriff am 21.01.2021. \\
+	\url{https://www.fraunhofer.de/content/dam/zv/de/presse-medien/2019/Juli/forschung-kompakt/hhi-der-blick-in-neuronale-netze.pdf}
+	
+	\bibitem{labelconsistent} 
+	Alexander Turner, Dimitris Tsipras, Aleksander Madry.
+	\textsl{Label-Consistent Backdoor Attacks}. 6 Dec 2019 \\
+	\url{https://arxiv.org/abs/1912.02771}
+	
+	\bibitem{AC}
+	Bryant Chen, Wilka Carvalho, Nathalie Baracaldo, Heiko Ludwig, Benjamin Edwards, Taesung Lee, Ian Molloy, and Biplav Srivastava.
+	\textsl{Detecting Backdoor Attacks on Deep Neural Networks by Activation Clustering}. 12 Nov 2018\\
+	\url{arXiv:1811.03728v1}
+	
+	\bibitem{transformation_defense}Yiming Li,Tongqing Zhai, Baoyuan Wu, Yong Jiang, Zhifeng Li, Shutao Xia
+	\textsl{Rethinking the Trigger of Backdoor Attack}. 24 Jun 2020\\
+	\url{https://arxiv.org/abs/2004.04692}
+	
+	\bibitem{review} Yansong Gao, Bao Gia Doan, Zhi Zhang, Siqi Ma, Jiliang Zhang,
+	Anmin Fu, Surya Nepal and Hyoungshick Kim. \textsl{Backdoor Attacks and Countermeasures on Deep Learning: A Comprehensive Review}. 2 Aug 2020 \\ \url{https://arxiv.org/abs/2007.10760}
+	
+	\bibitem{lrp_toolbox}
+	S. Lapuschkin, A. Binder, G. Montavon, K.-R. Müller, W. Samek.
+	\textsl{The LRP Toolbox for Artificial Neural Networks}. 2016 \\
+	\url{https://jmlr.org/papers/volume17/15-618/15-618.pdf}
+	
+	\bibitem{lrp} Binder A., Bach S., Montavon G., Müller KR., Samek W. (2016) \textsl{Layer-Wise Relevance Propagation for Deep Neural Network Architectures}. In: Kim K., Joukov N. (eds) Information Science and Applications (ICISA) 2016. Lecture Notes in Electrical Engineering, vol 376. Springer, Singapore.\\ \url{https://doi.org/10.1007/978-981-10-0557-2\_87}
+	
+	\bibitem{spray}S. Lapuschkin, S. Wäldchen, A. Binder, G. Montavon, W. Samek, and K.-R. Müller. \textsl{Unmasking Clever Hans predictors and assessing what machines really learn}. Nature Communications,
+	vol. 10, p. 1096, 2019.\\
+	\url{https://www.nature.com/articles/s41467-019-08987-4}
+	
+	\bibitem{fh2}
+	Pressemitteilung Fraunhofer HHI, 12. März 2019. Zugriff am 21.01.2021.
+	\url{https://www.hhi.fraunhofer.de/presse-medien/nachrichten/2019/wie-intelligent-ist-kuenstliche-intelligenz.html}
+	\bibitem{gmd}
+	Facundo Mémoli. Department of Mathematics, The Ohio State University, Columbus, OH, USA. 2 Sep 2014.
+	\textsl{The Gromov–Wasserstein Distance: A Brief Overview}
+	\url{file:///tmp/mozilla_lukasschulth0/The_Gromov-Wasserstein_Distance_A_Brief_Overview.pdf}
+	\bibitem{ersteIdee}Christopher J. Anders, Talmaj Marinč, David Neumann, Wojciech Samek, Klaus-Robert Müller and Sebastian Lapuschkin.
+	\textsl{Analyzing ImageNet with Spectral Relevance Analysis: Towards ImageNet un-Hans’ed}. 22 Dec 2019 \\
+	\url{https://arxiv.org/abs/1912.11425v1}
+	
+	\bibitem{Weiterentwicklung}Christopher J. Anders, Leander Weber, David Neumann, Wojciech Samek, Klaus-Robert Müller, and Sebastian Lapuschkin.
+	\textsl{Finding and Removing Clever Hans: Using Explanation Methods to Debug and Improve Deep Models}. 22 Dec 2020 \\
+	\url{https://arxiv.org/pdf/1912.11425.pdf}
+	
+	\bibitem{nLRP}
+	Brian Kenji Iwana, Ryohei Kuroki, Seiichi Uchida,
+	Kyushu University, Fukuoka, Japan. 
+	\textsl{Explaining Convolutional Neural Networksusing Softmax Gradient Layer-wise Relevance Propagation}. 7 Nov 2019.\\
+	\url{https://arxiv.org/pdf/1908.04351.pdf}
+	 
+	
+	
+	
+	
+	
+\end{thebibliography}
+\end{document}
