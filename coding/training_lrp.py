@@ -905,6 +905,10 @@ def set_inceptionV3_module():
         module.fc = nn.Linear(num_frts, 43)
 
         return module
+        
+        
+        
+        
 if __name__ == '__main__':
 
     #deterministic results:
@@ -931,8 +935,8 @@ if __name__ == '__main__':
     print("Version of Numpy: ", np.__version__)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    s = 2
-    pp = 0.02
+    s = 3
+    pp = 0.33
 
     # Für Clean Label Poisoning Attack wird model_to_poison_data benötigt
     model_to_poison_data = modelAi(name_to_save='incv3_clean', net=InceptionNet3, poisoned_data=False, isPretrained=False, lr=1e-3)
@@ -951,7 +955,7 @@ if __name__ == '__main__':
     #valid_dir = valid_dir_unpoisoned
     #test_dir = test_dir_unpoisoned
 
-    model = modelAi(name_to_save='SPA_incV3_s2_pp002', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
+    model = modelAi(name_to_save='SPA_incV3_s3_pp033', net=InceptionNet3, poisoned_data=True, isPretrained=False, lr=1e-3)
     # Lade model in TrafficSignMain:
     main = TrafficSignMain(model, epochs=100, image_size=32, batch_size=32)
     #print(model.net)
