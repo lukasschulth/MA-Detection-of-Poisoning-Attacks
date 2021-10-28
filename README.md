@@ -9,7 +9,7 @@ Die benötigten Python-Bibliotheken finden sich in `requirements.txt` und könne
 pip install -r requirements.txt
 ```
 ## Benutzung
-In `coding/training_lrp` werden die Angriffe implementiert, indem der Datensatz manipuliert und das Training durchgeführt wird. Anschließend werden zu einer verächtigen Klasse die Heatmaps mithilfe der Layer-wise Relevance-Propagation (LRP) berechnet.
+In `coding/training_lrp` werden die Angriffe implementiert, indem der Datensatz manipuliert und das Training durchgeführt wird. Dabei werden verschiedene Implementierungen von Poisoning-Angriffen in `coding/PoisoningAttacks` aufgerufen. Anschließend werden zu einer verdächtigen Klasse die Heatmaps mithilfe der Layer-wise Relevance-Propagation (LRP) berechnet.
 Zudem wird eine Detektion basierend auf dem Activation-Clustering ausgeführt.
 
 In `coding/detection_kmeans_gromovwasserstein` werden die erzeugten Heatmaps eingelesen und ein kMeans-Clustering unter Verwendung der Gromov-Wasserstein-Distanz durchgeführt.
